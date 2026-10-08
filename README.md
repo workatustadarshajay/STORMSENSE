@@ -37,7 +37,11 @@ This creates the schema and tables, trains and registers the forecaster, schedul
 
 ## Marketing page
 
-The landing page that introduces StormSense lives at the repository root and is deployed to GitHub Pages by `.github/workflows/deploy.yml`.
+The landing page that introduces StormSense lives at the repository root and is deployed to GitHub Pages by `.github/workflows/deploy.yml`. The same deployment publishes the interactive architecture diagrams from `docs/architecture` under `/architecture/`, so they are served from one site:
+
+<https://workatustadarshajay.github.io/STORMSENSE/architecture/>
+
+Rebuild them from the JSON in `docs/architecture/src` with `make architecture`.
 
 ### Features
 

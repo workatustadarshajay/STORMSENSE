@@ -376,7 +376,7 @@ function App() {
       <footer className="site-footer">
         <a href="#top" className="brand"><span className="brand-mark"><CloudLightning size={17} fill="currentColor" /></span><span>storm<span>sense</span></span></a>
         <span className="footer-copy">Weather-aware inventory planning for home improvement retail.</span>
-        <div className="footer-links"><a href="#platform">Platform</a><a href="#roi">ROI calculator</a><a href="mailto:hello@stormsense.ai">Contact</a></div>
+        <div className="footer-links"><a href="#platform">Platform</a><a href="#roi">ROI calculator</a><a href={`${import.meta.env.BASE_URL}architecture/`}>Architecture</a><a href="mailto:hello@stormsense.ai">Contact</a></div>
         <span className="copyright">© 2026 StormSense</span>
       </footer>
     </main>

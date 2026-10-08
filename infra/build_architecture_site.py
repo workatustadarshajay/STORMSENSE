@@ -1,6 +1,8 @@
-"""Assembles the architecture website as its own publishable repository (its own GitHub Pages site).
+"""Builds the architecture website, either as its own publishable repository (its own GitHub Pages site)
+or as a folder inside an existing site.
 
-    python infra/build_architecture_site.py ../STORMSENSE-architecture
+    python infra/build_architecture_site.py ../STORMSENSE-architecture   # whole standalone repository
+    python infra/build_architecture_site.py --into dist/architecture      # just the pages, into a site
 
 The published copy differs from docs/architecture only where links would break outside this repository
 (the documentation links) and the regenerate hint in the footer.
@@ -69,16 +71,16 @@ The diagrams are generated from JSON in the main StormSense project with Archify
 """
 
 
-def main(target: Path) -> None:
-    site = target / "site"
+def build_site(src: Path, site: Path) -> None:
+    """Copy the diagrams and a publish-ready index.html into `site`, ready to be served as-is."""
     if site.exists():
         shutil.rmtree(site)
     (site / "assets").mkdir(parents=True)
-    shutil.copy(SRC / "assets" / "manrope.woff2", site / "assets" / "manrope.woff2")
+    shutil.copy(src / "assets" / "manrope.woff2", site / "assets" / "manrope.woff2")
     for name in PAGES:
-        shutil.copy(SRC / f"{name}.html", site / f"{name}.html")
+        shutil.copy(src / f"{name}.html", site / f"{name}.html")
 
-    html = (SRC / "index.html").read_text()
+    html = (src / "index.html").read_text()
     html, n = re.subn(r'\s*<nav class="links" aria-label="Documentation">.*?</nav>', "", html, flags=re.S)
     assert n == 1, "documentation links not found"
     footer = "<footer>Diagrams generated with Archify from StormSense&rsquo;s architecture sources.</footer>"
@@ -87,6 +89,11 @@ def main(target: Path) -> None:
     (site / "index.html").write_text(html)
 
     (site / ".nojekyll").write_text("")
+
+
+def main(target: Path) -> None:
+    site = target / "site"
+    build_site(SRC, site)
     wf = target / ".github" / "workflows"
     wf.mkdir(parents=True, exist_ok=True)
     (wf / "pages.yml").write_text(WORKFLOW)
@@ -96,4 +103,11 @@ def main(target: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]).resolve())
+    args = sys.argv[1:]
+    if args[:1] == ["--into"]:
+        if len(args) != 2:
+            raise SystemExit("usage: build_architecture_site.py --into DIR")
+        build_site(SRC, Path(args[1]).resolve())
+        print(f"built {args[1]}")
+    else:
+        main(Path(args[0]).resolve())
