@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">StormSense transfer story preview</title>
+  <desc id="desc">A storm alert connects a surplus store to a store with forecast demand.</desc>
+  <defs>
+    <linearGradient id="panel" x2="1" y2="1"><stop stop-color="#172c3c"/><stop offset="1" stop-color="#102130"/></linearGradient>
+    <radialGradient id="weather"><stop stop-color="#ff8069" stop-opacity=".35"/><stop offset="1" stop-color="#ff8069" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1440" height="900" fill="#f4f7f5"/>
+  <g font-family="Arial,sans-serif">
+    <text x="120" y="116" fill="#778985" font-size="13" letter-spacing="1.5">— THE MOMENT BEFORE THE RUSH</text>
+    <text x="120" y="230" fill="#3ba7a1" font-size="16" font-weight="700">READY IN MINUTES</text>
+    <text x="120" y="300" fill="#1c2b37" font-size="51" font-weight="600">Move what’s already</text><text x="120" y="360" fill="#1c2b37" font-size="51" font-weight="600">there. Before customers</text><text x="120" y="420" fill="#1c2b37" font-size="51" font-weight="600">arrive.</text>
+    <text x="120" y="480" fill="#68777d" font-size="16">StormSense pairs surplus with nearby demand.</text><text x="120" y="506" fill="#68777d" font-size="16">Your planner approves with one click.</text>
+    <path d="M120 571h38" stroke="#3ba7a1" stroke-width="3"/><path d="M165 571h20M192 571h20" stroke="#d3dcda" stroke-width="3"/><text x="230" y="575" fill="#8c9999" font-size="12">03 / 03</text>
+    <rect x="610" y="95" width="710" height="710" rx="5" fill="url(#panel)"/>
+    <text x="644" y="137" fill="#d7e4e2" font-size="12">⌖ TRANSFER RECOMMENDED</text><circle cx="1277" cy="133" r="4" fill="#72d3c9"/><text x="1287" y="137" fill="#92a8ad" font-size="10">LIVE</text>
+    <g opacity=".25" stroke="#94b8b2"><path d="M650 220h630M650 275h630M650 330h630M650 385h630M650 440h630M650 495h630M650 550h630M650 605h630M650 660h630"/><path d="M700 180v490M760 180v490M820 180v490M880 180v490M940 180v490M1000 180v490M1060 180v490M1120 180v490M1180 180v490M1240 180v490"/></g>
+    <ellipse cx="1000" cy="435" rx="248" ry="190" fill="none" stroke="#68b6ad" stroke-opacity=".24"/><ellipse cx="1000" cy="435" rx="190" ry="143" fill="none" stroke="#68b6ad" stroke-opacity=".28"/><ellipse cx="1000" cy="435" rx="125" ry="93" fill="none" stroke="#68b6ad" stroke-opacity=".32"/>
+    <circle cx="1145" cy="325" r="145" fill="url(#weather)"/><circle cx="1145" cy="325" r="55" fill="none" stroke="#ff9b81" stroke-opacity=".65"/><text x="1115" y="239" fill="#ffad8f" font-size="10" letter-spacing="1">GULF STORM</text>
+    <path d="M1080 335C1025 390 920 412 850 562" fill="none" stroke="#72ddd0" stroke-width="3" stroke-dasharray="7 8"/>
+    <circle cx="1080" cy="335" r="8" fill="#48a9a0" stroke="#7cd8ce" stroke-width="2"/><circle cx="850" cy="562" r="8" fill="#c56c5c" stroke="#ff967c" stroke-width="2"/>
+    <rect x="1077" y="268" width="195" height="68" rx="3" fill="#193343" stroke="#4d8f89"/><text x="1092" y="291" fill="#9fb2b5" font-size="11">STORE 02 · SURPLUS</text><text x="1092" y="319" fill="#eff6f2" font-size="21" font-weight="700">+250 <tspan fill="#95aaa9" font-size="12">units</tspan></text>
+    <rect x="652" y="554" width="195" height="68" rx="3" fill="#193343" stroke="#96675d"/><text x="667" y="577" fill="#9fb2b5" font-size="11">STORE 01 · DEMAND</text><text x="667" y="605" fill="#eff6f2" font-size="21" font-weight="700">250 <tspan fill="#95aaa9" font-size="12">units</tspan></text>
+    <rect x="880" y="448" width="166" height="40" rx="3" fill="#28514f" stroke="#72cbbd"/><circle cx="899" cy="468" r="9" fill="#53bca9"/><path d="m895 468 3 3 6-7" fill="none" stroke="#102d32" stroke-width="2"/><text x="915" y="472" fill="#eaf4ef" font-size="11">Transfer approved</text>
+    <text x="644" y="770" fill="#718890" font-size="10" letter-spacing="1">WEATHER-DRIVEN DEMAND</text><text x="1145" y="770" fill="#718890" font-size="10" letter-spacing="1">STORMSENSE ENGINE ↗</text>
+  </g>
+</svg>

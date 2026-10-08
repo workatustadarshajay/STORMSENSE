@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">StormSense landing page preview</title>
+  <desc id="desc">Dark StormSense hero page with a weather radar globe and a call to action.</desc>
+  <defs>
+    <radialGradient id="globe" cx="55%" cy="40%"><stop stop-color="#21434d"/><stop offset=".8" stop-color="#142637"/><stop offset="1" stop-color="#101b2b"/></radialGradient>
+    <radialGradient id="storm"><stop stop-color="#ff8069" stop-opacity=".8"/><stop offset="1" stop-color="#ff8069" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fade" x2="1"><stop stop-color="#101b2b"/><stop offset="1" stop-color="#101b2b" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="#101b2b"/>
+  <path d="M0 0h1440v900H0z" fill="#142333" opacity=".45"/>
+  <circle cx="1000" cy="440" r="355" fill="url(#globe)" stroke="#52767c" stroke-width="2"/>
+  <g fill="none" stroke="#9ab9bb" stroke-opacity=".25">
+    <ellipse cx="1000" cy="440" rx="355" ry="100"/><ellipse cx="1000" cy="440" rx="355" ry="220"/><ellipse cx="1000" cy="440" rx="190" ry="355"/><ellipse cx="1000" cy="440" rx="90" ry="355"/>
+    <path d="M645 440h710M670 320h660M670 560h660M750 220l500 440M1250 220 750 660"/>
+  </g>
+  <circle cx="1070" cy="345" r="110" fill="url(#storm)"/>
+  <circle cx="1000" cy="440" r="375" fill="none" stroke="#64c9bf" stroke-opacity=".22"/>
+  <rect width="570" height="900" fill="url(#fade)"/>
+  <path d="M0 82h1440" stroke="#fff" stroke-opacity=".1"/>
+  <g font-family="Arial,sans-serif" fill="#f4f7f7">
+    <rect x="82" y="27" width="32" height="32" rx="8" fill="#183841" stroke="#4d9c98"/>
+    <path d="M91 43c1-5 8-7 12-4 5 0 6 8 1 10h-9c-3 0-5-3-4-6z" fill="#72d3c9"/>
+    <text x="126" y="50" font-size="19" font-weight="700">storm<tspan fill="#72d3c9">sense</tspan></text>
+    <text x="555" y="49" fill="#bdc9cf" font-size="12">Platform</text><text x="650" y="49" fill="#bdc9cf" font-size="12">Impact</text><text x="735" y="49" fill="#bdc9cf" font-size="12">ROI calculator</text><text x="865" y="49" fill="#bdc9cf" font-size="12">Pricing</text>
+    <rect x="1190" y="22" width="170" height="42" rx="3" fill="none" stroke="#ffffff" stroke-opacity=".3"/><text x="1211" y="48" font-size="12">Book a walkthrough ↗</text>
+    <circle cx="151" cy="267" r="4" fill="#64d6ca"/><text x="168" y="271" fill="#9bb2bd" font-size="11" letter-spacing="1.4">WEATHER MOVES FAST. NOW YOUR INVENTORY CAN, TOO.</text>
+    <text x="145" y="383" font-size="72" font-weight="600" letter-spacing="-3">Be ready before</text><text x="145" y="465" font-size="72" font-weight="600" letter-spacing="-3">the <tspan fill="#72d3c9">weather turns.</tspan></text>
+    <text x="148" y="523" fill="#b6c2c9" font-size="17">Know what customers will need. Move it where it matters.</text><text x="148" y="550" fill="#b6c2c9" font-size="17">Never miss the storm-driven sale.</text>
+    <rect x="148" y="592" width="170" height="49" rx="3" fill="#73d6cd"/><text x="170" y="622" fill="#10252c" font-size="13" font-weight="700">See how it works ↓</text><text x="344" y="622" fill="#d2dcde" font-size="13">Estimate your impact →</text>
+    <text x="1106" y="153" fill="#9aafb8" font-size="10" letter-spacing="1">● ATLANTIC SYSTEM</text><text x="1240" y="153" fill="#79d9cf" font-size="10">ACTIVE</text>
+    <text x="1047" y="800" fill="#9aafb8" font-size="10" letter-spacing="1">GULF COAST · STORM FRONT</text><text x="1304" y="800" font-size="16" font-weight="700">24h</text>
+    <text x="638" y="827" fill="#8a9ea7" font-size="10" letter-spacing="1.2">SCROLL TO SEE THE SHIFT</text>
+  </g>
+</svg>
