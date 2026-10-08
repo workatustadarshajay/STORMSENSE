@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e706dfb2-c30a-4d92-9acb-8f56405433d8",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/workflow-deploy.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/deploy.html",
+  "specification": {
+    "sha256": "93b3918b741e8b111d034360c178aac8700769f76bae163e6fc837876797bfe8",
+    "bytes": 4771
+  },
+  "artifact": {
+    "sha256": "a61c140a5d784b1c2a59d65d294e56ce09222fda70c0b244d5ec1f593b3d0742",
+    "bytes": 760053
+  }
+}

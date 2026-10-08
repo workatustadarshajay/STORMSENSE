@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "46df12ec-8632-4301-a8a7-d1dd4ae22717",
+  "status": "current",
+  "command": "deliver",
+  "type": "lifecycle",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/lifecycle-transfer.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/transfer-lifecycle.html",
+  "specification": {
+    "sha256": "fb42dee1ad3e6e269ef164238a698100cb3605b8cd10b9d74203f2a07c50d870",
+    "bytes": 2213
+  },
+  "artifact": {
+    "sha256": "67140fd2973858fb7320b5dfec95fb5048c12d28089574d8e054c16fc50b3b8e",
+    "bytes": 755126
+  }
+}

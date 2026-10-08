@@ -1,0 +1,16 @@
+line-length = 140
+target-version = "py311"
+extend-exclude = ["frontend", "node_modules", ".agents", "src"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E731", "B905", "UP017"]
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path"]
+
+[lint.per-file-ignores]
+# Databricks notebooks: spark, dbutils and display are provided by the runtime, and the library path is added before imports.
+"databricks/notebooks/*" = ["E501", "F821", "E402", "I001"]
+"databricks/stormsense_core/tables.py" = ["E501"]
+"databricks/scripts/create_genie_space.py" = ["E501"]  # prose instructions and example queries

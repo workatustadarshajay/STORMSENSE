@@ -1,0 +1,15 @@
+command: ["python", "-m", "app.main"]
+env:
+  - name: STORMSENSE_MODE
+    value: databricks
+  - name: STORMSENSE_ENVIRONMENT
+    value: production
+  # Blank catalog means the workspace default, the same default the data notebooks use.
+  - name: STORMSENSE_CATALOG
+    value: ""
+  - name: STORMSENSE_SCHEMA
+    value: stormsense
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: DATABRICKS_GENIE_SPACE_ID
+    valueFrom: genie-space

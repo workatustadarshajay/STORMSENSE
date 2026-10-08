@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Approving a transfer",
+    "output": "docs/architecture/approve-transfer.html",
+    "viewBox": [
+      1000,
+      540
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    {
+      "id": "planner",
+      "type": "external",
+      "label": "Planner",
+      "sublabel": "browser"
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Web app",
+      "sublabel": "Transfers screen"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "roles + audit"
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "Delta tables",
+      "sublabel": "via SQL warehouse"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 206,
+      "label": "Ask"
+    },
+    {
+      "from": 212,
+      "to": 270,
+      "label": "Permission"
+    },
+    {
+      "from": 276,
+      "to": 334,
+      "label": "Guarded update"
+    },
+    {
+      "from": 340,
+      "to": 432,
+      "label": "Audit + reply"
+    }
+  ],
+  "messages": [
+    {
+      "id": "tap-approve",
+      "from": "planner",
+      "to": "web",
+      "y": 165,
+      "label": "tap Approve 2",
+      "variant": "default"
+    },
+    {
+      "id": "post-approve",
+      "from": "web",
+      "to": "api",
+      "y": 195,
+      "label": "POST approve (ids, note)",
+      "variant": "emphasis",
+      "note": "custom header blocks cross-site posts"
+    },
+    {
+      "id": "role-lookup",
+      "from": "api",
+      "to": "data",
+      "y": 228,
+      "label": "look up role",
+      "variant": "security"
+    },
+    {
+      "id": "role-found",
+      "from": "data",
+      "to": "api",
+      "y": 258,
+      "label": "planner",
+      "variant": "return"
+    },
+    {
+      "id": "guarded-update",
+      "from": "api",
+      "to": "data",
+      "y": 292,
+      "label": "UPDATE only rows still PENDING",
+      "variant": "emphasis"
+    },
+    {
+      "id": "changed-ids",
+      "from": "data",
+      "to": "api",
+      "y": 322,
+      "label": "ids this request changed",
+      "variant": "return"
+    },
+    {
+      "id": "audit-write",
+      "from": "api",
+      "to": "data",
+      "y": 355,
+      "label": "audit rows: approved + skipped",
+      "variant": "dashed"
+    },
+    {
+      "id": "reply",
+      "from": "api",
+      "to": "web",
+      "y": 387,
+      "label": "2 approved. 1 already handled.",
+      "variant": "return"
+    },
+    {
+      "id": "show-result",
+      "from": "web",
+      "to": "planner",
+      "y": 417,
+      "label": "plain-language result",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "web",
+      "from": 160,
+      "to": 425,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 190,
+      "to": 395,
+      "type": "backend"
+    },
+    {
+      "participant": "data",
+      "from": 223,
+      "to": 362,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Safe by construction",
+      "items": [
+        "Only planners and admins can decide",
+        "A repeat or double-click changes nothing twice"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Accountable",
+      "items": [
+        "The request id is stamped on exactly the rows it changed",
+        "Every change and every skipped attempt is audited"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "aba7fca2-b2d2-489d-b02c-27ba672ce34c",
+  "status": "current",
+  "command": "deliver",
+  "type": "dataflow",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/dataflow-daily-pipeline.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/daily-pipeline.html",
+  "specification": {
+    "sha256": "2cf922dcba75e895ba97876fa9d605cc818103ad551d14b1ef591de031458aae",
+    "bytes": 5382
+  },
+  "artifact": {
+    "sha256": "e8cdedcf97cd7d873c18888aa875f19b0c36ea2d18aa8c93d71b1859bc30cdd6",
+    "bytes": 761238
+  }
+}

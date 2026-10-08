@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "1bf7e061-a284-4062-92f7-9b34e41bce71",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/architecture-system.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/system.html",
+  "specification": {
+    "sha256": "114d50eef988b61a99ae95431b741b08f2330e856174ddf0e180b342fea717c1",
+    "bytes": 3887
+  },
+  "artifact": {
+    "sha256": "f7a2f1fac73993a4152b2529d2f49de35ba4100d945128ee9b23a6966721c661",
+    "bytes": 766124
+  }
+}

@@ -1,0 +1,58 @@
+# The StormSense app: the API and the web app in one process, deployed as a Databricks App.
+# Deploy with `make deploy-app` (see docs/runbook.md). The data side has its own bundle in databricks/.
+bundle:
+  name: stormsense-app
+
+variables:
+  warehouse_id:
+    description: SQL warehouse the app reads and writes through.
+  genie_space_id:
+    description: The Ask space, created by databricks/scripts/create_genie_space.py.
+
+sync:
+  include:
+    - static/**        # the built web app; it is git-ignored, so it is listed here
+  exclude:
+    - tests/**
+    - app/fixtures.json   # sample data for local runs; the deployed app reads the workspace
+    - scripts/**
+    - requirements-dev.txt
+    - pyproject.toml
+    - "**/__pycache__/**"
+    - .pytest_cache/**
+
+resources:
+  apps:
+    stormsense:
+      name: stormsense
+      description: Weather-aware store transfers for home improvement planners
+      source_code_path: .
+      config:
+        command: ["python", "-m", "app.main"]
+        env:
+          - name: STORMSENSE_MODE
+            value: databricks
+          - name: STORMSENSE_ENVIRONMENT
+            value: production
+          - name: STORMSENSE_CATALOG
+            value: ""
+          - name: STORMSENSE_SCHEMA
+            value: stormsense
+          - name: DATABRICKS_WAREHOUSE_ID
+            value_from: sql-warehouse
+          - name: DATABRICKS_GENIE_SPACE_ID
+            value_from: genie-space
+      resources:
+        - name: sql-warehouse
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
+        - name: genie-space
+          genie_space:
+            name: StormSense Ask
+            space_id: ${var.genie_space_id}
+            permission: CAN_RUN
+
+targets:
+  default:
+    default: true

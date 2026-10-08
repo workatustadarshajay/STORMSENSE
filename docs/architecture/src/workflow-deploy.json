@@ -1,0 +1,242 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Deploying StormSense from code",
+    "output": "docs/architecture/deploy.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1236,
+      786
+    ]
+  },
+  "lanes": [
+    {
+      "id": "you",
+      "label": "Your terminal"
+    },
+    {
+      "id": "data",
+      "label": "Databricks: data and forecaster"
+    },
+    {
+      "id": "app",
+      "label": "Databricks: app"
+    },
+    {
+      "id": "check",
+      "label": "Live check"
+    },
+    {
+      "id": "recovery",
+      "label": "If a task fails",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "connect",
+      "label": "Connect",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "build",
+      "label": "Data + forecaster",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "ship",
+      "label": "Space, app, checks",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "login",
+    "bundle",
+    "build",
+    "verify",
+    "space",
+    "app",
+    "grants",
+    "smoke"
+  ],
+  "nodes": [
+    {
+      "id": "login",
+      "lane": "you",
+      "col": 0,
+      "type": "external",
+      "label": "Sign in",
+      "sublabel": "OAuth profile",
+      "width": 132
+    },
+    {
+      "id": "bundle",
+      "lane": "data",
+      "col": 1,
+      "type": "cloud",
+      "label": "Deploy bundle",
+      "sublabel": "notebooks + 3 jobs",
+      "width": 132
+    },
+    {
+      "id": "build",
+      "lane": "data",
+      "col": 2,
+      "type": "backend",
+      "label": "Build job",
+      "sublabel": "tables, forecaster, plan",
+      "tag": "serverless",
+      "width": 132
+    },
+    {
+      "id": "verify",
+      "lane": "data",
+      "col": 3,
+      "type": "security",
+      "label": "Verify",
+      "sublabel": "checks fail loudly",
+      "width": 132
+    },
+    {
+      "id": "space",
+      "lane": "data",
+      "col": 4,
+      "type": "cloud",
+      "label": "Ask space",
+      "sublabel": "over the tables",
+      "width": 132
+    },
+    {
+      "id": "app",
+      "lane": "app",
+      "col": 4,
+      "type": "cloud",
+      "label": "Deploy app",
+      "sublabel": "web + API",
+      "width": 132
+    },
+    {
+      "id": "grants",
+      "lane": "app",
+      "col": 5,
+      "type": "security",
+      "label": "Grant access",
+      "sublabel": "least privilege",
+      "width": 132
+    },
+    {
+      "id": "smoke",
+      "lane": "check",
+      "col": 5,
+      "type": "backend",
+      "label": "Smoke test",
+      "sublabel": "10 questions, real data",
+      "width": 132
+    },
+    {
+      "id": "repair",
+      "lane": "recovery",
+      "col": 2,
+      "type": "messagebus",
+      "label": "Repair run",
+      "sublabel": "re-run the failed task",
+      "width": 132
+    }
+  ],
+  "edges": [
+    {
+      "id": "to-bundle",
+      "from": "login",
+      "to": "bundle",
+      "variant": "emphasis",
+      "route": "drop",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "to-build",
+      "from": "bundle",
+      "to": "build",
+      "label": "run",
+      "variant": "emphasis"
+    },
+    {
+      "id": "to-verify",
+      "from": "build",
+      "to": "verify"
+    },
+    {
+      "id": "to-space",
+      "from": "verify",
+      "to": "space"
+    },
+    {
+      "id": "to-app",
+      "from": "space",
+      "to": "app",
+      "label": "space id",
+      "variant": "emphasis",
+      "route": "drop",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "to-grants",
+      "from": "app",
+      "to": "grants",
+      "label": "service principal"
+    },
+    {
+      "id": "to-smoke",
+      "from": "grants",
+      "to": "smoke",
+      "variant": "emphasis",
+      "route": "drop",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "task-fails",
+      "from": "build",
+      "to": "repair",
+      "label": "task fails",
+      "variant": "security",
+      "role": "error",
+      "route": "drop",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Everything is code",
+      "items": [
+        "Bundles define jobs and the app; scripts create the Ask space",
+        "Nothing is clicked together in the workspace UI"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Safe to re-run",
+      "items": [
+        "Writes replace one day or merge into pending rows",
+        "A failed task can be repaired without starting over"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Order matters",
+      "items": [
+        "The space needs the tables; the app needs the space id",
+        "Grants need the app's service principal to exist"
+      ]
+    }
+  ]
+}

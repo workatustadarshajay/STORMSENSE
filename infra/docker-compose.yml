@@ -1,0 +1,11 @@
+# Runs the whole app on sample data with one command:  docker compose -f infra/docker-compose.yml up --build
+services:
+  stormsense:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      STORMSENSE_MODE: mock
+      STORMSENSE_ENVIRONMENT: local

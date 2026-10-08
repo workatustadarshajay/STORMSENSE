@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "90e49e1b-51d7-4ce2-8444-18895d533b0a",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/sequence-approve-transfer.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/approve-transfer.html",
+  "specification": {
+    "sha256": "9ec11d3caf36eb26820c23cc5e0df1197c59ea545bde15d17ea4bfce41597ceb",
+    "bytes": 3425
+  },
+  "artifact": {
+    "sha256": "2d644f342fd3b5a3e5e934ae6ae9f17de094e499ebb8810c3bb137fa355e8b02",
+    "bytes": 754358
+  }
+}

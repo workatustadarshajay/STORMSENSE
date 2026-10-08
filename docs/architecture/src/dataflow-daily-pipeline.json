@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Daily forecast and transfer data flow",
+    "output": "docs/architecture/daily-pipeline.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1080,
+      540
+    ]
+  },
+  "stages": [
+    {
+      "label": "Feeds"
+    },
+    {
+      "label": "Prepare"
+    },
+    {
+      "label": "Forecast"
+    },
+    {
+      "label": "Decide"
+    },
+    {
+      "label": "Serve"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "weather",
+      "type": "external",
+      "label": "Weather feed",
+      "sublabel": "sample or live NWS",
+      "stage": 0,
+      "row": 0,
+      "tag": "10 days ahead"
+    },
+    {
+      "id": "sales",
+      "type": "external",
+      "label": "Sales history",
+      "sublabel": "daily, per store",
+      "stage": 0,
+      "row": 1
+    },
+    {
+      "id": "stock",
+      "type": "external",
+      "label": "Stock counts",
+      "sublabel": "end of day",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "features",
+      "type": "backend",
+      "label": "Features",
+      "sublabel": "no look-ahead leaks",
+      "stage": 1,
+      "row": 1,
+      "tag": "lag 7 days"
+    },
+    {
+      "id": "forecaster",
+      "type": "database",
+      "label": "Forecaster",
+      "sublabel": "champion alias",
+      "stage": 2,
+      "row": 0,
+      "tag": "beats baselines"
+    },
+    {
+      "id": "predictions",
+      "type": "database",
+      "label": "Forecasts",
+      "sublabel": "7 days per pair",
+      "stage": 2,
+      "row": 1,
+      "tag": "350 rows"
+    },
+    {
+      "id": "recs",
+      "type": "database",
+      "label": "Transfers",
+      "sublabel": "pending until decided",
+      "stage": 3,
+      "row": 1,
+      "tag": "merge, never overwrite"
+    },
+    {
+      "id": "gaps",
+      "type": "database",
+      "label": "Shortage + surplus",
+      "sublabel": "projected stock",
+      "stage": 3,
+      "row": 2
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "plain-language screens",
+      "stage": 4,
+      "row": 1
+    }
+  ],
+  "flows": [
+    {
+      "id": "weather-ahead",
+      "from": "weather",
+      "to": "features",
+      "label": "weather ahead",
+      "classification": "forecast",
+      "variant": "emphasis",
+      "labelAt": [
+        207,
+        214
+      ]
+    },
+    {
+      "id": "sales-history",
+      "from": "sales",
+      "to": "features",
+      "label": "sales",
+      "classification": "history",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelAt": [
+        205,
+        293
+      ]
+    },
+    {
+      "id": "train-check",
+      "from": "features",
+      "to": "forecaster",
+      "label": "train + check",
+      "classification": "last 4 weeks held out",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left",
+      "labelAt": [
+        395,
+        145
+      ],
+      "via": [
+        [
+          315,
+          157
+        ]
+      ]
+    },
+    {
+      "id": "score-rows",
+      "from": "features",
+      "to": "predictions",
+      "label": "future days",
+      "classification": "scoring",
+      "route": "straight"
+    },
+    {
+      "id": "score-seven",
+      "from": "forecaster",
+      "to": "predictions",
+      "label": "score",
+      "classification": "by alias",
+      "route": "straight",
+      "labelAt": [
+        575,
+        214
+      ]
+    },
+    {
+      "id": "stock-counts",
+      "from": "stock",
+      "to": "gaps",
+      "label": "units on hand",
+      "classification": "stock",
+      "route": "bottom-channel",
+      "fromSide": "bottom",
+      "toSide": "bottom"
+    },
+    {
+      "id": "daily-demand",
+      "from": "predictions",
+      "to": "gaps",
+      "label": "daily demand",
+      "classification": "7 days",
+      "variant": "emphasis"
+    },
+    {
+      "id": "who-moves",
+      "from": "gaps",
+      "to": "recs",
+      "label": "short vs spare",
+      "classification": "nearest source",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelAt": [
+        815,
+        328
+      ]
+    },
+    {
+      "id": "pending-transfers",
+      "from": "recs",
+      "to": "api",
+      "label": "transfers",
+      "classification": "pending",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "id": "stock-status",
+      "from": "gaps",
+      "to": "api",
+      "label": "stock status",
+      "classification": "read-only",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "labelAt": [
+        880,
+        365
+      ],
+      "via": [
+        [
+          960,
+          385
+        ]
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Primary path",
+      "items": [
+        "Feeds become leak-free features, features become forecasts",
+        "Forecasts plus stock become shortage and surplus, then transfers"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Honest forecasting",
+      "items": [
+        "Sales features are lagged by the 7-day horizon",
+        "Validation is the last four weeks, never a random split",
+        "Promoted only if it beats both simple baselines"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Decisions feed back",
+      "items": [
+        "Planner decisions are written back to the transfers table",
+        "Approved moves count as arriving stock on the next run"
+      ]
+    }
+  ]
+}

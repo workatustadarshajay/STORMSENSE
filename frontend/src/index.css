@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "@fontsource-variable/manrope";
+
+@theme {
+  --font-sans: "Manrope Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-ink: #101b2b;
+  --color-ink-soft: #344455;
+  --color-muted: #53636f;
+  --color-mist: #eef3f2;
+  --color-paper: #fbfdfc;
+  --color-line: #d5dedc;
+  --color-teal: #146f6b;
+  --color-teal-deep: #0f5754;
+  --color-teal-tint: #dcf0ed;
+  --color-glow: #73d6cd;
+  --color-signal: #b3321f;
+  --color-signal-deep: #8f2615;
+  --color-signal-tint: #fde8e3;
+  --color-rain: #1d5b8a;
+  --color-rain-tint: #e1eff8;
+  --color-heat: #7a4a00;
+  --color-heat-tint: #fcefd2;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-mist);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3 { letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
+p { text-wrap: pretty; }
+button, select, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+:focus-visible { outline: 3px solid var(--color-teal); outline-offset: 3px; border-radius: 6px; }
+.on-dark :focus-visible, .rail :focus-visible { outline-color: var(--color-glow); }
+::selection { background: #9ae5db; color: var(--color-ink); }
+
+/* The sky on Today follows the worst weather coming this week. */
+.sky { color: var(--color-ink); background: linear-gradient(165deg, #cfe7e3 0%, #eaf4f2 100%); }
+.sky[data-sky="storm"] { color: #fff; background: linear-gradient(165deg, #16263a 0%, #2d4a66 100%); }
+.sky[data-sky="heavy_rain"] { color: #fff; background: linear-gradient(165deg, #1d3b57 0%, #3a6585 100%); }
+.sky[data-sky="heat"] { color: #fff; background: linear-gradient(165deg, #4a2f0d 0%, #8a5a14 100%); }
+
+/* One orchestrated moment: the three numbers settle in once when Today opens. */
+@keyframes settle { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.settle > * { animation: settle .5s cubic-bezier(.2,.7,.2,1) both; }
+.settle > *:nth-child(2) { animation-delay: .08s; }
+.settle > *:nth-child(3) { animation-delay: .16s; }
+
+@keyframes shimmer { to { background-position-x: -200%; } }
+.skeleton { background: linear-gradient(90deg, #e3ebe9 25%, #f1f6f5 50%, #e3ebe9 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 12px; }
+
+dialog::backdrop { background: rgb(16 27 43 / .55); }
+dialog[open] { animation: settle .22s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

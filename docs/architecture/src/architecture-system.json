@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "StormSense system architecture",
+    "output": "docs/architecture/system.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "planner", "type": "external", "label": "Planner", "sublabel": "Phone or laptop", "pos": [40, 300], "size": [130, 64] },
+    { "id": "web", "type": "frontend", "label": "Web app", "sublabel": "React + TypeScript", "pos": [250, 300], "size": [150, 64] },
+    { "id": "api", "type": "backend", "label": "API", "sublabel": "FastAPI + audit trail", "pos": [480, 300], "size": [160, 64] },
+    { "id": "signin", "type": "security", "label": "Workspace sign-in", "sublabel": "Single sign-on", "pos": [480, 140], "size": [160, 64] },
+    { "id": "warehouse", "type": "cloud", "label": "SQL warehouse", "sublabel": "Serverless", "pos": [790, 300], "size": [150, 64] },
+    { "id": "tables", "type": "database", "label": "Delta tables", "sublabel": "Unity Catalog", "pos": [1080, 300], "size": [150, 64] },
+    { "id": "ask", "type": "cloud", "label": "Ask space", "sublabel": "Read-only questions", "pos": [785, 470], "size": [160, 64] },
+    { "id": "job", "type": "backend", "label": "Daily job", "sublabel": "6:00 AM, serverless", "pos": [1080, 470], "size": [150, 64] },
+    { "id": "weather", "type": "external", "label": "Weather provider", "sublabel": "Sample or live NWS", "pos": [1370, 470], "size": [160, 64] },
+    { "id": "registry", "type": "database", "label": "Forecaster", "sublabel": "Unity Catalog, champion", "pos": [1075, 640], "size": [160, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Databricks workspace", "wraps": ["web", "api", "signin", "warehouse", "tables", "ask", "job", "registry"] },
+    { "kind": "security-group", "label": "Databricks App: one process, own service principal", "wraps": ["web", "api"] }
+  ],
+  "connections": [
+    { "id": "planner-to-web", "from": "planner", "to": "web", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "web-to-api", "from": "web", "to": "api", "label": "/api" },
+    { "id": "signin-to-api", "from": "signin", "to": "api", "label": "who is calling", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-to-warehouse", "from": "api", "to": "warehouse", "label": "parameterized SQL", "variant": "emphasis" },
+    { "id": "warehouse-to-tables", "from": "warehouse", "to": "tables", "label": "reads and writes" },
+    { "id": "api-to-ask", "from": "api", "to": "ask", "label": "questions", "variant": "dashed", "fromSide": "bottom", "toSide": "left" },
+    { "id": "ask-to-warehouse", "from": "ask", "to": "warehouse", "label": "read-only SQL", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "job-to-tables", "from": "job", "to": "tables", "label": "writes results", "fromSide": "top", "toSide": "bottom" },
+    { "id": "weather-to-job", "from": "weather", "to": "job", "label": "forecast", "variant": "dashed" },
+    { "id": "job-to-registry", "from": "job", "to": "registry", "label": "register + load", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Planners", "items": ["Phone-first screens: Today, Transfers, Stores, Ask, History", "Sign-in and roles come from the workspace"] },
+    { "dot": "emerald", "title": "App", "items": ["One process serves the web app and the API", "Reads are fixed, parameterized queries", "Approvals touch only rows still pending, and are audited"] },
+    { "dot": "violet", "title": "Data and forecasting", "items": ["Daily job on serverless compute at 6:00 AM Eastern", "Forecaster is loaded by the alias champion", "Sample data until real feeds are connected"] },
+    { "dot": "rose", "title": "Safety", "items": ["The app runs as its own service principal, least privilege", "Ask can only read; nothing it returns is executed"] }
+  ]
+}

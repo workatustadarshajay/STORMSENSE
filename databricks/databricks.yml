@@ -1,0 +1,32 @@
+# Data and forecasting side of StormSense: tables, forecaster and the daily job.
+# Deploy with `make deploy-data` (see docs/runbook.md). The app has its own bundle in backend/.
+bundle:
+  name: stormsense-data
+
+variables:
+  catalog:
+    description: Unity Catalog catalog. Blank means the workspace default catalog.
+    default: ""
+  schema:
+    description: Schema that holds every StormSense table.
+    default: stormsense
+  weather_provider:
+    description: "sample, or nws for the live US National Weather Service forecast."
+    default: sample
+  schedule_status:
+    description: UNPAUSED to run every morning, PAUSED to stop spending compute.
+    default: UNPAUSED
+
+sync:
+  include:
+    - stormsense_core/**
+    - notebooks/**
+  exclude:
+    - "**/__pycache__/**"
+
+include:
+  - resources/*.yml
+
+targets:
+  default:
+    default: true
