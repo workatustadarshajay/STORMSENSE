@@ -21,6 +21,7 @@ export const useOverview = (weather: WeatherMode = "live") =>
 export const usePending = () => useQuery({ queryKey: ["transfers", "PENDING"], queryFn: () => api.transfers("PENDING") });
 export const useHistory = () => useQuery({ queryKey: ["history"], queryFn: api.history });
 export const useBacktest = () => useQuery({ queryKey: ["backtest"], queryFn: api.backtest, staleTime: 300_000 });
+export const useDemoAlert = () => useMutation({ mutationFn: api.demoAlert });
 export const useMarkdowns = (weather: WeatherMode = "live") =>
   useQuery({ queryKey: ["markdowns", weather], queryFn: () => api.markdowns(weather) });
 export const useStores = (weather: WeatherMode = "live") =>

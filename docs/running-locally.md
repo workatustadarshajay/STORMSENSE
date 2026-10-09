@@ -123,3 +123,9 @@ Today has a **Weather** switch. **Live weather** shows the real forecast. **Demo
 
 To change the data the daily job uses, set the bundle variable `weather_provider` (`nws` for the live forecast, `sample` for generated weather). That changes the plan the next time the job runs.
 
+
+## Demo storm email
+
+On Today, with **Demo storm** selected, **Email this storm alert** starts the Databricks job `StormSense - Demo storm alert`. Databricks then emails the alert address (given at deploy time with `--var alert_email=...`). No mail server or password is needed. The job has no schedule and runs only on click.
+
+Until the bundle is deployed, the button says the job isn't in the workspace yet. The button needs the live workspace; sample data cannot start jobs.

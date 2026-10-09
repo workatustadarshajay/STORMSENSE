@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
-import { useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
+import { useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
 
@@ -73,6 +73,24 @@ function Readiness({ weather }: { weather: WeatherMode }) {
   );
 }
 
+function DemoEmail() {
+  const send = useDemoAlert();
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        disabled={send.isPending}
+        onClick={() => send.mutate()}
+        className="min-h-11 rounded-xl bg-ink px-4 font-bold text-white disabled:bg-line disabled:text-muted"
+      >
+        {send.isPending ? "Sending…" : "Email this storm alert"}
+      </button>
+      {send.isSuccess && <p role="status" className="font-semibold text-teal-deep">{send.data.message}</p>}
+      {send.isError && <p role="alert" className="font-semibold text-signal-deep">{send.error.message}</p>}
+    </div>
+  );
+}
+
 function Markdowns({ weather }: { weather: WeatherMode }) {
   const items = useMarkdowns(weather);
   return (
@@ -123,6 +141,7 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
           Demo storm: a storm is placed on the Florida stores for the next two days. Stock figures and transfers still come from the live plan.
         </p>
       )}
+      {weather === "demo" && <DemoEmail />}
 
       <section aria-label="Today at a glance" className="settle mt-8 grid grid-cols-3 divide-x divide-line">
         <Figure value={o.urgent_transfers} urgent={o.urgent_transfers > 0} label={o.urgent_transfers === 1 ? "urgent transfer" : "urgent transfers"} />

@@ -48,6 +48,15 @@ def build_storm_desk(settings: Settings, service: Service) -> StormDesk | None:
     return StormDesk(service, ModelClient(client.api_client, settings.storm_desk_model))
 
 
+def build_workspace(settings: Settings):  # noqa: ANN201
+    """The workspace client the app uses for jobs (the demo email). None with sample data."""
+    if settings.mode != "databricks":
+        return None
+    from databricks.sdk import WorkspaceClient
+
+    return WorkspaceClient(profile=settings.databricks_profile) if settings.databricks_profile else WorkspaceClient()
+
+
 def build_forecast_scorer(settings: Settings) -> EndpointScorer | None:
     """The forecaster's serving endpoint scores the what-if rows. It exists only in databricks mode."""
     if settings.mode != "databricks":
@@ -66,7 +75,9 @@ def create_app(settings: Settings | None = None, source: DataSource | None = Non
     app.state.limiter = RateLimiter(settings.ask_per_minute)
     app.state.desk_limiter = RateLimiter(5)
     app.state.storm_desk = build_storm_desk(settings, app.state.service)
+    app.state.workspace = build_workspace(settings)
     app.state.what_if_limiter = RateLimiter(6)
+    app.state.alert_limiter = RateLimiter(3)
     app.state.forecast_scorer = build_forecast_scorer(settings)
 
     app.add_middleware(BodyLimit, max_bytes=settings.max_body_bytes)

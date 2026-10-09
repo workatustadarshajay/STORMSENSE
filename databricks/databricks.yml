@@ -16,6 +16,9 @@ variables:
   weather_provider:
     description: "nws (default) for the live US National Weather Service forecast, or sample for generated weather."
     default: nws
+  alert_email:
+    description: "Address that receives StormSense job emails. Give it at deploy time with --var alert_email=... so the address stays out of the repository."
+    default: ""
   trigger_status:
     description: UNPAUSED to watch for new storm warnings every 15 minutes, PAUSED to stop spending compute.
     default: PAUSED

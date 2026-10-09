@@ -255,3 +255,45 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Checks:** backend 85 pass (4 rule tests and an endpoint test); web unit 42 pass; browser 27 pass with 1 skipped; lint passes.
 - **Not done:** cost and margin (needed to confirm a discount never sells below cost); pipeline table; the elasticity needs a pilot.
 - **Demo markdowns (section 15 follow-up):** in demo weather, markdowns use a stronger response assumption (each 10% off lifts sales by 40%, against the live 15%), so the rule has examples to show. The page labels the assumption. Live results are unchanged: the live rule finds none on this week's data, because even 40% off cannot clear large surplus at a 15% response. Checks: backend 87 pass; web unit 43 pass.
+
+---
+
+## 16. Job emails to a configurable address (configured, not deployed)
+
+- **What:** the build job and the daily job send failure emails to the deploying account and to `alert_email`. The daily job also sends a "plan ready" email on success, which covers each morning's run and each storm-triggered refresh. The storm trigger sends failure emails only, because a success email every 15 minutes would flood the inbox.
+- **Where the address lives:** the bundle variable `alert_email`, given at deploy time, so it is not written into the repository. The validated configuration showed the recipients for each job.
+- **Not yet sent:** nothing is deployed. Deploying is what makes these emails start. Until then the jobs send nothing new.
+- **Known limits:** job emails use Databricks' own wording (for example, "job succeeded"), not a custom message. A blank `alert_email` adds an empty recipient, which the Jobs API may reject, so always pass the address. Whether external addresses such as Gmail are allowed by the workspace must be checked on the first test.
+- **Deploy command (after your approval):** `cd databricks && databricks bundle deploy --profile stormsense --var alert_email=<address>`
+
+---
+
+## 17. Demo storm email button
+
+- **What:** on Today, in demo weather, **Email this storm alert** sends one message to the demo address: the storm, the urgent and waiting counts, a link to Transfers, and a reminder that planners approve each move.
+- **Who:** planners only. Limited to three sends a minute. Off until the mail settings are configured; when they are not, the button says so.
+- **Secrets and addresses:** the mail password is a `SecretStr` in the environment. The address and password never appear in responses, logs, or the code. `infra/.env.example` lists the settings.
+- **Code:** `backend/app/alerts.py` (message and sending), `api.py` (`POST /api/demo/alert`), `config.py` (settings), `frontend/src/pages/Today.tsx` (button).
+- **Not sent yet:** nothing has been sent. The first send needs the mail settings, and a test with your address.
+- **Checks:** backend 92 tests (5 new); web unit 44 (1 new).
+
+---
+
+## 18. Databricks SQL alert for urgent moves (script ready, not created)
+
+- **What:** `databricks/scripts/create_storm_alert.py` defines a Databricks SQL alert, "StormSense - Urgent moves waiting". It checks every hour and emails the address when urgent moves are pending. It sends nothing on "all clear", and at most once an hour while urgent moves remain.
+- **Why no mail password:** Databricks sends the email, so there are no credentials to store.
+- **Dry run:** the script prints the definition and changes nothing. The check that `--apply` would create uses the same definition shown in the dry run.
+- **Before applying:** the live data has one urgent pending move, so the alert would email within the first hour. Confirm the address and the warehouse first.
+- **Not done:** the alert is not created. The email button on Today still uses the SMTP settings, which are not configured. The alert is driven by the data, not by the button; if you want the button, the job-run route is still needed.
+
+---
+
+## 19. Demo email button now uses a Databricks job (no mail credentials)
+
+- **What:** **Email this storm alert** starts the job `StormSense - Demo storm alert`. Databricks emails the alert address when the job succeeds. The SMTP sender and its settings are removed, so no mail password is needed or stored.
+- **Who:** planners only, and at most three starts a minute. Sample data cannot start jobs, so the button says so there.
+- **Job:** `databricks/resources/jobs.yml` (`stormsense_demo_alert`) runs `notebooks/15_demo_alert.py`, which only finishes. It has no schedule, so it costs nothing until clicked. The bundle validates.
+- **Before the button works:** deploy the bundle with the alert address (`--var alert_email=...`). Until then the button says the job isn't in the workspace yet.
+- **For the deployed app:** its identity needs permission to run this job. That is set when the app is deployed.
+- **Checks:** backend 93 pass (5 for the button); web unit 44 pass.

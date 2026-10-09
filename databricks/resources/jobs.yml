@@ -1,5 +1,25 @@
 resources:
   jobs:
+    stormsense_demo_alert:
+      name: StormSense - Demo storm alert
+      description: Started by the Email this storm alert button in the demo. Has no schedule. Databricks emails the alert address when it succeeds.
+      max_concurrent_runs: 1
+      tags:
+        project: stormsense
+      timeout_seconds: 600
+      email_notifications:
+        on_success: ["${var.alert_email}"]
+        on_failure: ["${workspace.current_user.userName}", "${var.alert_email}"]
+      environments:
+        - environment_key: default
+          spec:
+            client: "4"
+      tasks:
+        - task_key: send_demo_alert
+          disable_auto_optimization: true
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/15_demo_alert.py
     stormsense_storm_trigger:
       name: StormSense - Storm trigger (NWS warnings)
       description: Every 15 minutes, checks official NWS warnings for Florida, Texas and California. A new plan-changing warning starts the daily cycle once. Paused by default.
@@ -15,7 +35,7 @@ resources:
         - { name: catalog, default: "${var.catalog}" }
         - { name: schema, default: "${var.schema}" }
       email_notifications:
-        on_failure: ["${workspace.current_user.userName}"]
+        on_failure: ["${workspace.current_user.userName}", "${var.alert_email}"]
       environments:
         - environment_key: default
           spec:
@@ -40,7 +60,7 @@ resources:
         - { name: catalog, default: "${var.catalog}" }
         - { name: schema, default: "${var.schema}" }
       email_notifications:
-        on_failure: ["${workspace.current_user.userName}"]
+        on_failure: ["${workspace.current_user.userName}", "${var.alert_email}"]
       tasks:
         - task_key: setup
           disable_auto_optimization: true
@@ -135,7 +155,8 @@ resources:
         - { name: catalog, default: "${var.catalog}" }
         - { name: schema, default: "${var.schema}" }
       email_notifications:
-        on_failure: ["${workspace.current_user.userName}"]
+        on_failure: ["${workspace.current_user.userName}", "${var.alert_email}"]
+        on_success: ["${var.alert_email}"]
         no_alert_for_skipped_runs: true
       tasks:
         - task_key: refresh_weather

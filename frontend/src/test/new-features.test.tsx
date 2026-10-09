@@ -107,3 +107,19 @@ describe("Markdowns in demo weather", () => {
   });
 });
 
+
+describe("Demo storm email", () => {
+  it("sends the demo storm alert when the planner clicks the button, and confirms it", async () => {
+    const user = userEvent.setup();
+    const server = serve({
+      "GET /api/overview?weather=demo": () => ({ ...fx.overview, weather_source: "demo" }),
+      "GET /api/stores?weather=demo": () => fx.stores,
+      "GET /api/me": () => fx.planner,
+      "POST /api/demo/alert": () => ({ started: true, message: "Started. Databricks sends the email within a few minutes." }),
+    });
+    open("/?weather=demo");
+    await user.click(await screen.findByRole("button", { name: "Email this storm alert" }));
+    expect(await screen.findByText(/Started. Databricks sends the email/)).toBeInTheDocument();
+    expect(server.calls.some((c) => c.method === "POST" && c.path === "/api/demo/alert")).toBe(true);
+  });
+});

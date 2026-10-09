@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     storm_desk_model: str = Field("databricks-gpt-5-mini", validation_alias="STORMSENSE_AGENT_MODEL")
     # Serving endpoint that scores the what-if simulator (created from the forecaster, version 3).
     forecast_endpoint: str = Field("stormsense-forecaster", validation_alias="STORMSENSE_FORECAST_ENDPOINT")
+    # Demo storm email: the Email button starts this Databricks job, and Databricks emails the job's alert address.
+    demo_job_name: str = Field("StormSense - Demo storm alert", validation_alias="STORMSENSE_DEMO_JOB")
     cache_seconds: int = 30
     query_budget_seconds: int = 45
     ask_timeout_seconds: int = 60

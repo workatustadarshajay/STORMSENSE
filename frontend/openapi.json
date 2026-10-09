@@ -256,6 +256,24 @@
         "title": "DecisionResult",
         "type": "object"
       },
+      "DemoAlertResult": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "started": {
+            "title": "Started",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "started",
+          "message"
+        ],
+        "title": "DemoAlertResult",
+        "type": "object"
+      },
       "DeskStep": {
         "properties": {
           "result": {
@@ -1505,6 +1523,28 @@
         "summary": "Backtest",
         "tags": [
           "history"
+        ]
+      }
+    },
+    "/api/demo/alert": {
+      "post": {
+        "description": "Starts the demo email job. Databricks sends the email to the alert address. Planners only.",
+        "operationId": "demo_alert_api_demo_alert_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoAlertResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Alert",
+        "tags": [
+          "demo"
         ]
       }
     },

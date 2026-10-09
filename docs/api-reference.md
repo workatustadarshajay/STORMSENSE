@@ -39,6 +39,21 @@ An upper bound, not a forecast.
 
 Returns list of BacktestStorm.
 
+### `POST /api/demo/alert`
+
+Demo Alert
+
+Starts the demo email job. Databricks sends the email to the alert address. Planners only.
+
+**Response**
+
+Returns DemoAlertResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `message` | string |  |
+| `started` | boolean |  |
+
 ### `GET /api/health`
 
 Health

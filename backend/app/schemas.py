@@ -187,6 +187,11 @@ class MarkdownSuggestion(BaseModel):
     assumption: str = Field(description="How the estimate was made, so it can be checked")
 
 
+class DemoAlertResult(BaseModel):
+    started: bool
+    message: str
+
+
 class BacktestStorm(BaseModel):
     event_name: str
     start_date: date

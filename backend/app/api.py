@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import Response
 
 from .agent import StormDesk
+from .alerts import JobMissing, start_demo_email
 from .auth import current_user, get_service, planner, problem, same_origin
 from .dbx import WarmingUp
 from .schemas import (
@@ -17,6 +19,7 @@ from .schemas import (
     AskResponse,
     BacktestStorm,
     DecisionResult,
+    DemoAlertResult,
     Health,
     InventoryItem,
     MarkdownSuggestion,
@@ -38,6 +41,7 @@ from .whatif import Scenario
 from .whatif import run as run_what_if
 
 router = APIRouter(prefix="/api")
+log = logging.getLogger("stormsense.api")
 Svc = Annotated[Service, Depends(get_service)]
 # live = the real forecast; demo = a demo storm placed on the Florida stores, for showing what a storm would look like
 WeatherMode = Annotated[Literal["live", "demo"], Query()]
@@ -115,6 +119,24 @@ def export_transfers(user: User, svc: Svc, status: Literal["PENDING", "APPROVED"
 def markdowns(user: User, svc: Svc, weather: WeatherMode = "live") -> list[MarkdownSuggestion]:
     """Surplus stock that would not sell in time at full price, with a discount that adds cash. Suggestions only: nothing changes."""
     return svc.markdowns(weather)
+
+
+@router.post("/demo/alert", response_model=DemoAlertResult, tags=["demo"], dependencies=[Depends(same_origin)])
+def demo_alert(request: Request, user: Annotated[Me, Depends(planner)]) -> DemoAlertResult:
+    """Starts the demo email job. Databricks sends the email to the alert address. Planners only."""
+    if not request.app.state.alert_limiter.allow(user.email):
+        raise problem(429, "slow_down", "A demo email was just started. Wait a minute, then try again.", **{"Retry-After": "60"})
+    workspace = request.app.state.workspace
+    if workspace is None:
+        raise problem(409, "not_configured", "The demo email needs the live workspace. It isn't available with sample data.")
+    try:
+        start_demo_email(workspace, request.app.state.settings.demo_job_name)
+    except JobMissing:
+        raise problem(409, "not_configured", "The demo email job isn't in the workspace yet. Deploy the bundle first.") from None
+    except Exception:  # noqa: BLE001 - the workspace may refuse; the reason stays in the server log, not the browser
+        log.exception("demo email job could not be started")
+        raise problem(502, "job_failed", "The email could not be started. Try again in a minute.") from None
+    return DemoAlertResult(started=True, message="Started. Databricks sends the email within a few minutes.")
 
 
 @router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])
