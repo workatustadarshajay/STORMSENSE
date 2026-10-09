@@ -88,15 +88,39 @@ Deployment creates the schema and tables, trains and registers the forecaster, s
 
 ## Public Site
 
-The repository-root landing page is deployed to GitHub Pages by `.github/workflows/deploy.yml`. That workflow also publishes the interactive architecture diagrams from `docs/architecture` under `/architecture/`.
+Three pages are published on GitHub Pages by `.github/workflows/deploy.yml`, on every push to `main`. Each one answers a different question.
 
-- Site: <https://workatustadarshajay.github.io/STORMSENSE/>
-- Architecture diagrams: <https://workatustadarshajay.github.io/STORMSENSE/architecture/>
-- Rebuild the diagrams from `docs/architecture/src` with `make architecture`.
+### 1. Landing page: what StormSense is
 
-The site includes an animated Three.js radar globe, a scroll-driven weather-to-transfer story, a transfer approval interaction, and an ROI estimator with editable assumptions. It is responsive, supports system dark mode and reduced motion, and deploys to GitHub Pages on pushes to `main` or a manual workflow run.
+<https://workatustadarshajay.github.io/STORMSENSE/>
 
-Run the public site locally with Node.js 20 or later and npm:
+The public-facing introduction, built from the repository-root `index.html` and `src/`. It tells the story in one scroll: a radar globe shows the weather, the next section shows how a forecast becomes a stock transfer, and a transfer approval is shown as an interaction. It ends with an ROI estimator where you can change the assumptions and see the savings move. It works on phones, follows the system's dark mode and reduced-motion settings, and is the best first stop for anyone new to the project.
+
+### 2. Documentation website: how to use, run and maintain it
+
+<https://workatustadarshajay.github.io/STORMSENSE/docs/>
+
+The full documentation, built with MkDocs Material from `mkdocs.yml` and the pages in `docs/`. It has search and dark mode, and it is split by reader:
+
+- **For planners:** the planner guide explains each screen in plain words (Today, Transfers, Stores, Ask, Storm desk, What if, History), and the five-minute demo script.
+- **Getting started:** running the app on your machine, and how to check that it works.
+- **How it works:** the system design, the forecasting method, and the data dictionary.
+- **Integrations:** the MCP server and client, and the API reference, which is generated from the API's own OpenAPI file so it always matches the code.
+- **Operations:** the runbook and the go-live checklist.
+
+The internal change log (`what-changed.md`) is kept out of the site on purpose.
+
+### 3. Architecture diagrams: how the system is built
+
+<https://workatustadarshajay.github.io/STORMSENSE/architecture/>
+
+Five interactive diagrams, built from the sources in `docs/architecture/src` and rendered with the Archify skill. They show the system from several angles: the overall system, the daily pipeline that forecasts and plans each morning, the sequence of an approval, the lifecycle of a transfer, and the deployment. Use this page when you need to see how the parts connect; use the documentation site when you need to know how to do something.
+
+Rebuild the diagrams from `docs/architecture/src` with `make architecture`.
+
+### Build the pages locally
+
+The landing page:
 
 ```bash
 npm ci
@@ -108,6 +132,13 @@ To build and preview it:
 ```bash
 npm run build
 npm run preview
+```
+
+The documentation website:
+
+```bash
+make docs-serve      # preview at http://127.0.0.1:8001
+make docs-site       # strict build into site-build/; fails on broken links
 ```
 
 For the first deployment, set **Settings > Pages** in the GitHub repository to use **GitHub Actions**. The workflow configures the repository subpath for project Pages URLs.
