@@ -4,6 +4,8 @@ resources:
       name: StormSense - Build data and forecaster
       description: Creates the tables, sample data and forecaster, then runs the daily cycle once. Safe to re-run.
       max_concurrent_runs: 1
+      tags:
+        project: stormsense
       environments:
         - environment_key: default
           spec:
@@ -25,9 +27,14 @@ resources:
           environment_key: default
           notebook_task:
             notebook_path: ../notebooks/02_sample_data.py
-        - task_key: features
+        - task_key: data_quality
           disable_auto_optimization: true
           depends_on: [{ task_key: sample_data }]
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.stormsense_quality.id}
+        - task_key: features
+          disable_auto_optimization: true
+          depends_on: [{ task_key: data_quality }]
           environment_key: default
           notebook_task:
             notebook_path: ../notebooks/03_features.py
@@ -63,11 +70,18 @@ resources:
             notebook_path: ../notebooks/09_verify.py
             base_parameters:
               mode: build
+        - task_key: cost_view
+          depends_on: [{ task_key: verify }]
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/11_cost_view.py
 
     stormsense_daily:
       name: StormSense - Daily forecast and transfers
       description: Every morning at 6:00 AM Eastern - refresh weather, rebuild features, forecast, find gaps, recommend transfers, verify.
       max_concurrent_runs: 1
+      tags:
+        project: stormsense
       timeout_seconds: 3600
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
@@ -94,8 +108,11 @@ resources:
             notebook_path: ../notebooks/05_refresh_weather.py
             base_parameters:
               provider: "${var.weather_provider}"
+        - task_key: data_quality
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.stormsense_quality.id}
         - task_key: features
-          depends_on: [{ task_key: refresh_weather }]
+          depends_on: [{ task_key: refresh_weather }, { task_key: data_quality }]
           environment_key: default
           max_retries: 2
           min_retry_interval_millis: 60000
@@ -134,6 +151,8 @@ resources:
       name: StormSense - Grant app access
       description: Gives the app's service principal read access to the tables and write access to transfer decisions only.
       max_concurrent_runs: 1
+      tags:
+        project: stormsense
       environments:
         - environment_key: default
           spec:

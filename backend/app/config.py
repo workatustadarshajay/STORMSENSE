@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     default_role: Literal["viewer", "planner", "admin"] = Field("viewer", validation_alias="STORMSENSE_DEFAULT_ROLE")
     dev_user_email: str = Field("ava.planner@stormsense.test", validation_alias="STORMSENSE_DEV_USER_EMAIL")
 
+    # Chat model for storm desk. These answer tool calls in this workspace: databricks-gpt-5-mini, databricks-gpt-5-4-mini.
+    storm_desk_model: str = Field("databricks-gpt-5-mini", validation_alias="STORMSENSE_AGENT_MODEL")
     cache_seconds: int = 30
     query_budget_seconds: int = 45
     ask_timeout_seconds: int = 60

@@ -20,7 +20,7 @@ as_of = ctx.as_of()
 
 # COMMAND ----------
 
-feats = features.build_features(ctx.read("sales_history"), ctx.read("weather_observed"), ctx.read("weather_forecast"), as_of)
+feats = features.build_features(ctx.read("sales_clean"), ctx.read("weather_observed_clean"), ctx.read("weather_forecast"), as_of)
 feats["date"] = feats["date"].dt.date
 ctx.write(feats, "features", new_schema=True)
 print(f"features: {len(feats):,} rows through {feats['date'].max()} ({int(feats['is_future'].sum())} future rows) as of {as_of}")

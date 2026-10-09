@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 
+from .agent import ModelClient, StormDesk
 from .api import router
 from .config import Settings, get_settings
 from .dbx import QueryError, Warehouse, WarmingUp
@@ -36,12 +37,24 @@ def build_source(settings: Settings) -> DataSource:
     return DatabricksSource(sql, client.genie, settings.genie_space_id, settings.ask_timeout_seconds)
 
 
+def build_storm_desk(settings: Settings, service: Service) -> StormDesk | None:
+    """Storm desk needs a chat model in the workspace, so it exists only in databricks mode."""
+    if settings.mode != "databricks":
+        return None
+    from databricks.sdk import WorkspaceClient
+
+    client = WorkspaceClient(profile=settings.databricks_profile) if settings.databricks_profile else WorkspaceClient()
+    return StormDesk(service, ModelClient(client.api_client, settings.storm_desk_model))
+
+
 def create_app(settings: Settings | None = None, source: DataSource | None = None) -> FastAPI:
     settings = settings or get_settings()
     app = FastAPI(title="StormSense", version="1.0.0", docs_url=None, redoc_url=None, openapi_url="/api/openapi.json")
     app.state.settings = settings
     app.state.service = Service(source or build_source(settings), settings)
     app.state.limiter = RateLimiter(settings.ask_per_minute)
+    app.state.desk_limiter = RateLimiter(5)
+    app.state.storm_desk = build_storm_desk(settings, app.state.service)
 
     app.add_middleware(BodyLimit, max_bytes=settings.max_body_bytes)
     app.add_middleware(SecurityHeaders, production=settings.environment == "production")

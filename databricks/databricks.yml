@@ -5,11 +5,14 @@ bundle:
 
 variables:
   catalog:
-    description: Unity Catalog catalog. Blank means the workspace default catalog.
-    default: ""
+    description: Unity Catalog catalog that holds the StormSense schema.
+    default: workspace
   schema:
     description: Schema that holds every StormSense table.
     default: stormsense
+  warehouse_id:
+    description: SQL warehouse that runs the dashboard.
+    default: "52140806e6c8212a"
   weather_provider:
     description: "sample, or nws for the live US National Weather Service forecast."
     default: sample
@@ -21,6 +24,8 @@ sync:
   include:
     - stormsense_core/**
     - notebooks/**
+    - pipelines/**
+    - dashboards/**
   exclude:
     - "**/__pycache__/**"
 

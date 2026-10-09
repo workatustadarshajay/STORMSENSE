@@ -1,0 +1,576 @@
+{
+  "datasets": [
+    {
+      "name": "kpi",
+      "displayName": "Kpi",
+      "query": "SELECT\n  (SELECT count(*) FROM workspace.stormsense.transfer_recommendations WHERE status = 'PENDING' AND urgency = 'URGENT') AS urgent,\n  (SELECT count(*) FROM workspace.stormsense.transfer_recommendations WHERE status = 'PENDING') AS pending,\n  (SELECT round(sum(sales_protected_usd)) FROM workspace.stormsense.transfer_recommendations WHERE status = 'PENDING') AS protected_usd,\n  (SELECT count(DISTINCT store_id) FROM workspace.stormsense.inventory_gaps WHERE status = 'SHORTAGE' AND as_of_date = (SELECT max(as_of_date) FROM workspace.stormsense.inventory_gaps)) AS stores_at_risk"
+    },
+    {
+      "name": "units_by_product",
+      "displayName": "Units by product",
+      "query": "SELECT p.name AS product, round(sum(f.predicted_units)) AS units\nFROM workspace.stormsense.predictions f JOIN workspace.stormsense.products p ON p.product_id = f.product_id\nWHERE f.as_of_date = (SELECT max(as_of_date) FROM workspace.stormsense.predictions)\nGROUP BY p.name ORDER BY units DESC"
+    },
+    {
+      "name": "short_by_store",
+      "displayName": "Short by store",
+      "query": "SELECT s.name AS store, round(sum(g.shortfall_units)) AS units_short\nFROM workspace.stormsense.inventory_gaps g JOIN workspace.stormsense.stores s ON s.store_id = g.store_id\nWHERE g.status = 'SHORTAGE' AND g.as_of_date = (SELECT max(as_of_date) FROM workspace.stormsense.inventory_gaps)\nGROUP BY s.name ORDER BY units_short DESC"
+    },
+    {
+      "name": "pending_transfers",
+      "displayName": "Pending transfers",
+      "query": "SELECT s1.name AS from_store, s2.name AS to_store, p.name AS product, t.qty AS units,\n  t.urgency, round(t.sales_protected_usd) AS sales_protected_usd\nFROM workspace.stormsense.transfer_recommendations t\nJOIN workspace.stormsense.stores s1 ON s1.store_id = t.source_store_id\nJOIN workspace.stormsense.stores s2 ON s2.store_id = t.dest_store_id\nJOIN workspace.stormsense.products p ON p.product_id = t.product_id\nWHERE t.status = 'PENDING'\nORDER BY (t.urgency = 'URGENT') DESC, t.sales_protected_usd DESC"
+    },
+    {
+      "name": "accuracy",
+      "displayName": "Accuracy",
+      "query": "SELECT model_version AS version, round(wape_model, 3) AS forecaster,\n  round(wape_same_as_last_week, 3) AS same_as_last_week, round(wape_trailing_28d_avg, 3) AS trailing_28_day_average,\n  CASE WHEN promoted THEN 'Champion' ELSE 'Not promoted' END AS status\nFROM workspace.stormsense.model_runs ORDER BY trained_at DESC"
+    },
+    {
+      "name": "cost",
+      "displayName": "Cost",
+      "query": "SELECT usage_date, round(sum(dbus), 2) AS dbus\nFROM workspace.stormsense.cost_daily GROUP BY usage_date ORDER BY usage_date"
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "urgent",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "urgent",
+                      "expression": "`urgent`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "urgent",
+                  "displayName": "Urgent transfers"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Urgent transfers"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "pending",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "pending",
+                      "expression": "`pending`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pending",
+                  "displayName": "Transfers waiting"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Transfers waiting"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "protected",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "protected_usd",
+                      "expression": "`protected_usd`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "protected_usd",
+                  "displayName": "Sales protected (USD)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Sales protected (USD)"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "stores_at_risk",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "stores_at_risk",
+                      "expression": "`stores_at_risk`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "stores_at_risk",
+                  "displayName": "Stores running low"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Stores running low"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "short_by_store",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "short_by_store",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "store",
+                      "expression": "`store`"
+                    },
+                    {
+                      "name": "sum(units_short)",
+                      "expression": "SUM(`units_short`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "store",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Store"
+                },
+                "y": {
+                  "fieldName": "sum(units_short)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Units short"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Units short this week, by store"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 3,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "units_by_product",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "units_by_product",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "product",
+                      "expression": "`product`"
+                    },
+                    {
+                      "name": "sum(units)",
+                      "expression": "SUM(`units`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "product",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Product"
+                },
+                "y": {
+                  "fieldName": "sum(units)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Units"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Units expected this week, by product"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "cost",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cost",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "usage_date",
+                      "expression": "`usage_date`"
+                    },
+                    {
+                      "name": "sum(dbus)",
+                      "expression": "SUM(`dbus`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "usage_date",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Usage date"
+                },
+                "y": {
+                  "fieldName": "sum(dbus)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Dbus"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Databricks usage for StormSense (DBUs per day)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "accuracy",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "accuracy",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "version",
+                      "expression": "`version`"
+                    },
+                    {
+                      "name": "forecaster",
+                      "expression": "`forecaster`"
+                    },
+                    {
+                      "name": "same_as_last_week",
+                      "expression": "`same_as_last_week`"
+                    },
+                    {
+                      "name": "trailing_28_day_average",
+                      "expression": "`trailing_28_day_average`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "version",
+                    "title": "Version",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 0,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "forecaster",
+                    "title": "Forecaster",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 1,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "same_as_last_week",
+                    "title": "Same as last week",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 2,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "trailing_28_day_average",
+                    "title": "Trailing 28 day average",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 3,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "status",
+                    "title": "Status",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 4,
+                    "visible": true,
+                    "alignContent": "left"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Forecast accuracy (lower is better)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "transfers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "pending_transfers",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "from_store",
+                      "expression": "`from_store`"
+                    },
+                    {
+                      "name": "to_store",
+                      "expression": "`to_store`"
+                    },
+                    {
+                      "name": "product",
+                      "expression": "`product`"
+                    },
+                    {
+                      "name": "units",
+                      "expression": "`units`"
+                    },
+                    {
+                      "name": "urgency",
+                      "expression": "`urgency`"
+                    },
+                    {
+                      "name": "sales_protected_usd",
+                      "expression": "`sales_protected_usd`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "from_store",
+                    "title": "From store",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 0,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "to_store",
+                    "title": "To store",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 1,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "product",
+                    "title": "Product",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 2,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "units",
+                    "title": "Units",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 3,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "urgency",
+                    "title": "Urgency",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 4,
+                    "visible": true,
+                    "alignContent": "left"
+                  },
+                  {
+                    "fieldName": "sales_protected_usd",
+                    "title": "Sales protected usd",
+                    "displayAs": "string",
+                    "type": "string",
+                    "order": 5,
+                    "visible": true,
+                    "alignContent": "left"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Transfers waiting for a decision"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 15,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ]
+    }
+  ]
+}

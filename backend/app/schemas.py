@@ -167,3 +167,23 @@ class Health(BaseModel):
     status: Literal["ok", "starting", "unavailable"]
     mode: str
     warehouse: Literal["ready", "starting", "unavailable", "not_checked"]
+
+
+class StormDeskRequest(BaseModel):
+    goal: str = Field(min_length=3, max_length=500)
+
+
+class DeskStep(BaseModel):
+    what: str = Field(description="Plain-language description of what storm desk checked")
+    result: str
+
+
+class StormDeskPlan(BaseModel):
+    answered: bool
+    plan: list[str] = Field(default_factory=list, description="The plan, one sentence per item")
+    steps: list[DeskStep] = Field(default_factory=list, description="What storm desk checked, in order")
+    transfers: list[Transfer] = Field(default_factory=list, description="Pending transfers the plan refers to")
+    message: str | None = None
+
+
+StormDeskPlan.model_rebuild()

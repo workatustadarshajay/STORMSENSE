@@ -24,7 +24,7 @@ as_of = ctx.as_of()
 
 preds = ctx.read("predictions")
 preds = preds[pd.to_datetime(preds["as_of_date"]).dt.date == as_of]
-inv = ctx.read("inventory_snapshot")
+inv = ctx.read("inventory_clean")
 inv = inv[pd.to_datetime(inv["snapshot_date"]).dt.date == as_of]
 version = preds["model_version"].iloc[0]
 intervals = ctx.read("forecast_intervals").query("model_version == @version")

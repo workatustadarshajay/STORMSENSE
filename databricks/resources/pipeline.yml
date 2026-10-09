@@ -1,0 +1,11 @@
+resources:
+  pipelines:
+    stormsense_quality:
+      name: StormSense - Data quality gates
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      continuous: false
+      libraries:
+        - file:
+            path: ../pipelines/data_quality.sql

@@ -1,0 +1,6 @@
+resources:
+  dashboards:
+    stormsense_overview:
+      display_name: StormSense overview
+      file_path: ../dashboards/stormsense_overview.lvdash.json
+      warehouse_id: ${var.warehouse_id}

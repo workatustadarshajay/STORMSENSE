@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 
+from .agent import StormDesk
 from .auth import current_user, get_service, planner, problem, same_origin
 from .dbx import WarmingUp
 from .schemas import (
@@ -19,6 +20,8 @@ from .schemas import (
     RejectRequest,
     StoreForecast,
     StoreSummary,
+    StormDeskPlan,
+    StormDeskRequest,
     Transfer,
 )
 from .service import Service
@@ -106,3 +109,20 @@ def ask(body: AskRequest, request: Request, user: User, svc: Svc) -> AskResponse
     if not request.app.state.limiter.allow(user.email):
         raise problem(429, "slow_down", "You're asking quickly. Wait a moment, then try again.", **{"Retry-After": "30"})
     return svc.ask(body.question.strip())
+
+
+@router.post("/storm-desk", response_model=StormDeskPlan, tags=["storm desk"], dependencies=[Depends(same_origin)])
+def storm_desk(body: StormDeskRequest, request: Request, user: User) -> StormDeskPlan:
+    """Plans from the live data. Read-only: it can suggest moves but never approves or changes anything."""
+    if not request.app.state.desk_limiter.allow(user.email):
+        raise problem(429, "slow_down", "Storm desk has been asked a lot. Wait a minute, then try again.", **{"Retry-After": "60"})
+    desk: StormDesk | None = request.app.state.storm_desk
+    if desk is None:
+        return StormDeskPlan(answered=False, message="Storm desk needs the live workspace. It isn't available with sample data.")
+    result = desk.run(body.goal.strip())
+    svc: Service = request.app.state.service
+    transfers = [t for t in (svc.transfer(i) for i in result.transfer_ids) if t and t.status == "PENDING"]
+    return StormDeskPlan(
+        answered=result.answered, plan=result.plan, message=result.message, transfers=transfers,
+        steps=[{"what": s.tool.replace("get_", "").replace("_", " ").capitalize(), "result": s.detail} for s in result.steps],
+    )
