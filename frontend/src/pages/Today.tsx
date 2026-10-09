@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import type { Overview } from "../api/client";
+import { Link, useSearchParams } from "react-router-dom";
+import type { Overview, WeatherMode } from "../api/client";
 import { useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
@@ -18,8 +18,28 @@ function Figure({ value, label, hint, urgent }: { value: string | number; label:
 
 const BAR = { ready: "bg-teal", watch: "bg-heat", risk: "bg-signal" } as const;
 
-function Readiness() {
-  const stores = useStores();
+function WeatherSwitch({ mode, onChange }: { mode: WeatherMode; onChange: (m: WeatherMode) => void }) {
+  const options: [WeatherMode, string][] = [["live", "Live weather"], ["demo", "Demo storm"]];
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-3" role="group" aria-label="Weather shown on this page">
+      <span className="text-sm font-semibold text-muted">Weather</span>
+      {options.map(([value, label]) => (
+        <button
+          key={value}
+          type="button"
+          aria-pressed={mode === value}
+          onClick={() => onChange(value)}
+          className={`min-h-11 rounded-xl border px-4 font-bold ${mode === value ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-teal"}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Readiness({ weather }: { weather: WeatherMode }) {
+  const stores = useStores(weather);
   return (
     <section aria-labelledby="ready-h" className="mt-10">
       <h2 id="ready-h" className="text-xl font-extrabold">Storm readiness</h2>
@@ -53,7 +73,7 @@ function Readiness() {
   );
 }
 
-function Body({ o, name }: { o: Overview; name: string }) {
+function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weather: WeatherMode; onWeather: (m: WeatherMode) => void }) {
   const worst = (["storm", "heavy_rain", "heat"] as const).find((k) => o.alerts.some((a) => a.kind === k));
   const alert = o.next_alert;
   return (
@@ -65,6 +85,13 @@ function Body({ o, name }: { o: Overview; name: string }) {
         <p className="mt-1.5 opacity-90">{o.next_action.detail}</p>
       </section>
 
+      <WeatherSwitch mode={weather} onChange={onWeather} />
+      {weather === "demo" && (
+        <p role="status" className="mt-3 rounded-2xl bg-heat-tint p-4 font-semibold text-heat">
+          Demo storm: a storm is placed on the Florida stores for the next two days. Stock figures and transfers still come from the live plan.
+        </p>
+      )}
+
       <section aria-label="Today at a glance" className="settle mt-8 grid grid-cols-3 divide-x divide-line">
         <Figure value={o.urgent_transfers} urgent={o.urgent_transfers > 0} label={o.urgent_transfers === 1 ? "urgent transfer" : "urgent transfers"} />
         <Figure value={o.stores_at_risk} label={o.stores_at_risk === 1 ? "store running low" : "stores running low"} />
@@ -75,7 +102,7 @@ function Body({ o, name }: { o: Overview; name: string }) {
         )}
       </section>
 
-      <Readiness />
+      <Readiness weather={weather} />
 
       <Link
         to={o.next_action.path}
@@ -93,10 +120,19 @@ function Body({ o, name }: { o: Overview; name: string }) {
 
 export default function Today() {
   const me = useMe();
-  const overview = useOverview();
+  const [params, setParams] = useSearchParams();
+  const weather: WeatherMode = params.get("weather") === "demo" ? "demo" : "live";
+  const overview = useOverview(weather);
   return (
     <QueryView query={overview} rows={2}>
-      {(o) => <Body o={o} name={me.data?.name ?? "there"} />}
+      {(o) => (
+        <Body
+          o={o}
+          name={me.data?.name ?? "there"}
+          weather={weather}
+          onWeather={(m) => setParams(m === "demo" ? { weather: "demo" } : {})}
+        />
+      )}
     </QueryView>
   );
 }

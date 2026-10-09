@@ -1,5 +1,5 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, ApiError, type RejectReason } from "./client";
+import { api, ApiError, type RejectReason, type WeatherMode } from "./client";
 
 /** Waking data connections get a few patient retries; real errors get one. */
 export function retryPolicy(failures: number, error: unknown): boolean {
@@ -16,11 +16,13 @@ export const makeQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: retryPolicy, retryDelay, staleTime: 15_000, refetchOnWindowFocus: false } } });
 
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });
-export const useOverview = () => useQuery({ queryKey: ["overview"], queryFn: api.overview });
+export const useOverview = (weather: WeatherMode = "live") =>
+  useQuery({ queryKey: ["overview", weather], queryFn: () => api.overview(weather) });
 export const usePending = () => useQuery({ queryKey: ["transfers", "PENDING"], queryFn: () => api.transfers("PENDING") });
 export const useHistory = () => useQuery({ queryKey: ["history"], queryFn: api.history });
 export const useBacktest = () => useQuery({ queryKey: ["backtest"], queryFn: api.backtest, staleTime: 300_000 });
-export const useStores = () => useQuery({ queryKey: ["stores"], queryFn: api.stores });
+export const useStores = (weather: WeatherMode = "live") =>
+  useQuery({ queryKey: ["stores", weather], queryFn: () => api.stores(weather) });
 export const useForecast = (storeId: string | undefined) =>
   useQuery({ queryKey: ["forecast", storeId], queryFn: () => api.forecast(storeId!), enabled: !!storeId });
 

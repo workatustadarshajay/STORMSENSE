@@ -116,3 +116,10 @@ make smoke WAREHOUSE_ID=<id> SPACE_ID=<id>      # live check of the real workspa
 | `Address already in use` | A previous run is still up: `fuser -k 8000/tcp 5173/tcp`. |
 | `databricks auth profiles` shows Valid = NO | Sign in again with the `databricks auth login` command above. |
 | The page shows sample data but you expected live data | Check the API log line described above. |
+
+## Live or demo weather
+
+Today has a **Weather** switch. **Live weather** shows the real forecast. **Demo storm** places a storm on the Florida stores for the next two days, so you can show what a storm would do to alerts, readiness and the store forecast. The banner says the stock figures and transfers still come from the live plan. It needs no redeploy and changes nothing in the data.
+
+To change the data the daily job uses, set the bundle variable `weather_provider` (`nws` for the live forecast, `sample` for generated weather). That changes the plan the next time the job runs.
+

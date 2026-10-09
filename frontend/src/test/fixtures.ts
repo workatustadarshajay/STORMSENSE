@@ -24,7 +24,7 @@ export const history: Transfer[] = [
 ];
 
 export const overview: Overview = {
-  urgent_transfers: 2, pending_transfers: 3, stores_at_risk: 4, as_of: "2026-10-07",
+  urgent_transfers: 2, pending_transfers: 3, stores_at_risk: 4, as_of: "2026-10-07", weather_source: "live",
   next_alert: { date: "2026-10-11", weekday: "Sunday", kind: "storm", title: "Tropical Storm Odalys expected Sunday", detail: "Tampa and Orlando in Florida", stores: ["Tampa", "Orlando"] },
   alerts: [{ date: "2026-10-11", weekday: "Sunday", kind: "storm", title: "Tropical Storm Odalys expected Sunday", detail: "Tampa and Orlando in Florida", stores: ["Tampa", "Orlando"] }],
   next_action: { title: "Review 2 urgent transfers", detail: "Moving this stock protects about $25,000 in sales.", button: "Review transfers", path: "/transfers" },
@@ -38,7 +38,7 @@ export const stores: StoreSummary[] = [
 const days = ["2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14"];
 const weekdays = ["Thursday", "Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
 export const forecast = (store: StoreSummary): StoreForecast => ({
-  store, as_of: "2026-10-07",
+  store, as_of: "2026-10-07", weather_source: "live",
   weather: days.map((date, i) => ({ date, weekday: weekdays[i], condition: i === 3 ? "storm" : "clear", label: i === 3 ? "Storm" : "Clear", temp_max_f: 84, wind_max_mph: i === 3 ? 56 : 10, rain_in: 0 })),
   products: [{
     product: generator, days: days.map((date, i) => ({ date, weekday: weekdays[i], units: 6 + i })), total_units: 56, range_low: 28, range_high: 95,

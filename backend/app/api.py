@@ -38,6 +38,8 @@ from .whatif import run as run_what_if
 
 router = APIRouter(prefix="/api")
 Svc = Annotated[Service, Depends(get_service)]
+# live = the real forecast; demo = a demo storm placed on the Florida stores, for showing what a storm would look like
+WeatherMode = Annotated[Literal["live", "demo"], Query()]
 User = Annotated[Me, Depends(current_user)]
 
 
@@ -63,8 +65,8 @@ def me(user: User) -> Me:
 
 
 @router.get("/overview", response_model=Overview, tags=["today"])
-def overview(user: User, svc: Svc) -> Overview:
-    return svc.overview()
+def overview(user: User, svc: Svc, weather: WeatherMode = "live") -> Overview:
+    return svc.overview(weather)
 
 
 @router.get("/transfers", response_model=list[Transfer], tags=["transfers"])
@@ -126,13 +128,14 @@ def transfer(transfer_id: Annotated[str, Path(pattern=r"^TR-[A-Z0-9]{10}$")], us
 
 
 @router.get("/stores", response_model=list[StoreSummary], tags=["stores"])
-def stores(user: User, svc: Svc) -> list[StoreSummary]:
-    return svc.stores()
+def stores(user: User, svc: Svc, weather: WeatherMode = "live") -> list[StoreSummary]:
+    return svc.stores(weather)
 
 
 @router.get("/stores/{store_id}/forecast", response_model=StoreForecast, tags=["stores"])
-def store_forecast(store_id: Annotated[str, Path(pattern=r"^S\d{2}$")], user: User, svc: Svc) -> StoreForecast:
-    found = svc.store_forecast(store_id)
+def store_forecast(store_id: Annotated[str, Path(pattern=r"^S\d{2}$")], user: User, svc: Svc,
+                   weather: WeatherMode = "live") -> StoreForecast:
+    found = svc.store_forecast(store_id, weather)
     if not found:
         raise problem(404, "not_found", "We couldn't find that store.")
     return found

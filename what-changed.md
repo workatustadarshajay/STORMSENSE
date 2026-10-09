@@ -231,3 +231,14 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - Run the recommendations job once, so the "closer store" lines appear on live transfers. This changes only reason text; approved and rejected rows are never touched.
 - Create the Vector Search endpoint if you want semantic search instead of the SQL lookup.
 - The hosted app is still blocked by the company network filter, so these features are visible locally only.
+
+---
+
+## 14. Weather switch: live or demo storm (app display)
+
+- **Live weather (default):** the real forecast. Nothing changes for existing users; every response says `weather_source: "live"`.
+- **Demo storm:** on Today, a switch sets `?weather=demo`. A storm is placed on the Florida stores for the next two forecast days, which changes the alerts, the storm readiness, and the store forecast weather. Each response says `weather_source: "demo"`, and Today shows a banner: stock figures and transfers still come from the live plan.
+- **Why transfers don't change:** the stock plan is built by the daily job from the weather table. Changing the display alone keeps approvals and the audit trail true to real data.
+- **Job-level switch (unchanged):** the bundle variable `weather_provider` (`nws` or `sample`) decides what the daily job uses. Changing it changes the plan the next time the job runs.
+- **Code:** `backend/app/demo_weather.py`; `service.py` (`_weather`, mode-aware overview, stores and forecast); `api.py` (`weather` query parameter on `/api/overview`, `/api/stores`, `/api/stores/{id}/forecast`); `frontend/src/pages/Today.tsx` (switch and banner).
+- **Checks:** backend 80 pass, web unit 41 pass, browser 27 pass with 1 skipped; lint passes.

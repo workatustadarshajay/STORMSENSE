@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import App from "../App";
@@ -52,5 +53,22 @@ describe("Export and print", () => {
     const csv = await screen.findByRole("link", { name: "Download this week's plan (CSV)" });
     expect(csv).toHaveAttribute("href", "/api/transfers/export?status=PENDING");
     expect(screen.getByRole("button", { name: "Print or save as PDF" })).toBeInTheDocument();
+  });
+});
+
+describe("Weather switch on Today", () => {
+  it("shows the demo storm with a clear label, and switches back to live weather", async () => {
+    const user = userEvent.setup();
+    const server = serve({
+      "GET /api/overview?weather=demo": () => ({ ...fx.overview, weather_source: "demo" }),
+      "GET /api/stores?weather=demo": () => fx.stores,
+      "GET /api/me": () => fx.planner,
+    });
+    open("/?weather=demo");
+    expect(await screen.findByText(/Demo storm: a storm is placed on the Florida stores/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Demo storm" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Live weather" }));
+    expect(screen.queryByText(/Demo storm: a storm is placed/)).not.toBeInTheDocument();
+    expect(server.calls.some((c) => c.path === "/api/overview")).toBe(true);
   });
 });

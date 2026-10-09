@@ -11,6 +11,7 @@ from typing import Any, TypeVar
 
 from .carbon import estimate_kg_co2e
 from .config import Settings
+from .demo_weather import with_demo_storm
 from .readiness import label as readiness_label
 from .readiness import score as readiness_score
 from .readiness import storm_window_days
@@ -145,15 +146,16 @@ class Service:
     def decide(self, action: str, ids: list[str], actor: str, note: str | None, reason_code: str | None = None) -> DecisionResult:
         unique = list(dict.fromkeys(ids))  # a double-click or repeated id changes nothing twice
         d = self.source.decide(action, unique, actor, note, request_id=uuid.uuid4().hex, reason_code=reason_code)
-        self._cache.pop("overview", None)
+        self._cache.pop("overview:live", None)
+        self._cache.pop("overview:demo", None)
         return DecisionResult(action=action, changed=d.changed, skipped=d.skipped,  # type: ignore[arg-type]
                               message=decision_message(action, d.changed, d.skipped))
 
     # ---- today ------------------------------------------------------------------------------
-    def alerts(self) -> list[WeatherAlert]:
+    def alerts(self, weather: str = "live") -> list[WeatherAlert]:
         stores, _ = self._directory()
         groups: dict[tuple[str, str], dict[str, Any]] = {}
-        for w in self.source.weather(None):
+        for w in self._weather(None, weather):
             if w["condition"] not in KIND_LABEL:
                 continue
             region = stores[w["store_id"]]["region"]
@@ -169,12 +171,19 @@ class Service:
         ]
         return sorted(out, key=lambda a: (a.date, SEVERITY.index(a.kind)))[:4]
 
-    def overview(self) -> Overview:
+    def _weather(self, store_id: str | None, mode: str) -> list[Row]:
+        rows = self.source.weather(store_id)
+        if mode != "demo":
+            return rows
+        stores, _ = self._directory()
+        return with_demo_storm(rows, {sid: s["region"] for sid, s in stores.items()})
+
+    def overview(self, weather: str = "live") -> Overview:
         def build() -> Overview:
             pending = self.source.transfers("PENDING", None)
             urgent = [r for r in pending if r["urgency"] == "URGENT"]
             shortages = self.source.gaps(None, "SHORTAGE")
-            alerts = self.alerts()
+            alerts = self.alerts(weather)
             if urgent:
                 protected = round(sum(float(r["sales_protected_usd"] or 0) for r in urgent), -2)
                 action = NextAction(title=f"Review {plural(len(urgent), 'urgent transfer')}",
@@ -190,15 +199,15 @@ class Service:
             as_of = max((g["as_of_date"] for g in shortages), default=None) or self._as_of()
             return Overview(urgent_transfers=len(urgent), pending_transfers=len(pending),
                             stores_at_risk=len({g["store_id"] for g in shortages}), next_alert=alerts[0] if alerts else None,
-                            alerts=alerts, next_action=action, as_of=as_of)
-        return self._cached("overview", build)
+                            alerts=alerts, next_action=action, as_of=as_of, weather_source=weather)
+        return self._cached(f"overview:{weather}", build)
 
     def _as_of(self) -> date | None:
         gaps = self.source.gaps(None, None)
         return gaps[0]["as_of_date"] if gaps else None
 
     # ---- stores ------------------------------------------------------------------------------
-    def stores(self) -> list[StoreSummary]:
+    def stores(self, weather: str = "live") -> list[StoreSummary]:
         stores, _ = self._directory()
         low: dict[str, int] = defaultdict(int)
         for g in self.source.gaps(None, "SHORTAGE"):
@@ -206,25 +215,25 @@ class Service:
         cover: dict[str, list[float]] = defaultdict(list)
         for g in self.source.gaps(None, None):
             cover[g["store_id"]].append(g["days_of_cover"])
-        weather: dict[str, list[tuple[str, str]]] = defaultdict(list)
-        for w in self.source.weather(None):
-            weather[w["store_id"]].append((str(w["forecast_date"]), w["condition"]))
+        forecast: dict[str, list[tuple[str, str]]] = defaultdict(list)
+        for w in self._weather(None, weather):
+            forecast[w["store_id"]].append((str(w["forecast_date"]), w["condition"]))
         safety = float(self.source.setting("safety_stock_days") or 2)
         out = []
         for s in sorted(stores.values(), key=lambda s: s["name"]):
             sid = s["store_id"]
-            window = storm_window_days(weather[sid])
+            window = storm_window_days(forecast[sid])
             ready = readiness_score(cover[sid], window, safety)
             out.append(StoreSummary(id=sid, name=s["name"], city=s["city"], region=s["region"], running_low=low[sid],
                                     readiness=ready, readiness_label=readiness_label(ready), storm_days=window))
         return out
 
-    def store_forecast(self, store_id: str) -> StoreForecast | None:
+    def store_forecast(self, store_id: str, weather_mode: str = "live") -> StoreForecast | None:
         stores, products = self._directory()
         if store_id not in stores:
             return None
-        summary = next(s for s in self.stores() if s.id == store_id)
-        weather = self.source.weather(store_id)
+        summary = next(s for s in self.stores(weather_mode) if s.id == store_id)
+        weather = self._weather(store_id, weather_mode)
         gaps = {g["product_id"]: g for g in self.source.gaps(store_id, None)}
         by_product: dict[str, list[Row]] = defaultdict(list)
         preds = self.source.predictions(store_id)
@@ -254,7 +263,7 @@ class Service:
             for w in weather
         ]
         as_of = preds[0]["as_of_date"] if preds else None
-        return StoreForecast(store=summary, weather=days, products=out, as_of=as_of)
+        return StoreForecast(store=summary, weather=days, products=out, as_of=as_of, weather_source=weather_mode)
 
     @staticmethod
     def _why(product: Row, weather: list[Row], status: str) -> str:

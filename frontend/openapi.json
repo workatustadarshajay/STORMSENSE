@@ -505,6 +505,16 @@
           "urgent_transfers": {
             "title": "Urgent Transfers",
             "type": "integer"
+          },
+          "weather_source": {
+            "default": "live",
+            "description": "demo means a demo storm is placed on the weather screens",
+            "enum": [
+              "live",
+              "demo"
+            ],
+            "title": "Weather Source",
+            "type": "string"
           }
         },
         "required": [
@@ -760,6 +770,16 @@
             },
             "title": "Weather",
             "type": "array"
+          },
+          "weather_source": {
+            "default": "live",
+            "description": "demo means a demo storm is placed on this forecast's weather",
+            "enum": [
+              "live",
+              "demo"
+            ],
+            "title": "Weather Source",
+            "type": "string"
           }
         },
         "required": [
@@ -1570,6 +1590,22 @@
     "/api/overview": {
       "get": {
         "operationId": "overview_api_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "weather",
+            "required": false,
+            "schema": {
+              "default": "live",
+              "enum": [
+                "live",
+                "demo"
+              ],
+              "title": "Weather",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1580,6 +1616,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Overview",
@@ -1591,6 +1637,22 @@
     "/api/stores": {
       "get": {
         "operationId": "stores_api_stores_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "weather",
+            "required": false,
+            "schema": {
+              "default": "live",
+              "enum": [
+                "live",
+                "demo"
+              ],
+              "title": "Weather",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1605,6 +1667,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Stores",
@@ -1624,6 +1696,20 @@
             "schema": {
               "pattern": "^S\\d{2}$",
               "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "weather",
+            "required": false,
+            "schema": {
+              "default": "live",
+              "enum": [
+                "live",
+                "demo"
+              ],
+              "title": "Weather",
               "type": "string"
             }
           }

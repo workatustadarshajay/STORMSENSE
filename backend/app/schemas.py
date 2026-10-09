@@ -57,6 +57,7 @@ class Overview(BaseModel):
     alerts: list[WeatherAlert]
     next_action: NextAction
     as_of: date | None
+    weather_source: Literal["live", "demo"] = Field("live", description="demo means a demo storm is placed on the weather screens")
 
 
 class Transfer(BaseModel):
@@ -143,6 +144,7 @@ class StoreForecast(BaseModel):
     weather: list[WeatherDay]
     products: list[ProductForecast]
     as_of: date | None
+    weather_source: Literal["live", "demo"] = Field("live", description="demo means a demo storm is placed on this forecast's weather")
 
 
 class InventoryItem(BaseModel):

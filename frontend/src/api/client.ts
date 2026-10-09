@@ -15,6 +15,9 @@ export type StormDeskPlan = S["StormDeskPlan"];
 export type WhatIfResult = S["WhatIfResult"];
 export type WhatIfRequest = S["WhatIfRequest"];
 export type RejectReason = S["RejectRequest"]["reason_code"];
+/** live = the real forecast; demo = a demo storm placed on the Florida stores. */
+export type WeatherMode = "live" | "demo";
+const weatherQuery = (mode: WeatherMode) => (mode === "demo" ? "?weather=demo" : "");
 export type BacktestStorm = S["BacktestStorm"];
 
 /** A problem the server explained in plain words. */
@@ -54,13 +57,13 @@ const query = (params: Record<string, string | undefined>) => {
 
 export const api = {
   me: () => request<Me>("/api/me"),
-  overview: () => request<Overview>("/api/overview"),
+  overview: (weather: WeatherMode = "live") => request<Overview>(`/api/overview${weatherQuery(weather)}`),
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),
   approve: (ids: string[], note?: string) => post<DecisionResult>("/api/transfers/approve", { ids, note: note || null }),
   reject: (ids: string[], reason: string, reasonCode?: RejectReason) =>
     post<DecisionResult>("/api/transfers/reject", { ids, reason, reason_code: reasonCode ?? null }),
-  stores: () => request<StoreSummary[]>("/api/stores"),
+  stores: (weather: WeatherMode = "live") => request<StoreSummary[]>(`/api/stores${weatherQuery(weather)}`),
   forecast: (storeId: string) => request<StoreForecast>(`/api/stores/${storeId}/forecast`),
   history: () => request<Transfer[]>("/api/history"),
   backtest: () => request<BacktestStorm[]>("/api/backtest"),

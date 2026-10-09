@@ -490,6 +490,13 @@ export interface components {
             stores_at_risk: number;
             /** Urgent Transfers */
             urgent_transfers: number;
+            /**
+             * Weather Source
+             * @description demo means a demo storm is placed on the weather screens
+             * @default live
+             * @enum {string}
+             */
+            weather_source: "live" | "demo";
         };
         /** PlanChange */
         PlanChange: {
@@ -574,6 +581,13 @@ export interface components {
             store: components["schemas"]["StoreSummary"];
             /** Weather */
             weather: components["schemas"]["WeatherDay"][];
+            /**
+             * Weather Source
+             * @description demo means a demo storm is placed on this forecast's weather
+             * @default live
+             * @enum {string}
+             */
+            weather_source: "live" | "demo";
         };
         /** StoreSummary */
         StoreSummary: {
@@ -981,7 +995,9 @@ export interface operations {
     };
     overview_api_overview_get: {
         parameters: {
-            query?: never;
+            query?: {
+                weather?: "live" | "demo";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -997,11 +1013,22 @@ export interface operations {
                     "application/json": components["schemas"]["Overview"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     stores_api_stores_get: {
         parameters: {
-            query?: never;
+            query?: {
+                weather?: "live" | "demo";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1017,11 +1044,22 @@ export interface operations {
                     "application/json": components["schemas"]["StoreSummary"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     store_forecast_api_stores__store_id__forecast_get: {
         parameters: {
-            query?: never;
+            query?: {
+                weather?: "live" | "demo";
+            };
             header?: never;
             path: {
                 store_id: string;

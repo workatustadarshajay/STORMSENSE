@@ -103,6 +103,12 @@ Returns Me.
 
 Overview
 
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `weather` | query | one of `live`, `demo` | no | default `"live"` |
+
 **Response**
 
 Returns Overview.
@@ -116,10 +122,17 @@ Returns Overview.
 | `pending_transfers` | integer |  |
 | `stores_at_risk` | integer |  |
 | `urgent_transfers` | integer |  |
+| `weather_source` | one of `live`, `demo` | demo means a demo storm is placed on the weather screens; default `"live"` |
 
 ### `GET /api/stores`
 
 Stores
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `weather` | query | one of `live`, `demo` | no | default `"live"` |
 
 **Response**
 
@@ -134,6 +147,7 @@ Store Forecast
 | Name | In | Type | Required | Notes |
 |---|---|---|---|---|
 | `store_id` | path | string | yes | matches `"^S\\d{2}$"` |
+| `weather` | query | one of `live`, `demo` | no | default `"live"` |
 
 **Response**
 
@@ -145,6 +159,7 @@ Returns StoreForecast.
 | `products` | list of ProductForecast |  |
 | `store` | StoreSummary |  |
 | `weather` | list of WeatherDay |  |
+| `weather_source` | one of `live`, `demo` | demo means a demo storm is placed on this forecast's weather; default `"live"` |
 
 ### `POST /api/storm-desk`
 
