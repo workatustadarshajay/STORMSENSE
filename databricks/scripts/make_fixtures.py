@@ -15,7 +15,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "databricks"))
 
-from stormsense_core import features, model, planning, reference, synth  # noqa: E402
+from stormsense_core import backtest, features, model, planning, reference, synth  # noqa: E402
 
 END = date(2026, 10, 7)  # Wednesday; the mock source shifts dates by whole weeks, so weekdays stay right
 USERS = [  # fictional accounts for running locally
@@ -77,6 +77,8 @@ def main() -> None:
             "predictions": records(preds),
             "inventory_gaps": records(gaps),
             "transfer_recommendations": records(recs),
+            "backtest_results": records(backtest.replay_all(t["weather_observed"], t["sales_history"], t["inventory_snapshot"],
+                                                             reference.products_df(), reference.stores_df())),
         },
     }
     target = ROOT / "backend" / "app" / "fixtures.json"

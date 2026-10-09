@@ -7,7 +7,7 @@ and every claim is recomputed from the XML.
   A  zip + XML well-formedness of every part
   B  [Content_Types].xml covers every part
   C  every relationship target resolves to a part in the package
-  D  <p:sldIdLst> is 27 slides, in order, with resolvable r:ids
+  D  <p:sldIdLst> is 31 slides, in order, with resolvable r:ids
   E  every shape sits inside the slide canvas and clear of the master footer
   F  no two text boxes overlap on a slide
   G  estimated text height fits the box it was placed in
@@ -176,8 +176,8 @@ pres_rels = {r.get("Id"): r.get("Target")
              for r in trees["ppt/_rels/presentation.xml.rels"]}
 lst = pres.find(f"{P}sldIdLst")
 ids = [e.get(f"{R}id") for e in lst]
-if len(ids) != 27:
-    fail("D", f"expected 27 slides, found {len(ids)}")
+if len(ids) != 31:
+    fail("D", f"expected 31 slides, found {len(ids)}")
 slots = []
 for i in ids:
     if i not in pres_rels:
@@ -186,12 +186,13 @@ for i in ids:
     slots.append(pres_rels[i].split("/")[-1][:-4])
 expected = ["slide1", "slide2", "slide3", "slide4", "slide5", "slide6", "slide18",
             "slide19", "slide7", "slide8", "slide20", "slide23", "slide24", "slide25",
-            "slide26", "slide9", "slide10", "slide11", "slide12", "slide21", "slide13",
+            "slide26", "slide9", "slide10", "slide28", "slide29", "slide30", "slide31",
+            "slide11", "slide12", "slide21", "slide13",
             "slide14", "slide22", "slide27", "slide15", "slide16", "slide17"]
 if slots != expected:
     fail("D", f"slide order {slots}")
 else:
-    ok("D", f"27 slides in order: {', '.join(slots)}")
+    ok("D", f"31 slides in order: {', '.join(slots)}")
 
 # ---- E/F/G/H: geometry and text per slide
 size_re = re.compile(r'sz="(\d+)"')

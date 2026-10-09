@@ -106,6 +106,24 @@ def route_penalties(route_preferences: pd.DataFrame | None) -> dict[tuple[str, s
     return out
 
 
+def closer_store_note(dest: str, source_miles: float, by_distance: list[tuple[str, float]], status: dict,
+                      supply: dict, pack: int, plural: str, penalties: dict, pid: str, names: dict) -> str:
+    """One line on the nearest store that is closer than the chosen source, and why it was not used."""
+    for store, miles in by_distance:
+        if miles >= source_miles:
+            break
+        if store == dest:
+            continue
+        name = names[store]
+        if status.get(store) == "SHORTAGE":
+            return f"{name} is closer but also short of {plural}."
+        if supply.get(store, 0) < pack:
+            return f"{name} is closer but has no spare {plural} to send."
+        if (store, dest, pid) in penalties:
+            return f"{name} is closer, but a planner rejected that route recently."
+    return ""
+
+
 def recommend_transfers(
     gaps: pd.DataFrame,
     stores: pd.DataFrame,
@@ -134,6 +152,7 @@ def recommend_transfers(
         pack, price, plural = int(pr.at[pid, "pack_size"]), float(pr.at[pid, "unit_price"]), pr.at[pid, "name_plural"]
         floor_pack = lambda q: int(q // pack) * pack  # noqa: E731, B023 (used within this iteration)
         supply = {r.store_id: floor_pack(r.spare_units) for r in g[g.status == "SURPLUS"].itertuples()}
+        status = dict(zip(g.store_id, g.status))
         short = g[g.status == "SHORTAGE"].assign(value=lambda d: d.lost_units * price + d.shortfall_units * 0.01)  # noqa: B023
         for d in short.sort_values("value", ascending=False).itertuples():
             need, lost_left = int(math.ceil(d.shortfall_units / pack) * pack), float(d.lost_units)
@@ -147,6 +166,10 @@ def recommend_transfers(
             in_week = (wx.forecast_date > pd.Timestamp(as_of)) & (wx.forecast_date <= horizon_end)
             weather = wx[(wx.store_id == d.store_id) & in_week]
             phrase = weather_phrase(worst_event(weather, DRIVER_CONDITIONS[pr.at[pid, "weather_driver"]]))
+            by_distance = sorted(
+                ((o, haversine_miles(st.at[o, "latitude"], st.at[o, "longitude"],
+                                     st.at[d.store_id, "latitude"], st.at[d.store_id, "longitude"]))
+                 for o in st.index), key=lambda x: x[1])
             for s in sources:
                 miles = haversine_miles(st.at[s, "latitude"], st.at[s, "longitude"],
                                         st.at[d.store_id, "latitude"], st.at[d.store_id, "longitude"])
@@ -155,6 +178,8 @@ def recommend_transfers(
                 qty = floor_pack(min(max(need, min_qty), supply[s]))
                 if qty < min_qty:
                     continue
+                closer = closer_store_note(d.store_id, miles, by_distance, status, supply, pack, plural, penalties, pid,
+                                           st["name"].to_dict())
                 protected = min(float(qty), lost_left)
                 rows.append(dict(
                     rec_id="TR-" + uuid.uuid4().hex[:10].upper(), as_of_date=as_of,
@@ -164,7 +189,8 @@ def recommend_transfers(
                     confidence=round(score, 2), confidence_level=confidence_level(score),
                     reason=f"{phrase}. {st.at[d.store_id, 'name']} will sell about {round(d.forecast_units)} {plural} "
                            f"this week and has {round(d.available)}."
-                           + (" " + penalties[(s, d.store_id, pid)][1] if (s, d.store_id, pid) in penalties else ""),
+                           + (" " + penalties[(s, d.store_id, pid)][1] if (s, d.store_id, pid) in penalties else "")
+                           + (" " + closer if closer else ""),
                     sales_protected_usd=round(protected * price, 2), distance_miles=round(miles),
                     runs_low_date=d.runs_low_date, status="PENDING", created_at=run_ts,
                     decided_by=None, decided_at=None, decision_note=None, decision_request_id=None,

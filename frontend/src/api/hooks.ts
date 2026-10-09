@@ -19,6 +19,7 @@ export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTi
 export const useOverview = () => useQuery({ queryKey: ["overview"], queryFn: api.overview });
 export const usePending = () => useQuery({ queryKey: ["transfers", "PENDING"], queryFn: () => api.transfers("PENDING") });
 export const useHistory = () => useQuery({ queryKey: ["history"], queryFn: api.history });
+export const useBacktest = () => useQuery({ queryKey: ["backtest"], queryFn: api.backtest, staleTime: 300_000 });
 export const useStores = () => useQuery({ queryKey: ["stores"], queryFn: api.stores });
 export const useForecast = (storeId: string | undefined) =>
   useQuery({ queryKey: ["forecast", storeId], queryFn: () => api.forecast(storeId!), enabled: !!storeId });

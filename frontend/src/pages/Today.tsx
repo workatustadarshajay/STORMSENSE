@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Overview } from "../api/client";
-import { useMe, useOverview } from "../api/hooks";
+import { useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
 
@@ -13,6 +13,43 @@ function Figure({ value, label, hint, urgent }: { value: string | number; label:
       <p className="mt-2 text-sm font-semibold leading-snug text-ink-soft">{label}</p>
       {hint && <p className="mt-1 text-xs leading-snug text-muted">{hint}</p>}
     </div>
+  );
+}
+
+const BAR = { ready: "bg-teal", watch: "bg-heat", risk: "bg-signal" } as const;
+
+function Readiness() {
+  const stores = useStores();
+  return (
+    <section aria-labelledby="ready-h" className="mt-10">
+      <h2 id="ready-h" className="text-xl font-extrabold">Storm readiness</h2>
+      <p className="mt-1 text-sm text-muted">Share of each store's products with enough stock to last the storm and a safety margin.</p>
+      <QueryView query={stores} rows={3}>
+        {(list) => (
+          <ul className="mt-4 space-y-3">
+            {[...list].sort((a, b) => a.readiness - b.readiness).map((s) => {
+              const tone = s.readiness >= 80 ? BAR.ready : s.readiness >= 50 ? BAR.watch : BAR.risk;
+              return (
+                <li key={s.id}>
+                  <Link to={`/stores?store=${s.id}`} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-3 rounded-lg hover:opacity-90">
+                    <span className="font-bold">{s.name}</span>
+                    <span className="h-3 overflow-hidden rounded-full bg-line" role="img" aria-label={`${s.readiness} percent ready, ${s.readiness_label}`}>
+                      <span className={`block h-full rounded-full ${tone}`} style={{ width: `${s.readiness}%` }} />
+                    </span>
+                    <span className="w-28 text-right text-sm font-extrabold">
+                      {s.readiness}% <span className="font-semibold text-muted">· {s.readiness_label}</span>
+                    </span>
+                  </Link>
+                  <p className="mt-0.5 pl-[6.5rem] text-xs text-muted">
+                    {s.storm_days > 0 ? `${s.storm_days} day${s.storm_days === 1 ? "" : "s"} of storm or heavy rain ahead` : "No storm or heavy rain in the week ahead"}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </QueryView>
+    </section>
   );
 }
 
@@ -37,6 +74,8 @@ function Body({ o, name }: { o: Overview; name: string }) {
           <Figure value="None" label="weather alerts this week" />
         )}
       </section>
+
+      <Readiness />
 
       <Link
         to={o.next_action.path}

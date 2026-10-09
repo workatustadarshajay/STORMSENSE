@@ -21,6 +21,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/backtest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Backtest
+         * @description Past storms replayed with what really sold: the sales lost, and how much nearby stock could have covered.
+         *
+         *     An upper bound, not a forecast.
+         */
+        get: operations["backtest_api_backtest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -197,6 +219,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/transfers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Transfers
+         * @description The plan as a spreadsheet (CSV). Read-only. Open it in a spreadsheet, or print it to PDF from the browser.
+         */
+        get: operations["export_transfers_api_transfers_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/transfers/reject": {
         parameters: {
             query?: never;
@@ -281,6 +323,42 @@ export interface components {
             columns: string[];
             /** Rows */
             rows: (string | number | null)[][];
+        };
+        /** BacktestStorm */
+        BacktestStorm: {
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Event Name */
+            event_name: string;
+            /**
+             * Lost Units
+             * @description Units sold beyond the stock on hand when the storm started
+             */
+            lost_units: number;
+            /** Lost Usd */
+            lost_usd: number;
+            /**
+             * Protected Units
+             * @description Lost units a nearby store with spare stock could have covered
+             */
+            protected_units: number;
+            /** Protected Usd */
+            protected_usd: number;
+            /**
+             * Share Protected
+             * @description Protected sales as a share of lost sales
+             */
+            share_protected: number;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /** Stores */
+            stores: number;
         };
         /** DayUnits */
         DayUnits: {
@@ -505,10 +583,28 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /**
+             * Readiness
+             * @description Share of products with enough cover for the storm window, 0 to 100
+             * @default 0
+             */
+            readiness: number;
+            /**
+             * Readiness Label
+             * @description Ready, Watch or At risk
+             * @default
+             */
+            readiness_label: string;
             /** Region */
             region: string;
             /** Running Low */
             running_low: number;
+            /**
+             * Storm Days
+             * @description Forecast days with a storm or heavy rain
+             * @default 0
+             */
+            storm_days: number;
         };
         /** StormDeskPlan */
         StormDeskPlan: {
@@ -757,6 +853,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    backtest_api_backtest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BacktestStorm"][];
                 };
             };
         };
@@ -1020,6 +1136,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DecisionResult"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_transfers_api_transfers_export_get: {
+        parameters: {
+            query?: {
+                status?: ("PENDING" | "APPROVED" | "REJECTED") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

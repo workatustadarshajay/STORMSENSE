@@ -3,6 +3,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { makeQueryClient } from "./api/hooks";
 import { Shell } from "./components/Shell";
 import Ask from "./pages/Ask";
+import Backtest from "./pages/Backtest";
 import History from "./pages/History";
 import StormDesk from "./pages/StormDesk";
 import WhatIf from "./pages/WhatIf";
@@ -33,6 +34,7 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="storm-desk" element={<StormDesk />} />
           <Route path="what-if" element={<WhatIf />} />
           <Route path="history" element={<History />} />
+          <Route path="backtest" element={<Backtest />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

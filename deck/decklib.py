@@ -244,6 +244,18 @@ def video(sid, name, x, y, cx, cy, vid_rid, poster_rid, media_rid):
     )
 
 
+def picture(sid, name, x, y, cx, cy, rid, descr=""):
+    """A still image from the deck's media, with alt text for screen readers."""
+    return (
+        f'<p:pic><p:nvPicPr><p:cNvPr id="{sid}" name="{esc(name)}" descr="{esc(descr)}"/>'
+        f'<p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>'
+        f'<p:blipFill><a:blip r:embed="{rid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>'
+        f'<p:spPr><a:xfrm><a:off x="{x}" y="{y}"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>'
+        f'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        f'<a:ln w="9525"><a:solidFill><a:srgbClr val="{LINE}"/></a:solidFill></a:ln></p:spPr></p:pic>'
+    )
+
+
 def media_timing(spid):
     """Timing node that makes the embedded video play on click in a show."""
     return (

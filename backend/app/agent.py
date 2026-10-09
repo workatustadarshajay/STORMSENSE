@@ -44,6 +44,7 @@ FORECASTER_SYSTEM = f"""You are the forecaster in Storm desk, a planning assista
 RISK_SYSTEM = f"""You are the risk checker in Storm desk. You challenge a draft plan before a planner sees it.
 - For each transfer id in the draft, call check_move with that id, then judge it.
 - Say plainly where a move would leave its source short after it leaves, or leave its receiver still short. Use the facts the tool returns.
+- Call get_precedents for each move too. If a past decision on the same route had a reason, say so in one sentence, quoting it.
 - If a move is sound, say so in one sentence. Keep the whole reply under 6 sentences. Quote ids exactly.
 {RULES}"""
 
@@ -78,6 +79,10 @@ CHECK_TOOLS = [
     {"type": "function", "function": {
         "name": "check_move",
         "description": "Facts for one proposed transfer: units moved, what the source keeps, and whether the receiver still runs low.",
+        "parameters": {"type": "object", "properties": {"rec_id": {"type": "string"}}, "required": ["rec_id"]}}},
+    {"type": "function", "function": {
+        "name": "get_precedents",
+        "description": "What planners decided the last time this same route was used for this product, and their reason.",
         "parameters": {"type": "object", "properties": {"rec_id": {"type": "string"}}, "required": ["rec_id"]}}},
 ]
 TOOLS = READ_TOOLS  # kept for callers and tests that list the forecaster's tools
@@ -202,10 +207,14 @@ class StormDesk:
                 ask = f"Goal: {goal}\n\nDraft plan:\n{draft}\n\nCheck these transfer ids: {', '.join(draft_ids)}"
 
                 def risk_tool(name: str, args: dict[str, Any]) -> tuple[Any, str]:
-                    if name != "check_move":
+                    if name not in ("check_move", "get_precedents"):
                         raise ValueError(f"unknown tool {name}")
                     if args.get("rec_id") not in draft_ids:  # the risk checker only checks what the draft proposed
                         raise ValueError("That transfer is not in the draft.")
+                    if name == "get_precedents":
+                        t = self.svc.transfer(args["rec_id"])
+                        label = f"past decisions on {t.from_store.name} to {t.to_store.name}" if t else "no route"
+                        return self.svc.precedents(args["rec_id"]), label
                     return self._check_move(args["rec_id"])
 
                 critique = self._agent(RISK_SYSTEM, ask, CHECK_TOOLS, risk_tool, steps, seen, 4)

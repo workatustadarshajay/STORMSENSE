@@ -25,6 +25,28 @@ To act:
 
 Once a move is approved or rejected, the page shows who did it and when. If someone else has already handled it, you're told so and nothing changes.
 
+## Today: storm readiness
+
+Under the glance numbers, **Storm readiness** shows each store as one percentage: the share of its products with enough stock to last the storm window plus a safety margin of two days.
+
+- **Ready** (80% or more): the store can get through the storm on its own stock.
+- **Watch** (50% to 79%): some products will need a move.
+- **At risk** (below 50%): most products run out inside the storm window.
+
+Select a store to open its forecast.
+
+## Transfers: why a farther store is sending
+
+When a move comes from a store that isn't the nearest, the reason says why in one line. For example: "Tampa is closer but also short of 1000W generators." The possible reasons are that the nearer store is also short, has no spare stock to send, or a planner rejected that route recently.
+
+## Transfers: download or print the plan
+
+**Download this week's plan (CSV)** opens the pending moves in a spreadsheet, with the reason, the sales protected and the estimated carbon for each. **Print or save as PDF** uses the browser's print dialog; choose "Save as PDF" to make a PDF for the store managers' meeting.
+
+## Past storms
+
+**History** links to **How past storms would have gone**. It replays each named storm in the history with the sales that really happened: the sales lost, and how much nearby stock could have covered. Read it as the best case, because it uses what really sold rather than the forecast.
+
 ## Stores
 
 Pick a store to see its next seven days: expected sales for each product, the weather behind each day, and when the store is likely to run low.
@@ -35,7 +57,7 @@ Type a question in plain words, for example "Which stores will run out of genera
 
 ## Storm desk
 
-From **Transfers**, select **Get a plan from storm desk** and describe your goal, for example "Prepare Florida for Sunday's storm". Storm desk checks the current stock, the weather and the pending moves, then writes a short plan. It names only moves that exist, and it never approves or changes anything. Select **How the crew reached this plan** to see each check it made.
+From **Transfers**, select **Get a plan from storm desk** and describe your goal, for example "Prepare Florida for Sunday's storm". Storm desk checks the current stock, the weather and the pending moves, then writes a short plan. It names only moves that exist, and it never approves or changes anything. Select **How the crew reached this plan** to see each check it made. The risk checker also looks up what planners decided the last time the same route was used for the same product, and quotes the reason, for example "Last time this route was rejected because no truck was free."
 
 ## What if a storm comes?
 

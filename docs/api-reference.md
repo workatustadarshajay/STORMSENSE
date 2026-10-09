@@ -27,6 +27,18 @@ Returns AskResponse.
 | `answered` | boolean |  |
 | `table` | AskTable (optional) |  |
 
+### `GET /api/backtest`
+
+Backtest
+
+Past storms replayed with what really sold: the sales lost, and how much nearby stock could have covered.
+
+An upper bound, not a forecast.
+
+**Response**
+
+Returns list of BacktestStorm.
+
 ### `GET /api/health`
 
 Health
@@ -195,6 +207,18 @@ Returns DecisionResult.
 | `changed` | list of string |  |
 | `message` | string |  |
 | `skipped` | list of string |  |
+
+### `GET /api/transfers/export`
+
+Export Transfers
+
+The plan as a spreadsheet (CSV). Read-only. Open it in a spreadsheet, or print it to PDF from the browser.
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `status` | query | one of `PENDING`, `APPROVED`, `REJECTED` (optional) | no |  |
 
 ### `POST /api/transfers/reject`
 

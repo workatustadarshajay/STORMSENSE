@@ -31,8 +31,8 @@ export const overview: Overview = {
 };
 
 export const stores: StoreSummary[] = [
-  { id: "S01", name: "Orlando", city: "Orlando", region: "Florida", running_low: 4 },
-  { id: "S04", name: "Jacksonville", city: "Jacksonville", region: "Florida", running_low: 0 },
+  { id: "S01", name: "Orlando", city: "Orlando", region: "Florida", running_low: 4, readiness: 20, readiness_label: "At risk", storm_days: 1 },
+  { id: "S04", name: "Jacksonville", city: "Jacksonville", region: "Florida", running_low: 0, readiness: 100, readiness_label: "Ready", storm_days: 1 },
 ];
 
 const days = ["2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14"];

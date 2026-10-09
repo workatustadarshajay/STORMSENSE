@@ -16,6 +16,9 @@ variables:
   weather_provider:
     description: "nws (default) for the live US National Weather Service forecast, or sample for generated weather."
     default: nws
+  trigger_status:
+    description: UNPAUSED to watch for new storm warnings every 15 minutes, PAUSED to stop spending compute.
+    default: PAUSED
   schedule_status:
     description: UNPAUSED to run every morning, PAUSED to stop spending compute.
     default: UNPAUSED

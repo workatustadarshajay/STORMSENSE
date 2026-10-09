@@ -185,6 +185,7 @@ def test_rejected_routes_rank_lower_and_say_why():
     assert not base.empty and not learned.empty
     assert base.iloc[0].source_store_id == "S04"  # the nearer source wins with no feedback
     assert learned.iloc[0].source_store_id == "S03"  # rejected route ranked lower
+    assert "Jacksonville is closer, but a planner rejected that route recently." in learned.iloc[0].reason
     assert "Ranked lower" not in learned.iloc[0].reason  # the chosen route was never rejected
     # Learning reorders, never removes: when the rejected route is the only option, it is still offered, with the reason.
     only_rejected = planning.recommend_transfers(gaps[gaps.store_id != "S03"], st, pr, wx, settings, date(2026, 10, 8),
@@ -192,3 +193,52 @@ def test_rejected_routes_rank_lower_and_say_why():
     assert only_rejected.iloc[0].source_store_id == "S04"
     assert "Ranked lower" in only_rejected.iloc[0].reason and "truck unavailable" in only_rejected.iloc[0].reason
     assert "Ranked lower" not in base.iloc[0].reason
+
+
+def test_a_farther_source_says_why_the_closer_store_was_not_used():
+    """The reason names the nearest closer store and why it was passed over: short too, or no spare stock."""
+    from datetime import date, datetime
+
+    from stormsense_core import planning
+
+    st = pd.DataFrame([
+        {"store_id": "S01", "name": "Orlando", "latitude": 28.54, "longitude": -81.38, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+        {"store_id": "S04", "name": "Jacksonville", "latitude": 30.33, "longitude": -81.66, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+        {"store_id": "S03", "name": "Miami", "latitude": 25.76, "longitude": -80.19, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+    ])
+    pr = reference.products_df().iloc[[0]].copy()
+
+    def gap(store, status, spare):
+        return {"as_of_date": date(2026, 10, 8), "store_id": store, "product_id": "P01", "status": status,
+                "available": 200.0 if spare else 5.0,
+                "forecast_units": 20.0, "forecast_p10": 16.0, "forecast_p90": 24.0, "avg_daily": 3.0, "safety_stock": 6.0,
+                "days_of_cover": 30.0 if spare else 0.7, "runs_low_date": None if spare else date(2026, 10, 9),
+                "stockout_date": None if spare else date(2026, 10, 10), "shortfall_units": 0.0 if spare else 60.0,
+                "shortfall_p10": 0.0 if spare else 50.0, "shortfall_p90": 0.0 if spare else 70.0,
+                "lost_units": 0.0 if spare else 45.0, "spare_units": 120.0 if spare else 0.0}
+
+    settings = {"safety_stock_days": 2.0, "surplus_threshold_days": 21.0, "urgent_threshold_days": 2.0,
+                "urgent_lost_sales_usd": 5000.0, "max_transfer_distance_miles": 300.0, "min_transfer_qty": 10.0,
+                "forecast_horizon_days": 7.0}
+    wx = pd.DataFrame({"store_id": ["S01"], "forecast_date": [pd.Timestamp("2026-10-09")], "condition": ["clear"],
+                       "temp_max_f": [85.0], "rain_in": [0.0], "wind_max_mph": [5.0], "event_name": [None]})
+
+    # Jacksonville is also short: Miami supplies, and the reason says Jacksonville is short too.
+    gaps = pd.DataFrame([gap("S01", "SHORTAGE", False), gap("S04", "SHORTAGE", False), gap("S03", "SURPLUS", True)])
+    rec = planning.recommend_transfers(gaps, st, pr, wx, settings, date(2026, 10, 8), datetime(2026, 10, 9, 6))
+    assert rec.iloc[0].source_store_id == "S03"
+    assert "Jacksonville is closer but also short of" in rec.iloc[0].reason
+
+    # Jacksonville is balanced (no spare stock): the reason says it has nothing to send.
+    balanced = gap("S04", "BALANCED", False).copy()
+    gaps = pd.DataFrame([gap("S01", "SHORTAGE", False), balanced, gap("S03", "SURPLUS", True)])
+    rec = planning.recommend_transfers(gaps, st, pr, wx, settings, date(2026, 10, 8), datetime(2026, 10, 9, 6))
+    assert "Jacksonville is closer but has no spare" in rec.iloc[0].reason
+
+    # The nearest source itself gets no explanation: nothing is closer than it.
+    gaps = pd.DataFrame([gap("S01", "SHORTAGE", False), gap("S04", "SURPLUS", True), gap("S03", "SURPLUS", True)])
+    rec = planning.recommend_transfers(gaps, st, pr, wx, settings, date(2026, 10, 8), datetime(2026, 10, 9, 6))
+    assert rec.iloc[0].source_store_id == "S04" and " closer" not in rec.iloc[0].reason

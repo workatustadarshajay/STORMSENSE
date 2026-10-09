@@ -83,6 +83,17 @@ class MockSource:
         return [g for g in deepcopy(self.t["inventory_gaps"])
                 if (store_id is None or g["store_id"] == store_id) and (status is None or g["status"] == status)]
 
+    def precedents(self, source_id: str, dest_id: str, product_id: str) -> list[Row]:
+        rows = [r for r in self.t["transfer_recommendations"] if r["source_store_id"] == source_id
+                and r["dest_store_id"] == dest_id and r["product_id"] == product_id and r["status"] in ("APPROVED", "REJECTED")]
+        rows.sort(key=lambda r: r["decided_at"] or datetime.min, reverse=True)
+        return [{"status": r["status"], "decided_at": r["decided_at"], "decision_note": r["decision_note"], "reason_code": None}
+                for r in rows[:5]]
+
+    def backtest(self) -> list[Row]:
+        # Past storms are history, so these dates are not shifted with the rest of the sample.
+        return [dict(r) for r in self.t.get("backtest_results", [])]
+
     def weather(self, store_id: str | None) -> list[Row]:
         return [w for w in deepcopy(self.t["weather_forecast"]) if store_id is None or w["store_id"] == store_id]
 

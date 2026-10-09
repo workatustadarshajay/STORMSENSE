@@ -114,3 +114,29 @@ def test_ask_answers_become_one_plain_sentence():
     out = plain_sentence(long, False)
     assert out.endswith("...") and len(out) <= 245 and "wor..." not in out
     assert plain_sentence("The total is **$54,282.41**. More detail follows.", True) == "The total is $54,282.41."
+
+
+def test_plan_exports_as_csv_with_formula_cells_neutralised(client: TestClient):
+    r = client.get("/api/transfers/export", params={"status": "PENDING"})
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    assert "attachment" in r.headers["content-disposition"]
+    lines = r.text.strip().splitlines()
+    assert lines[0].startswith("Transfer id,Status,Urgency,Product")
+    assert len(lines) > 1 and all(line.count(",") >= 13 for line in lines[:3])
+    from app.api import _cell
+    assert _cell("=HYPERLINK(1)") == "'=HYPERLINK(1)" and _cell("Houston") == "Houston" and _cell(None) == ""
+
+
+def test_backtest_lists_past_storms_with_plain_shares(client: TestClient):
+    storms = client.get("/api/backtest").json()
+    assert storms and all(0 <= s["share_protected"] <= 1 for s in storms)
+    assert all(s["lost_usd"] >= 0 and s["start_date"] <= s["end_date"] for s in storms)
+    assert storms == sorted(storms, key=lambda s: -s["lost_usd"])
+
+
+def test_precedents_cite_the_past_decision_on_the_same_route(client: TestClient):
+    svc = client.app.state.service
+    rejected = next(r for r in svc.source.t["transfer_recommendations"] if r["status"] == "REJECTED")
+    found = svc.precedents(rejected["rec_id"])
+    assert found and found[0]["decision"] == "Rejected" and found[0]["reason"]
+    assert svc.precedents("TR-DOESNOTEXIST") == []

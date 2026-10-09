@@ -1,5 +1,31 @@
 resources:
   jobs:
+    stormsense_storm_trigger:
+      name: StormSense - Storm trigger (NWS warnings)
+      description: Every 15 minutes, checks official NWS warnings for Florida, Texas and California. A new plan-changing warning starts the daily cycle once. Paused by default.
+      max_concurrent_runs: 1
+      tags:
+        project: stormsense
+      timeout_seconds: 900
+      schedule:
+        quartz_cron_expression: "0 */15 * * * ?"
+        timezone_id: UTC
+        pause_status: "${var.trigger_status}"
+      parameters:
+        - { name: catalog, default: "${var.catalog}" }
+        - { name: schema, default: "${var.schema}" }
+      email_notifications:
+        on_failure: ["${workspace.current_user.userName}"]
+      environments:
+        - environment_key: default
+          spec:
+            client: "4"
+      tasks:
+        - task_key: check_warnings
+          disable_auto_optimization: true
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/13_storm_trigger.py
     stormsense_build:
       name: StormSense - Build data and forecaster
       description: Creates the tables, sample data and forecaster, then runs the daily cycle once. Safe to re-run.
@@ -81,6 +107,12 @@ resources:
           environment_key: default
           notebook_task:
             notebook_path: ../notebooks/11_cost_view.py
+        - task_key: backtest
+          disable_auto_optimization: true
+          depends_on: [{ task_key: sample_data }]
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/14_backtest.py
 
     stormsense_daily:
       name: StormSense - Daily forecast and transfers

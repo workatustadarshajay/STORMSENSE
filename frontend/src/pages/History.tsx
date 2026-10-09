@@ -10,6 +10,9 @@ export default function History() {
     <>
       <h1 className="text-4xl font-extrabold">History</h1>
       <p className="mt-1 text-muted">Every transfer that was approved or rejected, and by whom.</p>
+      <p className="mt-2 text-sm">
+        <Link to="/backtest" className="font-bold text-teal-deep underline">How past storms would have gone</Link>
+      </p>
       <div className="mt-6">
         <QueryView
           query={history}

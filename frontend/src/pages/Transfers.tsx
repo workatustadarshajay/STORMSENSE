@@ -160,6 +160,15 @@ export default function Transfers() {
       <Link to="/what-if" className="mt-4 ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-signal-deep hover:border-signal hover:bg-signal-tint">
         What if a storm comes?
       </Link>
+      <div className="mt-4 ml-2 inline-flex flex-wrap gap-2 print:hidden">
+        <a href="/api/transfers/export?status=PENDING" download className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-ink hover:border-teal hover:bg-teal-tint">
+          Download this week's plan (CSV)
+        </a>
+        <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-ink hover:border-teal hover:bg-teal-tint">
+          Print or save as PDF
+        </button>
+      </div>
+      <p className="mt-3 hidden text-sm text-muted print:block">StormSense transfer plan, printed {new Date().toLocaleDateString()}.</p>
 
       {me.data && !canDecide && (
         <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-rain-tint p-4 font-semibold text-rain">

@@ -11,9 +11,13 @@ from typing import Any, TypeVar
 
 from .carbon import estimate_kg_co2e
 from .config import Settings
+from .readiness import label as readiness_label
+from .readiness import score as readiness_score
+from .readiness import storm_window_days
 from .schemas import (
     AskResponse,
     AskTable,
+    BacktestStorm,
     DayUnits,
     DecisionResult,
     InventoryItem,
@@ -63,6 +67,11 @@ def decision_message(action: str, changed: list[str], skipped: list[str]) -> str
     return " ".join(parts) or "Nothing to change."
 
 
+REJECT_REASONS = {"TRUCK_UNAVAILABLE": "no truck was free", "STORE_CLOSED": "the store was closed",
+                  "ALREADY_COVERED": "the stock was already covered", "ROUTE_TOO_SLOW": "the route was too slow",
+                  "OTHER": "another reason"}
+
+
 class Service:
     def __init__(self, source: DataSource, settings: Settings) -> None:
         self.source, self.settings = source, settings
@@ -106,6 +115,22 @@ class Service:
             runs_low_day=weekday(r.get("runs_low_date")), status=r["status"], created_at=r.get("created_at"),
             decided_by=r.get("decided_by"), decided_at=r.get("decided_at"), note=r.get("decision_note"),
         )
+
+    def precedents(self, rec_id: str) -> list[dict[str, str]]:
+        """What planners decided the last time this route was used for this product, in plain words."""
+        t = self.transfer(rec_id)
+        if t is None:
+            return []
+        out = []
+        for r in self.source.precedents(t.from_store.id, t.to_store.id, t.product.id):
+            when = r["decided_at"].strftime("%d %B") if r.get("decided_at") else "earlier"
+            why = r.get("decision_note") or REJECT_REASONS.get(r.get("reason_code") or "", "")
+            verb = "Approved" if r["status"] == "APPROVED" else "Rejected"
+            out.append({"decision": verb, "decided_on": when, "reason": why or "no reason given"})
+        return out
+
+    def backtest(self) -> list[BacktestStorm]:
+        return [BacktestStorm.model_validate(r) for r in self.source.backtest()]
 
     def transfers(self, status: str | None, urgency: str | None) -> list[Transfer]:
         return [self._transfer(r) for r in self.source.transfers(status, urgency)]
@@ -178,8 +203,21 @@ class Service:
         low: dict[str, int] = defaultdict(int)
         for g in self.source.gaps(None, "SHORTAGE"):
             low[g["store_id"]] += 1
-        return [StoreSummary(id=s["store_id"], name=s["name"], city=s["city"], region=s["region"], running_low=low[s["store_id"]])
-                for s in sorted(stores.values(), key=lambda s: s["name"])]
+        cover: dict[str, list[float]] = defaultdict(list)
+        for g in self.source.gaps(None, None):
+            cover[g["store_id"]].append(g["days_of_cover"])
+        weather: dict[str, list[tuple[str, str]]] = defaultdict(list)
+        for w in self.source.weather(None):
+            weather[w["store_id"]].append((str(w["forecast_date"]), w["condition"]))
+        safety = float(self.source.setting("safety_stock_days") or 2)
+        out = []
+        for s in sorted(stores.values(), key=lambda s: s["name"]):
+            sid = s["store_id"]
+            window = storm_window_days(weather[sid])
+            ready = readiness_score(cover[sid], window, safety)
+            out.append(StoreSummary(id=sid, name=s["name"], city=s["city"], region=s["region"], running_low=low[sid],
+                                    readiness=ready, readiness_label=readiness_label(ready), storm_days=window))
+        return out
 
     def store_forecast(self, store_id: str) -> StoreForecast | None:
         stores, products = self._directory()

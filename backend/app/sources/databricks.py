@@ -76,6 +76,19 @@ class DatabricksSource:
             {"store": store_id, "status": status},
         )
 
+    def precedents(self, source_id: str, dest_id: str, product_id: str) -> list[Row]:
+        """Past decisions on the same route for the same product, with the planner's reason, newest first."""
+        return self.sql.run(
+            "SELECT r.status, r.decided_at, r.decision_note, f.reason_code FROM transfer_recommendations r "
+            "LEFT JOIN rejection_feedback f ON f.rec_id = r.rec_id "
+            "WHERE r.source_store_id = :src AND r.dest_store_id = :dst AND r.product_id = :pid "
+            "AND r.status IN ('APPROVED', 'REJECTED') ORDER BY r.decided_at DESC LIMIT 5",
+            {"src": source_id, "dst": dest_id, "pid": product_id},
+        )
+
+    def backtest(self) -> list[Row]:
+        return self.sql.run("SELECT * FROM backtest_results ORDER BY lost_usd DESC", {})
+
     def weather(self, store_id: str | None) -> list[Row]:
         return self.sql.run(
             "SELECT store_id, forecast_date, temp_max_f, rain_in, wind_max_mph, condition, event_name FROM weather_forecast "

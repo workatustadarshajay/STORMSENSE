@@ -134,6 +134,20 @@ TABLES: dict[str, Table] = {
         ("rejections", "BIGINT", "Rejections in the last 60 days"), ("last_reason", "STRING", "Plain reason from the latest rejection"),
         ("last_rejected", "TIMESTAMP", "When the latest rejection happened"),
     ]),
+    "backtest_results": Table("Past storms replayed with what really sold: lost sales and how much nearby stock could have covered", [
+        ("event_name", "STRING", "Named weather event"), ("start_date", "DATE", "First day of the storm"),
+        ("end_date", "DATE", "Last day of the storm"), ("stores", "INT", "Stores the storm reached"),
+        ("lost_units", "DOUBLE", "Units sold beyond the stock on hand when the storm started"),
+        ("lost_usd", "DOUBLE", "Those lost units at list price"),
+        ("protected_units", "DOUBLE", "Lost units a nearby store with spare stock could have covered"),
+        ("protected_usd", "DOUBLE", "Protected units at list price"),
+        ("share_protected", "DOUBLE", "Protected sales as a share of lost sales"),
+    ]),
+    "alerts_seen": Table("Official weather warnings that have already triggered a plan refresh, so each one runs once", [
+        ("alert_id", "STRING", "NWS alert id"), ("event", "STRING", "Warning type, for example Hurricane Warning"),
+        ("area", "STRING", "Areas the warning covers"), ("onset", "TIMESTAMP", "When the warning starts (UTC)"),
+        ("first_seen", "TIMESTAMP", "When the trigger first saw it (UTC)"), ("run_id", "STRING", "Daily cycle run it started"),
+    ]),
     "transfer_audit": Table("Every approval and rejection, with who, when and from which request", [
         ("audit_id", "STRING", "Audit row id"), ("event_ts", "TIMESTAMP", "When it happened"),
         ("actor", "STRING", "Who did it"), ("action", "STRING", "APPROVED, REJECTED or SKIPPED"),

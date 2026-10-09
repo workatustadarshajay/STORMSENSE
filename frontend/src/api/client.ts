@@ -15,6 +15,7 @@ export type StormDeskPlan = S["StormDeskPlan"];
 export type WhatIfResult = S["WhatIfResult"];
 export type WhatIfRequest = S["WhatIfRequest"];
 export type RejectReason = S["RejectRequest"]["reason_code"];
+export type BacktestStorm = S["BacktestStorm"];
 
 /** A problem the server explained in plain words. */
 export class ApiError extends Error {
@@ -62,6 +63,7 @@ export const api = {
   stores: () => request<StoreSummary[]>("/api/stores"),
   forecast: (storeId: string) => request<StoreForecast>(`/api/stores/${storeId}/forecast`),
   history: () => request<Transfer[]>("/api/history"),
+  backtest: () => request<BacktestStorm[]>("/api/backtest"),
   ask: (question: string) => post<AskResponse>("/api/ask", { question }),
   stormDesk: (goal: string) => post<StormDeskPlan>("/api/storm-desk", { goal }),
   whatIf: (body: WhatIfRequest) => post<WhatIfResult>("/api/what-if", body),

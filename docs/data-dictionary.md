@@ -196,6 +196,65 @@ Recommended store-to-store moves and the planner's decision.
 | `decision_note` | STRING | Note or rejection reason |
 | `decision_request_id` | STRING | Request that made the decision |
 
+## `rejection_feedback`
+
+Why a planner rejected a recommended move; the daily run learns from it.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `feedback_id` | STRING | Feedback row id |
+| `rec_id` | STRING | Rejected recommendation |
+| `source_store_id` | STRING | Store that was to give stock |
+| `dest_store_id` | STRING | Store that was to receive stock |
+| `product_id` | STRING | Product code |
+| `reason_code` | STRING | TRUCK_UNAVAILABLE, STORE_CLOSED, ALREADY_COVERED, ROUTE_TOO_SLOW or OTHER |
+| `note` | STRING | Planner's note, if any |
+| `decided_by` | STRING | Planner who rejected it |
+| `decided_at` | TIMESTAMP | When it was rejected |
+
+## `route_preferences`
+
+Learned penalty per source, destination and product from recent rejections; higher ranks lower.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `source_store_id` | STRING | Store that would give stock |
+| `dest_store_id` | STRING | Store that would receive stock |
+| `product_id` | STRING | Product code |
+| `penalty` | DOUBLE | 1 means no history; higher means ranked lower |
+| `rejections` | BIGINT | Rejections in the last 60 days |
+| `last_reason` | STRING | Plain reason from the latest rejection |
+| `last_rejected` | TIMESTAMP | When the latest rejection happened |
+
+## `backtest_results`
+
+Past storms replayed with what really sold: lost sales and how much nearby stock could have covered.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `event_name` | STRING | Named weather event |
+| `start_date` | DATE | First day of the storm |
+| `end_date` | DATE | Last day of the storm |
+| `stores` | INT | Stores the storm reached |
+| `lost_units` | DOUBLE | Units sold beyond the stock on hand when the storm started |
+| `lost_usd` | DOUBLE | Those lost units at list price |
+| `protected_units` | DOUBLE | Lost units a nearby store with spare stock could have covered |
+| `protected_usd` | DOUBLE | Protected units at list price |
+| `share_protected` | DOUBLE | Protected sales as a share of lost sales |
+
+## `alerts_seen`
+
+Official weather warnings that have already triggered a plan refresh, so each one runs once.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `alert_id` | STRING | NWS alert id |
+| `event` | STRING | Warning type, for example Hurricane Warning |
+| `area` | STRING | Areas the warning covers |
+| `onset` | TIMESTAMP | When the warning starts (UTC) |
+| `first_seen` | TIMESTAMP | When the trigger first saw it (UTC) |
+| `run_id` | STRING | Daily cycle run it started |
+
 ## `transfer_audit`
 
 Every approval and rejection, with who, when and from which request.

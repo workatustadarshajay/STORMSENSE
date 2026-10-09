@@ -18,6 +18,7 @@ import re
 import zipfile
 
 from decklib import (
+    picture,
     SLIDE_CX, CW, M,
     Y_EYEBROW, H_EYEBROW, Y_TITLE, H_TITLE, Y_RULE, Y_TOP, Y_BOTTOM,
     INK, BODY, MUTED, TEAL, TEAL_TEXT, DEEP, MINT, PAPER, WHITE, LINE,
@@ -53,6 +54,7 @@ class Slide:
         self.shapes = []
         self._id = 2
         self.timing = None
+        self.images = []   # (relationship id, file path) for pictures on this slide
 
     def nid(self):
         self._id += 1
@@ -61,6 +63,11 @@ class Slide:
     def add(self, xml):
         self.shapes.append(xml)
         return self
+
+    def image(self, path, x, y, cx, cy, descr=""):
+        rid = f"rId{10 + len(self.images)}"
+        self.images.append((rid, path))
+        return self.add(picture(self.nid(), os.path.basename(path), x, y, cx, cy, rid, descr))
 
     def eyebrow(self, text):
         self.add(sp(self.nid(), "eyebrow", M, Y_EYEBROW, CW, H_EYEBROW,
@@ -678,6 +685,30 @@ NOTE = {
   "THANK THE PANEL. State the one-line pitch: weather in, a ranked decision out, every morning at 6:00 AM.",
   "THEN INVITE QUESTIONS. Keep the contact line on screen: Adarsh Ajay, 308638@ust.com.",
  ],
+ "slide28": [
+  "WHAT THIS IS: the running prototype, not a mock-up. These screens are captured from the app connected to the live Databricks workspace.",
+  "THE MORNING VIEW: one headline, three numbers, one action. A planner starts here.",
+  "THE NUMBER TO QUOTE: the urgent move protects about $2,300 in sales, read from the live plan.",
+  "IF ASKED WHY IT SHOWS A SAMPLE LABEL: the sales and stock are generated sample data, so the app says so on every screen.",
+ ],
+ "slide29": [
+  "EACH MOVE IS A SENTENCE: product, quantity, from and to. A planner can approve it without opening a spreadsheet.",
+  "THE REASON IS PLAIN: why the move is needed, with the forecast's confidence.",
+  "THE CARBON FIGURE IS AN ESTIMATE: about 0.9 kg CO2 per loaded truck-mile. It is labelled as an estimate on the card.",
+  "DO NOT APPROVE LIVE on the screenshot. Approvals are recorded in the audit trail, and the demo should use a test transfer.",
+ ],
+ "slide30": [
+  "THE PLANNER'S FIRST QUESTION: what would a storm cost us if we did nothing?",
+  "THE SCREEN SHOWS THE COST FIRST: the cost card, then normal week against storm week, then the stock to move.",
+  "THE SAMPLE RUN ON THIS SCREEN: strength 70 over a weekend, about $30,600 of sales at risk, and 349 units of stock to move.",
+  "IF ASKED WHETHER IT CHANGES DATA: no. It is a simulation only.",
+ ],
+ "slide31": [
+  "ASK: an open question answered in one sentence, read-only.",
+  "HISTORY: every approval and rejection, who made it, and when. This is the accountability view.",
+  "STORM DESK: the crew's plan starts from a goal in plain words. The plan can name only moves its tools returned. The screenshot shows the empty form, because a run calls the model.",
+  "IF ASKED WHAT THE PROTOTYPE DOES NOT DO YET: the hosted app is not deployed, so these screens run locally against the workspace.",
+ ],
 }
 
 # text substitutions on slides that are kept but lightly edited
@@ -722,6 +753,10 @@ TITLES = {
     "slide25": "Open to any assistant, through one standard",
     "slide26": "Quality gates, real weather, and cost you can see",
     "slide27": "What is blocked, what needs a decision, and what comes next",
+    "slide28": "The morning view: what needs attention",
+    "slide29": "Decide each move in seconds",
+    "slide30": "Test a storm before it arrives",
+    "slide31": "Ask, review and plan in plain words",
 }
 
 
@@ -908,6 +943,71 @@ def s_roadmap(sl):
     return sl
 
 
+SHOTS = os.path.join(HERE, "assets", "shots")
+SHOT_W, SHOT_H = 6400000, 4000000          # 16:10 screenshots, left column
+SIDE_X = M + SHOT_W + 228600
+SIDE_W = CW - SHOT_W - 228600
+
+
+def _shot_slide(sl, eyebrow, title, image, descr, heading, bullets):
+    sl.head(eyebrow, title)
+    sl.image(os.path.join(SHOTS, image), M, CARD_Y, SHOT_W, SHOT_H, descr)
+    card(sl, SIDE_X, CARD_Y, SIDE_W, SHOT_H, heading, bullets)
+    return sl
+
+
+def s_proto_today(sl):
+    return _shot_slide(
+        sl, "Prototype walkthrough · 1 of 4", "The morning view: what needs attention",
+        "today.png", "StormSense Today screen: urgent transfers, stores running low, and the weather alert",
+        "Today", [
+            ("One headline: ", "the most urgent move, and the sales it protects."),
+            ("Three numbers: ", "urgent moves, stores running low, and the next weather alert."),
+            ("One action: ", "Review transfers opens the day's decisions."),
+            ("Stamp of freshness: ", "the screen says which day's stock it reads."),
+        ])
+
+
+def s_proto_transfers(sl):
+    return _shot_slide(
+        sl, "Prototype walkthrough · 2 of 4", "Decide each move in seconds",
+        "transfers.png", "StormSense Transfers screen: urgent and weekly moves, each with its reason",
+        "Transfers", [
+            ("Each move reads as a sentence: ", "the product, the quantity and the two stores."),
+            ("The reason: ", "why it is needed, and how sure the forecast is."),
+            ("Sales protected: ", "what would be lost without the move."),
+            ("Carbon: ", "an estimate of kg CO₂ next to the distance."),
+        ])
+
+
+def s_proto_whatif(sl):
+    return _shot_slide(
+        sl, "Prototype walkthrough · 3 of 4", "Test a storm before it arrives",
+        "what-if.png", "StormSense what-if screen: the cost of a storm if no stock moves, and the stock to move",
+        "What if a storm comes?", [
+            ("Set the storm: ", "its strength, when it hits, how long it lasts, and the region."),
+            ("Cost first: ", "the sales lost if nothing moves, in dollars."),
+            ("Compare: ", "the normal week against the storm week."),
+            ("Action: ", "the stock that would need to move to cover it."),
+        ])
+
+
+def s_proto_more(sl):
+    sl.head("Prototype walkthrough · 4 of 4", "Ask, review and plan in plain words")
+    g = cols(3, gap=200000)
+    w = g[0][1]
+    h = int(w / 1.6)
+    items = [
+        ("ask.png", "Ask", "Ask a question in plain words and get one sentence back. It only reads."),
+        ("history.png", "History", "Every approval and rejection, with the person, the time and any note."),
+        ("storm-desk.png", "Storm desk", "Describe a goal. The crew checks the data and writes a plan that names only real moves."),
+    ]
+    for (x, cw), (image, heading, text) in zip(g, items):
+        sl.image(os.path.join(SHOTS, image), x, CARD_Y, cw, h, heading + " screen")
+        card(sl, x, CARD_Y + h + 150000, cw, 5150000 - (CARD_Y + h + 150000), heading, [text])
+    return sl
+
+
 # =============================================================== assembly ===
 # (mode, part name, builder, layout, speaker notes)
 SLIDES = [
@@ -928,6 +1028,10 @@ SLIDES = [
     ("write", "slide26", s_operations,   "slideLayout39", NOTE["slide26"]),
     ("keep",  "slide9",  None,           None,            None),
     ("write", "slide10", s_video,        "slideLayout39", NOTE["slide10"]),
+    ("write", "slide28", s_proto_today,     "slideLayout39", NOTE["slide28"]),
+    ("write", "slide29", s_proto_transfers, "slideLayout39", NOTE["slide29"]),
+    ("write", "slide30", s_proto_whatif,    "slideLayout39", NOTE["slide30"]),
+    ("write", "slide31", s_proto_more,      "slideLayout39", NOTE["slide31"]),
     ("keep",  "slide11", None,           None,            None),
     ("write", "slide12", s_tests,        "slideLayout39", NOTE["slide12"]),
     ("write", "slide21", s_results,      "slideLayout39", NOTE["slide21"]),
@@ -1025,6 +1129,11 @@ def build():
                 ("rId5", "media", "../media/demo-video.mp4"),
             ]
             media_added = True
+
+        for rid, path in sl.images:
+            fname = "shot-" + os.path.basename(path)
+            parts[f"ppt/media/{fname}"] = open(path, "rb").read()
+            entries.append((rid, "image", f"../media/{fname}"))
 
         parts[f"ppt/slides/_rels/{name}.xml.rels"] = rels_xml(entries).encode()
 

@@ -115,6 +115,66 @@
         "title": "AskTable",
         "type": "object"
       },
+      "BacktestStorm": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "event_name": {
+            "title": "Event Name",
+            "type": "string"
+          },
+          "lost_units": {
+            "description": "Units sold beyond the stock on hand when the storm started",
+            "title": "Lost Units",
+            "type": "number"
+          },
+          "lost_usd": {
+            "title": "Lost Usd",
+            "type": "number"
+          },
+          "protected_units": {
+            "description": "Lost units a nearby store with spare stock could have covered",
+            "title": "Protected Units",
+            "type": "number"
+          },
+          "protected_usd": {
+            "title": "Protected Usd",
+            "type": "number"
+          },
+          "share_protected": {
+            "description": "Protected sales as a share of lost sales",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Share Protected",
+            "type": "number"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "stores": {
+            "title": "Stores",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_name",
+          "start_date",
+          "end_date",
+          "stores",
+          "lost_units",
+          "lost_usd",
+          "protected_units",
+          "protected_usd",
+          "share_protected"
+        ],
+        "title": "BacktestStorm",
+        "type": "object"
+      },
       "DayUnits": {
         "properties": {
           "date": {
@@ -725,12 +785,33 @@
             "title": "Name",
             "type": "string"
           },
+          "readiness": {
+            "default": 0,
+            "description": "Share of products with enough cover for the storm window, 0 to 100",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Readiness",
+            "type": "integer"
+          },
+          "readiness_label": {
+            "default": "",
+            "description": "Ready, Watch or At risk",
+            "title": "Readiness Label",
+            "type": "string"
+          },
           "region": {
             "title": "Region",
             "type": "string"
           },
           "running_low": {
             "title": "Running Low",
+            "type": "integer"
+          },
+          "storm_days": {
+            "default": 0,
+            "description": "Forecast days with a storm or heavy rain",
+            "minimum": 0.0,
+            "title": "Storm Days",
             "type": "integer"
           }
         },
@@ -1313,6 +1394,32 @@
         ]
       }
     },
+    "/api/backtest": {
+      "get": {
+        "description": "Past storms replayed with what really sold: the sales lost, and how much nearby stock could have covered.\n\nAn upper bound, not a forecast.",
+        "operationId": "backtest_api_backtest_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BacktestStorm"
+                  },
+                  "title": "Response Backtest Api Backtest Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Backtest",
+        "tags": [
+          "history"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "description": "Liveness. With ?deep=true it also checks the data connection (this wakes the warehouse, so keep probes sparse).",
@@ -1705,6 +1812,54 @@
           }
         },
         "summary": "Approve",
+        "tags": [
+          "transfers"
+        ]
+      }
+    },
+    "/api/transfers/export": {
+      "get": {
+        "description": "The plan as a spreadsheet (CSV). Read-only. Open it in a spreadsheet, or print it to PDF from the browser.",
+        "operationId": "export_transfers_api_transfers_export_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "PENDING",
+                    "APPROVED",
+                    "REJECTED"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Transfers",
         "tags": [
           "transfers"
         ]

@@ -1,9 +1,12 @@
 """HTTP endpoints. Thin: validation and permissions here, meaning in service.py."""
 from __future__ import annotations
 
+import csv
+import io
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Query, Request
+from fastapi.responses import Response
 
 from .agent import StormDesk
 from .auth import current_user, get_service, planner, problem, same_origin
@@ -12,6 +15,7 @@ from .schemas import (
     ApproveRequest,
     AskRequest,
     AskResponse,
+    BacktestStorm,
     DecisionResult,
     Health,
     InventoryItem,
@@ -77,6 +81,40 @@ def approve(body: ApproveRequest, user: Annotated[Me, Depends(planner)], svc: Sv
 @router.post("/transfers/reject", response_model=DecisionResult, tags=["transfers"], dependencies=[Depends(same_origin)])
 def reject(body: RejectRequest, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
     return svc.decide("REJECTED", body.ids, user.email, body.reason, body.reason_code)
+
+
+EXPORT_COLUMNS = ["Transfer id", "Status", "Urgency", "Product", "Quantity", "From store", "To store",
+                  "Distance (miles)", "Sales protected (USD)", "Estimated kg CO2e", "Reason", "Decided by", "Decided at", "Note"]
+
+
+def _cell(value: object) -> str:
+    """Spreadsheets run a cell that starts with = + - or @ as a formula; keep planner text as plain text."""
+    text = "" if value is None else str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@") else text
+
+
+@router.get("/transfers/export", tags=["transfers"], response_class=Response)
+def export_transfers(user: User, svc: Svc, status: Literal["PENDING", "APPROVED", "REJECTED"] | None = None) -> Response:
+    """The plan as a spreadsheet (CSV). Read-only. Open it in a spreadsheet, or print it to PDF from the browser."""
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(EXPORT_COLUMNS)
+    for t in svc.transfers(status, None):
+        writer.writerow([_cell(v) for v in [
+            t.id, t.status, t.urgency, t.product.name, t.qty, t.from_store.name, t.to_store.name, t.distance_miles,
+            round(t.sales_protected_usd), t.co2_kg, t.reason, t.decided_by, t.decided_at.isoformat() if t.decided_at else "", t.note,
+        ]])
+    return Response(buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="stormsense-plan.csv"'})
+
+
+@router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])
+def backtest(user: User, svc: Svc) -> list[BacktestStorm]:
+    """Past storms replayed with what really sold: the sales lost, and how much nearby stock could have covered.
+
+    An upper bound, not a forecast.
+    """
+    return svc.backtest()
 
 
 @router.get("/transfers/{transfer_id}", response_model=Transfer, tags=["transfers"])

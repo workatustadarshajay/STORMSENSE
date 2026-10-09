@@ -105,6 +105,9 @@ class StoreSummary(Ref):
     city: str
     region: str
     running_low: int
+    readiness: int = Field(0, ge=0, le=100, description="Share of products with enough cover for the storm window, 0 to 100")
+    readiness_label: str = Field("", description="Ready, Watch or At risk")
+    storm_days: int = Field(0, ge=0, description="Forecast days with a storm or heavy rain")
 
 
 class DayUnits(BaseModel):
@@ -166,6 +169,18 @@ class AskResponse(BaseModel):
     answered: bool
     answer: str
     table: AskTable | None = None
+
+
+class BacktestStorm(BaseModel):
+    event_name: str
+    start_date: date
+    end_date: date
+    stores: int
+    lost_units: float = Field(description="Units sold beyond the stock on hand when the storm started")
+    lost_usd: float
+    protected_units: float = Field(description="Lost units a nearby store with spare stock could have covered")
+    protected_usd: float
+    share_protected: float = Field(ge=0, le=1, description="Protected sales as a share of lost sales")
 
 
 class Health(BaseModel):

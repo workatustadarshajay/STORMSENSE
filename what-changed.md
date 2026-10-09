@@ -203,3 +203,31 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Files:** `deck/build_deck.py` (slides, notes and titles), `deck/verify_deck.py` (slide count and order).
 - **Speaker notes rewritten point by point (deck section 11 follow-up):** every slide's notes now lead with a short label (WHO, SAY, THE LIVE CHECK, IF ASKED ...), followed by the points to say, in order, with the figures checked against the running system. Stale counts were corrected: 70 API and agent tests, 63 web tests, 14 for the crew.
 - **ROI slide corrected and filled (deck, business impact slide):** the slide now leads with the measured effect of live weather (shortages cut from 652 to 184 units, about 72%) and the current plan (11 moves, about $26.6k of sales protected, gross). Removed the earlier "$54k across 13 moves" and "nothing is estimated" wording, which no longer matched the live data. The speaker notes give the source of the 652 and 184 figures.
+
+---
+
+## 12. Prototype walkthrough in the deck (31 slides)
+
+- **What:** four slides after the video show the running prototype, using fresh screenshots of the current app: the morning view, transfers (with the carbon figure), the what-if result, and Ask, History and the storm desk.
+- **Source of the screenshots:** the dev web app connected to the live workspace, captured at 1280 by 800. The what-if was run once (read-only). No approval was clicked and the storm desk was not run, because a run calls the model. Files are in `deck/assets/shots/`.
+- **Builder:** `deck/decklib.py` gained a picture helper with alt text, and `deck/build_deck.py` embeds each slide's images. The verifier expects 31 slides.
+- **Checks:** the verifier passes with 0 failures and 0 warnings, using real Arial metrics. The pictures and notes were confirmed by reading the file back. Not rendered visually, since LibreOffice is not installed here.
+
+---
+
+## 13. Six features from the idea review (built and tested; live deployment waits for approval)
+
+1. **Storm readiness per store (Built, tested, shown on Today).** Each store gets one percentage: the share of its products whose days of cover reach the storm window plus the safety days. Ready at 80% or more, Watch at 50% or more, otherwise At risk. Sample-data check: Orlando 20% (At risk, 2 storm days), Tampa 40%, most others 100%. Code: `backend/app/readiness.py`, `backend/app/service.py` (`stores()`), `frontend/src/pages/Today.tsx`.
+2. **"Why not the closer store?" (Built, tested, takes effect after the next recommendations run).** A farther source now says in one line why the nearest store was passed over: it is also short, it has no spare stock, or a planner rejected that route recently. Sample data: 15 of 17 reasons now carry it. Code: `databricks/stormsense_core/planning.py` (`closer_store_note`). It changes reason text only; moves are unchanged.
+3. **Export and print (Built, tested).** `GET /api/transfers/export` gives the plan as CSV, with spreadsheet formula characters neutralised in every cell. Transfers has a download link and a print button; "save as PDF" uses the browser's print dialog, so no PDF library is needed.
+4. **Storm trigger from NWS warnings (Built and validated; not deployed, job paused).** `databricks/stormsense_core/alerts.py` reads active warnings for Florida, Texas and California, marks the plan-changing ones, and starts the daily cycle once for each new one. Notebook `13_storm_trigger.py`, table `alerts_seen`, job `stormsense_storm_trigger` every 15 minutes, paused by default (`trigger_status` variable). The bundle validates. It has not run against the live NWS feed.
+5. **Backtest of past storms (Built, tested, shown at /backtest; linked from History).** `databricks/stormsense_core/backtest.py` replays each named storm with what really sold. Sample result: lost sales were about $171k for Hurricane Marlow, and nearby stock could have covered only about 2% of it. Across the five sample storms, the share protected ranges from 0% to 29%. This is an honest finding about the sample data, not a figure to present as a result: nearby stores had little spare stock at the start of these storms. Notebook `14_backtest.py` and table `backtest_results` are in the build job.
+6. **Planner notes feed the risk checker (Built, tested; SQL lookup, not Vector Search).** The risk checker can call `get_precedents` for a draft move and quote the last decision on the same route and product, with its reason. It is limited to transfers in the draft, as before. This uses a plain database lookup, not Vector Search: Vector Search needs a billable endpoint, and the embedding models (`databricks-gte-large-en` and others) are present in the workspace. Adding it is a deployment decision for later.
+
+**Checks:** backend 76 tests pass; databricks library 24 pass; web unit 40 pass; browser 27 pass with 1 skipped; lint passes; `databricks bundle validate` passes; the docs site builds in strict mode.
+
+**Not done yet, and needs your approval:**
+- Deploy the bundle, so the backtest and the trigger job exist in the workspace. The trigger stays paused until you unpause it.
+- Run the recommendations job once, so the "closer store" lines appear on live transfers. This changes only reason text; approved and rejected rows are never touched.
+- Create the Vector Search endpoint if you want semantic search instead of the SQL lookup.
+- The hosted app is still blocked by the company network filter, so these features are visible locally only.
