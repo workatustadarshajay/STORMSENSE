@@ -71,6 +71,7 @@ class Transfer(BaseModel):
     reason: str
     sales_protected_usd: float
     distance_miles: int
+    co2_kg: float = Field(0, description="Estimated kg CO2e for the move. See carbon.py for the assumptions.")
     runs_low_day: str | None
     status: TransferStatus
     created_at: datetime | None

@@ -235,6 +235,7 @@ Returns Transfer.
 
 | Field | Type | Notes |
 |---|---|---|
+| `co2_kg` | number | Estimated kg CO2e for the move. See carbon.py for the assumptions.; default `0` |
 | `confidence` | one of `High`, `Medium`, `Low` |  |
 | `created_at` | string (optional) |  |
 | `decided_at` | string (optional) |  |

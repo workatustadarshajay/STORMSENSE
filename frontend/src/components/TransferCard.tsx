@@ -37,6 +37,9 @@ function Route({ t }: { t: Transfer }) {
       </span>
       <span>{t.to_store.name}</span>
       <span className="text-xs font-medium">{t.distance_miles} mi</span>
+      <span className="text-xs font-medium" title="A planning estimate: about 0.9 kg CO₂ per loaded truck-mile, with 200 units per truck.">
+        about {Math.round(t.co2_kg)} kg CO₂
+      </span>
     </div>
   );
 }

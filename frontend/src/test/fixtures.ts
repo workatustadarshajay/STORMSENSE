@@ -8,7 +8,7 @@ const tarp = { id: "P03", name: "20x30 tarp", name_plural: "20x30 tarps" };
 const ref = (id: string, name: string) => ({ id, name });
 
 const base = {
-  confidence: "Medium" as const, sales_protected_usd: 18578, distance_miles: 125, runs_low_day: "Thursday", status: "PENDING" as const,
+  confidence: "Medium" as const, sales_protected_usd: 18578, distance_miles: 125, co2_kg: 22.5, runs_low_day: "Thursday", status: "PENDING" as const,
   created_at: "2026-10-08T06:00:00", reason: "Tropical Storm Odalys expected Sunday. Orlando will sell about 56 1000W generators this week and has 19.",
 };
 

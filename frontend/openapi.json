@@ -817,6 +817,12 @@
       },
       "Transfer": {
         "properties": {
+          "co2_kg": {
+            "default": 0,
+            "description": "Estimated kg CO2e for the move. See carbon.py for the assumptions.",
+            "title": "Co2 Kg",
+            "type": "number"
+          },
           "confidence": {
             "enum": [
               "High",

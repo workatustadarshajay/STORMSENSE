@@ -16,6 +16,7 @@ Each move says:
 - **Urgent or normal:** urgent moves are those where a store runs out within two days, or where the sales at risk are high.
 - **How sure:** **High**, **Medium** or **Low**. This shows how much of the move is still needed if demand turns out lower than forecast.
 - **Sales protected:** the money from sales that would be lost if the move did not happen.
+- **About kg CO₂:** a planning estimate of the emissions for the trip, based on the distance and the share of a truck the move uses. It helps compare options. It isn't a measured figure.
 
 To act:
 

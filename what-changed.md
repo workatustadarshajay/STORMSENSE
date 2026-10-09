@@ -173,3 +173,15 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Checks:** strict build passes with no warnings; the home, planner guide and API reference pages load with no browser errors.
 - **CI and hosting:** CI regenerates the API reference and fails if it differs from the committed file, then builds the site. The Pages workflow builds the site into `/docs/` beside the marketing page and the architecture diagrams. Live URL: `https://workatustadarshajay.github.io/STORMSENSE/docs/`.
 - **Not done:** not committed or pushed. The Pages workflow publishes on the next push to `main`, so that push needs your go-ahead.
+
+---
+
+## 10. Carbon-aware transfers (novelty idea 14)
+
+- **What:** every transfer shows an estimated carbon figure ("about 22 kg CO₂") next to its distance. Planners can see the environmental cost of a move as well as its money and time.
+- **How it is estimated:** `backend/app/carbon.py`. A loaded medium-duty truck emits about 0.9 kg CO2e per mile, and a full truck carries about 200 units. A move's estimate is miles × 0.9 × (units ÷ 200). These are planning assumptions, labelled in the card's tooltip and the planner guide, not measurements.
+- **What did not change:** the matching still chooses the nearest source. Carbon is shown, not used to change which moves are proposed. Approvals and stock are unaffected.
+- **Files:** `backend/app/carbon.py`, `backend/app/service.py` and `backend/app/schemas.py` (new `co2_kg` field), `backend/tests/test_carbon.py` (new), `frontend/src/components/TransferCard.tsx`, regenerated `frontend/openapi.json`, `frontend/src/api/schema.d.ts` and `docs/api-reference.md`.
+- **Test fixes found on the way:** `backend/tests/conftest.py` now pins the test identity. A local `backend/.env` had changed the default account, and `test_me_reflects_role` failed because of it. The browser tests' port is now set by `E2E_PORT` (default 8000), so they can run while another StormSense API is on 8000.
+- **Checks:** backend 70 passed; web unit 36 passed; browser 27 passed (1 skipped, on port 8002); lint and type checks pass.
+- **Not done:** using carbon to choose between sources, a carbon total on the overview, and carbon in the history page.

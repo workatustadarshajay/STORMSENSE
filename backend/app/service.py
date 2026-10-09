@@ -9,6 +9,7 @@ from collections.abc import Callable
 from datetime import date
 from typing import Any, TypeVar
 
+from .carbon import estimate_kg_co2e
 from .config import Settings
 from .schemas import (
     AskResponse,
@@ -101,6 +102,7 @@ class Service:
             from_store=Ref(id=src["store_id"], name=src["name"]), to_store=Ref(id=dst["store_id"], name=dst["name"]),
             qty=qty, urgency=r["urgency"], confidence=r["confidence_level"], reason=r["reason"],
             sales_protected_usd=round(float(r["sales_protected_usd"] or 0)), distance_miles=int(r["distance_miles"] or 0),
+            co2_kg=estimate_kg_co2e(qty, int(r["distance_miles"] or 0)),
             runs_low_day=weekday(r.get("runs_low_date")), status=r["status"], created_at=r.get("created_at"),
             decided_by=r.get("decided_by"), decided_at=r.get("decided_at"), note=r.get("decision_note"),
         )

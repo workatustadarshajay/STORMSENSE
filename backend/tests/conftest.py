@@ -15,7 +15,8 @@ def source() -> MockSource:
 
 @pytest.fixture
 def client(source: MockSource) -> TestClient:
-    return TestClient(create_app(Settings(STORMSENSE_MODE="mock", STORMSENSE_ENVIRONMENT="local"), source))
+    settings = Settings(STORMSENSE_MODE="mock", STORMSENSE_ENVIRONMENT="local", STORMSENSE_DEV_USER_EMAIL="ava.planner@stormsense.test")
+    return TestClient(create_app(settings, source))
 
 
 @pytest.fixture

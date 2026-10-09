@@ -545,6 +545,12 @@ export interface components {
         /** Transfer */
         Transfer: {
             /**
+             * Co2 Kg
+             * @description Estimated kg CO2e for the move. See carbon.py for the assumptions.
+             * @default 0
+             */
+            co2_kg: number;
+            /**
              * Confidence
              * @enum {string}
              */
