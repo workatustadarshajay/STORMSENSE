@@ -78,6 +78,7 @@ nav:
       - Forecasting method: forecasting.md
       - Data dictionary: data-dictionary.md
   - Integrations:
+      - Connect StormSense to your app: integrations/interconnect.md
       - MCP server and client: integrations/mcp.md
       - API reference: api-reference.md
   - Operations:

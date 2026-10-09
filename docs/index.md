@@ -35,7 +35,7 @@ StormSense reads the weather coming up, forecasts demand for each store and prod
 |---|---|
 | A store planner | [Planner guide](planner-guide.md), then the [five-minute demo](demo-script.md) |
 | Setting it up or running it | [Run it on your machine](running-locally.md) and the [runbook](runbook.md) |
-| Building on it or connecting to it | [MCP server and client](integrations/mcp.md) and the [API reference](api-reference.md) |
+| Building on it or connecting to it | [Connect StormSense to your app](integrations/interconnect.md), the [MCP server](integrations/mcp.md) and the [API reference](api-reference.md) |
 | Reviewing the design | [System design](system-design.md), the [diagrams](https://workatustadarshajay.github.io/STORMSENSE/architecture/), [forecasting method](forecasting.md) and the [data dictionary](data-dictionary.md) |
 | Checking the build | [How to check it works](how-to-verify.md) |
 

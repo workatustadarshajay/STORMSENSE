@@ -297,3 +297,12 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Before the button works:** deploy the bundle with the alert address (`--var alert_email=...`). Until then the button says the job isn't in the workspace yet.
 - **For the deployed app:** its identity needs permission to run this job. That is set when the app is deployed.
 - **Checks:** backend 93 pass (5 for the button); web unit 44 pass.
+
+---
+
+## 20. Interconnectability page in the docs
+
+- **What:** `docs/integrations/interconnect.md`, under Integrations. It explains the three ways another system can use StormSense: an AI assistant through the MCP server (nothing to build), the REST API (for your own screens), or the full web app. It includes a decision guide, the MCP tool list, curl examples, the header and identity rules, and a security checklist.
+- **Accuracy:** the tool list and endpoints match the code. Writes need `X-Requested-With: stormsense`; identity comes from `X-Forwarded-Email`, which only the sign-in proxy sets in deployment.
+- **Status stated on the page:** the MCP server and API run locally, and the hosted deployment is still blocked.
+- **Also updated:** the home page's "Building on it" row links to the new page. The docs site builds in strict mode.
