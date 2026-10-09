@@ -57,3 +57,19 @@ export const decided = (ids: string[], skipped: string[] = []): DecisionResult =
   const parts = [changed.length ? `${changed.length} transfer${changed.length === 1 ? "" : "s"} approved.` : "", skipped.length ? `${skipped.length} ${skipped.length === 1 ? "was" : "were"} already handled by someone else.` : ""];
   return { action: "APPROVED", changed, skipped, message: parts.filter(Boolean).join(" ") };
 };
+
+export const whatIfResult = {
+  answered: true,
+  window: "Saturday to Monday",
+  sentence: "A storm of strength 80 from Saturday to Monday would add about 1922 units of demand. Without moving stock, about $53,223 in sales would be lost. Moving about 595 units of stock would cover it.",
+  normal_units: 1717, storm_units: 3639, extra_demand_units: 1922, extra_lost_usd: 53223, stock_to_move_units: 595,
+  rows: [{ store: "Orlando", product: "1000W generator", normal_units: 25, storm_units: 52, on_hand: 18, extra_lost_usd: 13603.28 }],
+  plan_change: {
+    as_of: "2026-10-08", before_version: 5, before_time: "2026-10-09T04:55:20Z", now_version: 6, now_time: "2026-10-09T05:33:58Z",
+    shortage_stores_before: 11, shortage_stores_now: 9, units_short_before: 652, units_short_now: 184,
+    sentence: "The stock plan changed after the last daily run: 9 stores now show a shortage, compared with 11 before it.",
+  },
+  message: null,
+};
+
+export const planPlan = () => ({ answered: true, plan: ["Review the Tampa move."], steps: [], transfers: [], message: null });

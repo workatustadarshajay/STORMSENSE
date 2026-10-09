@@ -17,6 +17,7 @@ from .dbx import QueryError, Warehouse, WarmingUp
 from .security import BodyLimit, RateLimiter, SecurityHeaders
 from .service import Service
 from .sources.base import DataSource
+from .whatif import EndpointScorer
 
 log = logging.getLogger("stormsense")
 
@@ -47,6 +48,16 @@ def build_storm_desk(settings: Settings, service: Service) -> StormDesk | None:
     return StormDesk(service, ModelClient(client.api_client, settings.storm_desk_model))
 
 
+def build_forecast_scorer(settings: Settings) -> EndpointScorer | None:
+    """The forecaster's serving endpoint scores the what-if rows. It exists only in databricks mode."""
+    if settings.mode != "databricks":
+        return None
+    from databricks.sdk import WorkspaceClient
+
+    client = WorkspaceClient(profile=settings.databricks_profile) if settings.databricks_profile else WorkspaceClient()
+    return EndpointScorer(client.api_client, settings.forecast_endpoint)
+
+
 def create_app(settings: Settings | None = None, source: DataSource | None = None) -> FastAPI:
     settings = settings or get_settings()
     app = FastAPI(title="StormSense", version="1.0.0", docs_url=None, redoc_url=None, openapi_url="/api/openapi.json")
@@ -55,6 +66,8 @@ def create_app(settings: Settings | None = None, source: DataSource | None = Non
     app.state.limiter = RateLimiter(settings.ask_per_minute)
     app.state.desk_limiter = RateLimiter(5)
     app.state.storm_desk = build_storm_desk(settings, app.state.service)
+    app.state.what_if_limiter = RateLimiter(6)
+    app.state.forecast_scorer = build_forecast_scorer(settings)
 
     app.add_middleware(BodyLimit, max_bytes=settings.max_body_bytes)
     app.add_middleware(SecurityHeaders, production=settings.environment == "production")

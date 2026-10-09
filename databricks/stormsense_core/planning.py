@@ -92,6 +92,20 @@ def confidence_level(score: float) -> str:
     return "High" if score >= 0.7 else "Medium" if score >= 0.4 else "Low"
 
 
+def route_penalties(route_preferences: pd.DataFrame | None) -> dict[tuple[str, str, str], tuple[float, str]]:
+    """(source, destination, product) -> (penalty multiplier, plain note) from learned planner decisions."""
+    if route_preferences is None or route_preferences.empty:
+        return {}
+    out = {}
+    for r in route_preferences.itertuples():
+        note = (f"Ranked lower: planners rejected a move on this route {int(r.rejections)} "
+                f"time{'s' if int(r.rejections) != 1 else ''} recently")
+        if isinstance(r.last_reason, str) and r.last_reason:
+            note += f" (last reason: {r.last_reason.lower()})"
+        out[(r.source_store_id, r.dest_store_id, r.product_id)] = (float(r.penalty), note + ".")
+    return out
+
+
 def recommend_transfers(
     gaps: pd.DataFrame,
     stores: pd.DataFrame,
@@ -100,8 +114,13 @@ def recommend_transfers(
     settings: dict[str, float],
     as_of: date,
     run_ts: datetime,
+    route_preferences: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Match surplus stores to shortage stores per product, nearest source first."""
+    """Match surplus stores to shortage stores per product, nearest source first.
+
+    Learned planner decisions (route_preferences) rank a rejected route lower; they never create or remove a move.
+    """
+    penalties = route_penalties(route_preferences)
     st = stores.set_index("store_id")
     pr = products.set_index("product_id")
     wx = weather_forecast.copy()
@@ -121,7 +140,8 @@ def recommend_transfers(
             sources = sorted(
                 (s for s, q in supply.items() if q >= pack),
                 key=lambda s: haversine_miles(st.at[s, "latitude"], st.at[s, "longitude"],
-                                              st.at[d.store_id, "latitude"], st.at[d.store_id, "longitude"]),
+                                              st.at[d.store_id, "latitude"], st.at[d.store_id, "longitude"])
+                * penalties.get((s, d.store_id, pid), (1.0, ""))[0],
             )
             score = min(1.0, d.shortfall_p10 / d.shortfall_units) if d.shortfall_units else 0.0
             in_week = (wx.forecast_date > pd.Timestamp(as_of)) & (wx.forecast_date <= horizon_end)
@@ -143,7 +163,8 @@ def recommend_transfers(
                     or d.lost_units * price >= settings["urgent_lost_sales_usd"] else "NORMAL",
                     confidence=round(score, 2), confidence_level=confidence_level(score),
                     reason=f"{phrase}. {st.at[d.store_id, 'name']} will sell about {round(d.forecast_units)} {plural} "
-                           f"this week and has {round(d.available)}.",
+                           f"this week and has {round(d.available)}."
+                           + (" " + penalties[(s, d.store_id, pid)][1] if (s, d.store_id, pid) in penalties else ""),
                     sales_protected_usd=round(protected * price, 2), distance_miles=round(miles),
                     runs_low_date=d.runs_low_date, status="PENDING", created_at=run_ts,
                     decided_by=None, decided_at=None, decision_note=None, decision_request_id=None,

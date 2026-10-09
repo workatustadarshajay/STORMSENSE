@@ -121,6 +121,19 @@ TABLES: dict[str, Table] = {
         ("decision_note", "STRING", "Note or rejection reason"),
         ("decision_request_id", "STRING", "Request that made the decision"),
     ]),
+    "rejection_feedback": Table("Why a planner rejected a recommended move; the daily run learns from it", [
+        ("feedback_id", "STRING", "Feedback row id"), ("rec_id", "STRING", "Rejected recommendation"),
+        ("source_store_id", "STRING", "Store that was to give stock"), ("dest_store_id", "STRING", "Store that was to receive stock"),
+        ("product_id", "STRING", "Product code"), ("reason_code", "STRING", "TRUCK_UNAVAILABLE, STORE_CLOSED, ALREADY_COVERED, ROUTE_TOO_SLOW or OTHER"),
+        ("note", "STRING", "Planner's note, if any"), ("decided_by", "STRING", "Planner who rejected it"),
+        ("decided_at", "TIMESTAMP", "When it was rejected"),
+    ]),
+    "route_preferences": Table("Learned penalty per source, destination and product from recent rejections; higher ranks lower", [
+        ("source_store_id", "STRING", "Store that would give stock"), ("dest_store_id", "STRING", "Store that would receive stock"),
+        ("product_id", "STRING", "Product code"), ("penalty", "DOUBLE", "1 means no history; higher means ranked lower"),
+        ("rejections", "BIGINT", "Rejections in the last 60 days"), ("last_reason", "STRING", "Plain reason from the latest rejection"),
+        ("last_rejected", "TIMESTAMP", "When the latest rejection happened"),
+    ]),
     "transfer_audit": Table("Every approval and rejection, with who, when and from which request", [
         ("audit_id", "STRING", "Audit row id"), ("event_ts", "TIMESTAMP", "When it happened"),
         ("actor", "STRING", "Who did it"), ("action", "STRING", "APPROVED, REJECTED or SKIPPED"),

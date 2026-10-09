@@ -89,5 +89,59 @@ Status key: **Verified** means run on the Databricks workspace or tested. **Buil
 - `frontend/src/test/storm-desk.test.tsx`
 - `docs/running-locally.md` (updated: Storm desk section, Ask space ID)
 - `what-changed.md` (this file)
+- Changed in section 5: `databricks/stormsense_core/weather.py`, `databricks/notebooks/05_refresh_weather.py`, `databricks/databricks.yml`, `databricks/tests/test_core.py`
 
 Files changed since the scoring criteria, besides those above: `databricks/databricks.yml`, `databricks/resources/jobs.yml`, `databricks/notebooks/03_features.py`, `databricks/notebooks/07_gaps.py`, `backend/app/api.py`, `backend/app/main.py`, `backend/app/config.py`, `backend/app/schemas.py`, `backend/app/dbx.py`, `backend/app/sources/databricks.py`, `backend/app/service.py`, `backend/databricks.yml`, `frontend/src/App.tsx`, `frontend/src/api/client.ts`, `frontend/src/api/hooks.ts`, `frontend/src/api/schema.d.ts`, `frontend/src/pages/Transfers.tsx`, `frontend/src/components/Shell.tsx`, `frontend/e2e/flows.spec.ts`, `frontend/playwright.config.ts`, `frontend/vite.config.ts`, `frontend/index.html`, `Makefile`, `contect.md`, `docs/architecture/index.html`, `docs/runbook.md`.
+
+---
+
+## 5. Real weather in the daily job (idea 4) (Verified)
+
+- The daily job now uses the live US National Weather Service forecast by default (bundle variable `weather_provider`, notebook `05_refresh_weather`). `sample` is still available.
+- Bug found and fixed before deploying: forecast days were grouped by UTC. An evening storm in Florida would fall on the next day. Days now use each store's own time zone. Regression test added (`test_nws_days_are_store_local_not_utc`).
+- Verified: the daily job ran end to end on serverless, all seven tasks succeeded, including `refresh_weather` against the live service. All 10 stores have a full week of forecast days (October 9 to 15).
+- Result for this week: the live forecast has **no storm, heavy-rain or heat alerts** (65 clear and 7 light-rain store-days; highest wind 29.9 mph). The sample storm and heat events from the earlier demo are no longer in the forecast. The Florida and Texas plans in the demo depend on which weather the day brings.
+- The sales and stock figures are still sample data, so the app keeps its "Sample data" label.
+- Demo implication: a live storm is needed for a dramatic demo. The what-if simulator (idea 1) would let a planner create one on demand.
+
+---
+
+## 6. Three new features: what-if simulator, feedback loop, crew (ideas 1 to 3)
+
+### 6.1 What-if storm simulator (Built and verified on the workspace)
+- Planner picks storm strength (0 to 100), when it hits, how many days, and which region. The simulator shows the normal week against the storm week, the sales lost if nothing moves (in dollars), and the stock that would need to move.
+- Model Serving: the forecaster is served from a scale-to-zero endpoint, `stormsense-forecaster`. It scored 350 live feature rows. The endpoint bills only while it is running.
+- Delta time travel: compares the stock plan saved before the last daily run with the plan now. Verified: 11 stores with a shortage before live weather, 9 after (652 units short before, 184 after).
+- Nothing is written. Estimates only; the page says so.
+- Code: `backend/app/whatif.py`, `POST /api/what-if`, `frontend/src/pages/WhatIf.tsx` (route `/what-if`, linked from Transfers). Tests: 7 backend simulator tests, 4 page tests.
+- Caveat: the scenario's effect on lead-time weather is approximated over the days the feature table covers.
+
+### 6.2 Feedback loop (Built and verified on the workspace)
+- The reject dialog now requires a reason: no truck free, store closed, already covered, route too slow, or something else. Stored in the new table `rejection_feedback`.
+- New notebook `12_learn_from_feedback`: each route gets a penalty from its recent rejections. Recent rejections count more (weight halves every 14 days) and drop out after 60 days.
+- Recommendations rank a penalised route lower, and the reason says why ("Ranked lower: planners rejected a move on this route ... (last reason: truck unavailable)"). Learning never adds or removes a move.
+- Added to both jobs, before the recommendations step.
+- Tests: penalty ranking, decay window, and the "only route" case that is still offered with its note.
+
+### 6.3 Multi-agent crew (Built, tested and run live)
+- Storm desk is now three agents with separate instructions: a forecaster drafts the plan, a risk checker challenges each proposed move with a fact tool (what the source keeps, whether the receiver still runs low), and a summary writer produces the planner's plan.
+- Guards: the risk checker may only check moves the draft named; the summary may only name moves the draft named; any sentence that names another move is dropped.
+- The page shows "How the crew reached this plan", one turn per agent.
+- Code: `backend/app/agent.py`. Tests: 13 agent and API tests.
+
+- Live check: a real pending move (Jacksonville to Orlando, submersible pumps) was rejected with "No truck free". After the daily run, the learned route `S04 to S01 / pumps` had penalty 2.0 and last reason "truck unavailable", and the new pending move for Orlando's pumps came from Miami instead of Jacksonville.
+- Bug found in this check and fixed: rejections were aged from the stock date, so a decision made today was dropped. Ages are now measured from the run time, with a regression test.
+- The test rejection was undone afterwards: the move is pending again, and the test feedback and audit rows were removed.
+
+### 6.4 Notes
+- Live checks run: the simulator against the live endpoint and the time-travel history; the full build job (all tasks green, including the new learning step and the cost view); the feedback loop end to end.
+- Crew verified live: three agents, 51 seconds, every cited transfer came from the tools. Risk checks used real stock figures (for example, Houston keeps 194 coolers after a 38-cooler move).
+- Pending decision for you: a move (TR-AA073FE2E5, Tampa-bound 1000W generators) is APPROVED by your account at 05:29 UTC without a note. It was not one of my test actions, so I did not change it.
+
+---
+
+## 7. Still not done
+
+- The Databricks App deployment (blocked by the company filter, as before).
+- Lakehouse Monitoring for the feedback loop: the learning effect is shown only through the route notes, not a monitoring dashboard.
+- The what-if dashboard tile.

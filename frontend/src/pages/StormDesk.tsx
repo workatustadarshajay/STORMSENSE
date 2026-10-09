@@ -56,6 +56,23 @@ function Result({ r }: { r: StormDeskPlan }) {
         </section>
       )}
 
+      {(r.debate ?? []).length > 0 && (
+        <details className="rounded-2xl border border-line bg-paper p-4" open>
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 font-bold">
+            How the crew reached this plan
+            <ChevronDown className="size-5" aria-hidden />
+          </summary>
+          <ol className="mt-3 grid gap-4">
+            {(r.debate ?? []).map((turn, i) => (
+              <li key={i} className="grid gap-1 border-l-4 border-teal/40 pl-4">
+                <span className="text-sm font-extrabold uppercase tracking-wide text-teal-deep">{turn.agent}</span>
+                <p className="text-ink-soft">{turn.message}</p>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+
       {steps.length > 0 && (
         <details className="rounded-2xl border border-line bg-paper p-4">
           <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 font-bold">

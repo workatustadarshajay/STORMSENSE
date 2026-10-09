@@ -231,6 +231,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/what-if": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * What If
+         * @description Simulates a storm and what it would cost. Read-only: it changes no data and approves nothing.
+         */
+        post: operations["what_if_api_what_if_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -273,6 +293,16 @@ export interface components {
             units: number;
             /** Weekday */
             weekday: string;
+        };
+        /** DebateTurn */
+        DebateTurn: {
+            /**
+             * Agent
+             * @description Which role spoke: Forecaster, Risk checker or Summary writer
+             */
+            agent: string;
+            /** Message */
+            message: string;
         };
         /** DecisionResult */
         DecisionResult: {
@@ -383,6 +413,29 @@ export interface components {
             /** Urgent Transfers */
             urgent_transfers: number;
         };
+        /** PlanChange */
+        PlanChange: {
+            /** As Of */
+            as_of: string;
+            /** Before Time */
+            before_time: string;
+            /** Before Version */
+            before_version: number;
+            /** Now Time */
+            now_time: string;
+            /** Now Version */
+            now_version: number;
+            /** Sentence */
+            sentence: string;
+            /** Shortage Stores Before */
+            shortage_stores_before: number;
+            /** Shortage Stores Now */
+            shortage_stores_now: number;
+            /** Units Short Before */
+            units_short_before: number;
+            /** Units Short Now */
+            units_short_now: number;
+        };
         /** ProductForecast */
         ProductForecast: {
             /** Available */
@@ -428,6 +481,11 @@ export interface components {
             ids: string[];
             /** Reason */
             reason: string;
+            /**
+             * Reason Code
+             * @description Structured reason; the daily run learns from it
+             */
+            reason_code?: ("TRUCK_UNAVAILABLE" | "STORE_CLOSED" | "ALREADY_COVERED" | "ROUTE_TOO_SLOW" | "OTHER") | null;
         };
         /** StoreForecast */
         StoreForecast: {
@@ -456,6 +514,11 @@ export interface components {
         StormDeskPlan: {
             /** Answered */
             answered: boolean;
+            /**
+             * Debate
+             * @description How the three roles arrived at the plan
+             */
+            debate?: components["schemas"]["DebateTurn"][];
             /** Message */
             message?: string | null;
             /**
@@ -575,6 +638,80 @@ export interface components {
             weekday: string;
             /** Wind Max Mph */
             wind_max_mph: number;
+        };
+        /** WhatIfRequest */
+        WhatIfRequest: {
+            /**
+             * Days
+             * @description How many days the storm lasts
+             */
+            days: number;
+            /** Region */
+            region?: ("Florida" | "Texas" | "California") | null;
+            /**
+             * Start Day
+             * @description 0 means tomorrow
+             */
+            start_day: number;
+            /**
+             * Strength
+             * @description How strong the storm is, 0 to 100
+             */
+            strength: number;
+        };
+        /** WhatIfResult */
+        WhatIfResult: {
+            /** Answered */
+            answered: boolean;
+            /**
+             * Extra Demand Units
+             * @default 0
+             */
+            extra_demand_units: number;
+            /**
+             * Extra Lost Usd
+             * @default 0
+             */
+            extra_lost_usd: number;
+            /** Message */
+            message?: string | null;
+            /**
+             * Normal Units
+             * @default 0
+             */
+            normal_units: number;
+            plan_change?: components["schemas"]["PlanChange"] | null;
+            /** Rows */
+            rows?: components["schemas"]["WhatIfRow"][];
+            /** Sentence */
+            sentence?: string | null;
+            /**
+             * Stock To Move Units
+             * @default 0
+             */
+            stock_to_move_units: number;
+            /**
+             * Storm Units
+             * @default 0
+             */
+            storm_units: number;
+            /** Window */
+            window?: string | null;
+        };
+        /** WhatIfRow */
+        WhatIfRow: {
+            /** Extra Lost Usd */
+            extra_lost_usd: number;
+            /** Normal Units */
+            normal_units: number;
+            /** On Hand */
+            on_hand: number;
+            /** Product */
+            product: string;
+            /** Store */
+            store: string;
+            /** Storm Units */
+            storm_units: number;
         };
     };
     responses: never;
@@ -940,6 +1077,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Transfer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    what_if_api_what_if_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhatIfRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatIfResult"];
                 };
             };
             /** @description Validation Error */

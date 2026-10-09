@@ -2,8 +2,9 @@
 # MAGIC %md
 # MAGIC # 05 Refresh weather
 # MAGIC
-# MAGIC Brings in the latest ten-day forecast for every store. `sample` re-issues the sample forecast; `nws` calls the US National Weather Service
-# MAGIC and fails loudly if it cannot, rather than quietly serving old weather. Re-running on the same day replaces that day's issue.
+# MAGIC Brings in the latest ten-day forecast for every store. `nws` (the default) calls the US National Weather Service and fails loudly
+# MAGIC if it cannot, rather than quietly serving old weather. `sample` re-issues the sample forecast. Days are each store's local calendar day.
+# MAGIC Re-running on the same day replaces that day's issue.
 
 # COMMAND ----------
 
@@ -21,7 +22,7 @@ from stormsense_core import dbx, reference, synth, weather
 from stormsense_core.tables import TABLES
 
 ctx = dbx.Ctx(spark, dbutils)
-dbutils.widgets.dropdown("provider", "sample", ["sample", "nws"], "Weather provider")
+dbutils.widgets.dropdown("provider", "nws", ["nws", "sample"], "Weather provider")
 provider = dbutils.widgets.get("provider")
 as_of = ctx.as_of()
 now = datetime.now(timezone.utc).replace(tzinfo=None)

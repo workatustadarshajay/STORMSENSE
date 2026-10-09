@@ -193,3 +193,24 @@ Build StormSense with milestones: (1) Databricks foundation and data: schema, di
 * Guardrails: read-only tools; plans may cite only transfer ids that a tool returned in the same conversation; at most 6 tool steps; technical words are removed from output; goal text is treated as data, not rules.
 * Tests: 9 agent and API tests (scripted model), 5 page tests, browser suite including the page. Live: 2 goals plus one stock question checked against the tables.
 * Not deployed: needs the Databricks App, which the company web filter currently blocks.
+
+
+## 14. Live weather in the daily job, added 2026-10-09
+
+* `weather_provider` defaults to `nws`. The daily job fetches the National Weather Service forecast for each store, grouped by the store's local day (fixed: it used UTC before).
+* Verified: daily run succeeded with all tasks; each store has days 2026-10-09 to 10-15.
+* Caution for demos: the live forecast currently shows no storm, heavy-rain or heat alerts. The sample storm and heat events no longer appear. Sales and stock are still sample data.
+
+
+## 15. Three new features, added 2026-10-09
+
+* **What-if simulator:** `backend/app/whatif.py`; `POST /api/what-if`; page `/what-if`. Scores with the serving endpoint `stormsense-forecaster` (scale-to-zero, forecaster version 3). Time travel compares `inventory_gaps` versions (version 5 before live weather, version 6 after). Read-only.
+* **Feedback loop:** tables `rejection_feedback` and `route_preferences`; notebook `12_learn_from_feedback`; `stormsense_core/feedback.py`. Reject requires `reason_code` (TRUCK_UNAVAILABLE, STORE_CLOSED, ALREADY_COVERED, ROUTE_TOO_SLOW, OTHER). Learned penalties rank routes, never add or remove moves.
+* **Crew:** `backend/app/agent.py` now has three roles (forecaster, risk checker with `check_move`, summary writer). The API returns `debate`. The page shows the debate.
+* Config: `STORMSENSE_FORECAST_ENDPOINT` (default `stormsense-forecaster`), `STORMSENSE_AGENT_MODEL` (default `databricks-gpt-5-mini`).
+* Note for the app's service principal: it needs query access to the serving endpoint and read access to `features` and `route_preferences` once the app is deployed.
+
+* Feedback loop verified live: a test rejection (TR-363D49D1A7) changed the next run's ranking; then undone. Bug fixed: ages measured from run time.
+* Build job green with `learn_feedback` and `cost_view`; daily run green after the fix.
+* Open item: TR-AA073FE2E5 approved by 308638@ust.com at 2026-10-09 05:29 UTC with no note (not a test of mine).
+* Crew verified live (51 s, three roles, citations only from tool results).

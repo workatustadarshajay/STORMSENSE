@@ -53,7 +53,9 @@ def test_only_placeholder_lists_are_assembled_at_run_time():
     """Static check: the only f-strings in SQL calls interpolate constants or placeholder lists, never request data."""
     tree = ast.parse((Path(__file__).resolve().parents[1] / "app" / "sources" / "databricks.py").read_text())
     # i is the loop counter that names placeholders (:id0, :id1 ...); it is an int, never request data
-    allowed = {"_LATEST_GAPS", "_LATEST_PREDICTIONS", "_LATEST_WEATHER", "marks", "listed", "i"}
+    # i names placeholders (:id0 ...); listed and marks hold only placeholders; "version" is Delta's version number
+    # (int-coerced in _version_clause), never request data.
+    allowed = {"_LATEST_GAPS", "_LATEST_PREDICTIONS", "_LATEST_WEATHER", "marks", "listed", "i", "version", "at", "int"}
     offenders = []
     for node in ast.walk(tree):
         if isinstance(node, ast.JoinedStr):

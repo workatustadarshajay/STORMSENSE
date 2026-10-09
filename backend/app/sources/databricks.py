@@ -86,7 +86,8 @@ class DatabricksSource:
         )
 
     # ---- decisions -------------------------------------------------------------------------
-    def decide(self, action: str, ids: list[str], actor: str, note: str | None, request_id: str) -> Decision:
+    def decide(self, action: str, ids: list[str], actor: str, note: str | None, request_id: str,
+               reason_code: str | None = None) -> Decision:
         """Approve or reject, touching only rows that are still PENDING.
 
         The update stamps this request's id on the rows it changes, so the rows reported back as changed are exactly
@@ -102,6 +103,14 @@ class DatabricksSource:
         changed = [r["rec_id"] for r in self.sql.run(
             "SELECT rec_id FROM transfer_recommendations WHERE decision_request_id = :req ORDER BY rec_id", {"req": request_id})]
         skipped = [i for i in ids if i not in set(changed)]
+        if changed and action == "REJECTED":
+            # What the daily run learns from: which route was turned down, and why.
+            self.sql.run(
+                "INSERT INTO rejection_feedback (feedback_id, rec_id, source_store_id, dest_store_id, product_id, reason_code, "
+                "note, decided_by, decided_at) SELECT uuid(), rec_id, source_store_id, dest_store_id, product_id, :code, :note, "
+                ":actor, current_timestamp() FROM transfer_recommendations WHERE decision_request_id = :req",
+                {"code": reason_code, "note": note, "actor": actor, "req": request_id},
+            )
         if changed:
             self.sql.run(
                 "INSERT INTO transfer_audit (audit_id, event_ts, actor, action, rec_id, request_id, note) "
@@ -146,3 +155,54 @@ class DatabricksSource:
         if not answer and not rows:
             return AskResult(False, _FALLBACK)
         return AskResult(True, answer or "Here's what I found.", columns, rows)
+
+
+def forecast_inputs(self, region: str | None) -> list[Row]:
+    """Feature rows for the days still to come, for the what-if simulator. Region narrows the stores."""
+    return self.sql.run(
+        "SELECT f.store_id, f.product_id, f.date, f.store_code, f.product_code, f.dow, f.month, f.is_weekend, f.is_holiday, "
+        "f.temp_max_f, f.rain_in, f.wind_max_mph, f.wind_lead_max, f.rain_lead_sum, f.temp_lead_delta, f.sales_lag7, "
+        "f.avg7_lag7, f.avg28_lag7 FROM features f JOIN stores s ON s.store_id = f.store_id "
+        "WHERE f.is_future = true AND (:region IS NULL OR s.region = :region) ORDER BY f.store_id, f.product_id, f.date",
+        {"region": region},
+    )
+
+
+def _version_clause(version: int | None) -> str:
+    """'VERSION AS OF n' for a Delta version. The number is coerced to an int, so nothing but digits can reach the SQL."""
+    return "" if version is None else f"VERSION AS OF {int(version)}"
+
+
+def stock_plan_change(self) -> dict | None:
+    """Delta time travel: today's stock plan for the latest date, against the plan saved just before it was last rewritten."""
+    latest = self.sql.run("SELECT max(as_of_date) AS d FROM inventory_gaps")
+    if not latest or latest[0]["d"] is None:
+        return None
+    as_of = latest[0]["d"]
+    history = self.sql.run("DESCRIBE HISTORY inventory_gaps LIMIT 25")
+    if not history:
+        return None
+    # Version numbers come from the table's own history (never from a user) and are coerced to integers: see _version_clause.
+    current = int(history[0]["version"])
+    earlier = next((int(h["version"]) for h in history[1:] if str(as_of) in str(h.get("operationParameters", ""))), None)
+    if earlier is None:
+        return None
+
+    def summary(version: int | None) -> dict:
+        rows = self.sql.run(
+            "SELECT status, count(*) AS n, round(sum(shortfall_units)) AS short FROM inventory_gaps "
+            + _version_clause(version) + " WHERE as_of_date = :d GROUP BY status", {"d": as_of})
+        by = {r["status"]: r for r in rows}
+        return {"shortage_stores": int(by.get("SHORTAGE", {}).get("n", 0)),
+                "units_short": int(by.get("SHORTAGE", {}).get("short") or 0),
+                "surplus_stores": int(by.get("SURPLUS", {}).get("n", 0))}
+
+    before_v = next(h for h in history if int(h["version"]) == earlier)
+    now_v = next(h for h in history if int(h["version"]) == current)
+    return {"as_of": str(as_of), "before_version": earlier, "before_time": str(before_v["timestamp"]),
+            "now_version": current, "now_time": str(now_v["timestamp"]),
+            "before": summary(earlier), "now": summary(None)}
+
+
+DatabricksSource.forecast_inputs = forecast_inputs
+DatabricksSource.stock_plan_change = stock_plan_change

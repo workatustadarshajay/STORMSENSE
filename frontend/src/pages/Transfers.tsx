@@ -2,6 +2,7 @@ import { CheckCircle2, Info, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { DecisionResult, Transfer } from "../api/client";
+import type { RejectReason } from "../api/client";
 import { useDecide, useMe, usePending } from "../api/hooks";
 import { Dialog } from "../components/Dialog";
 import { Empty, QueryView } from "../components/StateViews";
@@ -13,6 +14,7 @@ type Action = "approve" | "reject";
 function DecisionDialog({ action, picked, onClose, onDone }: { action: Action | null; picked: Transfer[]; onClose: () => void; onDone: (r: DecisionResult) => void }) {
   const decide = useDecide();
   const [text, setText] = useState("");
+  const [reasonCode, setReasonCode] = useState<RejectReason | null>(null);
   const approve = action === "approve";
   const ids = picked.map((t) => t.id);
   const shown = picked.slice(0, 4);
@@ -20,7 +22,12 @@ function DecisionDialog({ action, picked, onClose, onDone }: { action: Action | 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (decide.isPending) return; // a double-click does nothing
-    decide.mutate(approve ? { action: "approve", ids, note: text.trim() } : { action: "reject", ids, reason: text.trim() }, { onSuccess: onDone });
+    decide.mutate(
+      approve
+        ? { action: "approve", ids, note: text.trim() }
+        : { action: "reject", ids, reason: text.trim() || "Planner rejected this move", reasonCode: reasonCode as RejectReason },
+      { onSuccess: onDone },
+    );
   }
 
   return (
@@ -33,15 +40,32 @@ function DecisionDialog({ action, picked, onClose, onDone }: { action: Action | 
           ))}
           {picked.length > shown.length && <li className="text-muted">and {picked.length - shown.length} more</li>}
         </ul>
+        {!approve && (
+          <label className="mt-5 block">
+            <span className="font-bold">Main reason (required)</span>
+            <select
+              value={reasonCode ?? ""}
+              onChange={(e) => setReasonCode((e.target.value || null) as RejectReason | null)}
+              required
+              className="mt-1.5 min-h-12 w-full rounded-xl border border-line bg-white px-3"
+            >
+              <option value="" disabled>Choose a reason</option>
+              <option value="TRUCK_UNAVAILABLE">No truck free</option>
+              <option value="STORE_CLOSED">Store closed or not receiving</option>
+              <option value="ALREADY_COVERED">Already covered another way</option>
+              <option value="ROUTE_TOO_SLOW">Route too slow for the storm</option>
+              <option value="OTHER">Something else</option>
+            </select>
+            <span className="mt-1 block text-sm text-muted">Planners' reasons help the next plans avoid the same problems.</span>
+          </label>
+        )}
         <label className="mt-5 block">
-          <span className="font-bold">{approve ? "Add a note (optional)" : "Why are you rejecting? (required)"}</span>
+          <span className="font-bold">{approve ? "Add a note (optional)" : "Anything to add? (optional)"}</span>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             maxLength={280}
             rows={3}
-            required={!approve}
-            minLength={approve ? undefined : 3}
             className="mt-1.5 w-full rounded-xl border border-line bg-white p-3"
           />
         </label>
@@ -56,7 +80,7 @@ function DecisionDialog({ action, picked, onClose, onDone }: { action: Action | 
           </button>
           <button
             type="submit"
-            disabled={decide.isPending}
+            disabled={decide.isPending || (!approve && !reasonCode)}
             className={`min-h-12 rounded-xl px-6 font-extrabold text-white disabled:opacity-60 ${approve ? "bg-teal hover:bg-teal-deep" : "bg-signal-deep hover:bg-signal"}`}
           >
             {decide.isPending ? "Working…" : approve ? "Approve" : "Reject"}
@@ -132,6 +156,9 @@ export default function Transfers() {
       <p className="mt-1 text-muted">Moves that keep shelves full before the weather hits.</p>
       <Link to="/storm-desk" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint">
         Get a plan from storm desk
+      </Link>
+      <Link to="/what-if" className="mt-4 ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-signal-deep hover:border-signal hover:bg-signal-tint">
+        What if a storm comes?
       </Link>
 
       {me.data && !canDecide && (

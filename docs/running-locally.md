@@ -89,6 +89,12 @@ Open **Transfers > Get a plan from storm desk**, or go to http://localhost:5173/
 
 Each plan calls a chat model in the workspace, so it uses a small amount of Databricks usage per question. Its checks are read-only queries, and the agent code is `backend/app/agent.py`.
 
+## What-if simulator
+
+Open **Transfers > What if a storm comes?**, or go to http://localhost:5173/what-if. Set the strength, when it hits, how many days, and where. It shows the sales that would be lost if nothing moved and the stock that would need to move. It calls the forecaster's serving endpoint and changes nothing.
+
+It uses the endpoint named by `STORMSENSE_FORECAST_ENDPOINT` (default `stormsense-forecaster`). That endpoint scales to zero, so the first simulation after a quiet period can take a minute.
+
 ## Tests
 
 ```bash
@@ -104,6 +110,7 @@ make smoke WAREHOUSE_ID=<id> SPACE_ID=<id>      # live check of the real workspa
 |---|---|
 | The API hangs for minutes on the first request behind a company proxy | Python does not trust the proxy's certificate. `make` already points Python at the system certificates; if you start the API another way, set `REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt` first. |
 | "Getting things ready" in the app | The serverless SQL warehouse is starting. It retries by itself and clears in seconds. |
+| What-if says "needs the live workspace" | Expected with sample data. Set `STORMSENSE_MODE=databricks` in `backend/.env`. |
 | Ask says "Questions aren't available right now" | `DATABRICKS_GENIE_SPACE_ID` is missing from `backend/.env`. Run `databricks genie list-spaces --profile stormsense` to find the id, add it, and restart the API. |
 | "That didn't load" | A query failed. The cause is in the API's terminal output, with the statement id. |
 | `Address already in use` | A previous run is still up: `fuser -k 8000/tcp 5173/tcp`. |

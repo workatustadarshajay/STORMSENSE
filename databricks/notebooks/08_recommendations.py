@@ -29,8 +29,9 @@ gaps = ctx.read("inventory_gaps")
 gaps = gaps[pd.to_datetime(gaps["as_of_date"]).dt.date == as_of]
 wx = ctx.read("weather_forecast")
 wx = wx[wx["issued_at"] == wx["issued_at"].max()]
+prefs = ctx.read("route_preferences")  # learned from planner rejections; ranks routes, never adds or removes moves
 recs = planning.recommend_transfers(gaps, ctx.read("stores"), ctx.read("products"), wx, ctx.setting_values(), as_of,
-                                    datetime.now(timezone.utc).replace(tzinfo=None))
+                                    datetime.now(timezone.utc).replace(tzinfo=None), route_preferences=prefs)
 print(f"{len(recs)} recommendations,", recs["urgency"].value_counts().to_dict() if len(recs) else {})
 
 # COMMAND ----------

@@ -87,7 +87,8 @@ class MockSource:
         return [w for w in deepcopy(self.t["weather_forecast"]) if store_id is None or w["store_id"] == store_id]
 
     # ---- decisions: same rules as the live source -------------------------------------------------
-    def decide(self, action: str, ids: list[str], actor: str, note: str | None, request_id: str) -> Decision:
+    def decide(self, action: str, ids: list[str], actor: str, note: str | None, request_id: str,
+               reason_code: str | None = None) -> Decision:
         changed, skipped = [], []
         with self._lock:
             by_id = {r["rec_id"]: r for r in self.t["transfer_recommendations"]}

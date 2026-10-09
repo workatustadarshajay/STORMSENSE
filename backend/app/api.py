@@ -17,14 +17,20 @@ from .schemas import (
     InventoryItem,
     Me,
     Overview,
+    PlanChange,
     RejectRequest,
     StoreForecast,
     StoreSummary,
     StormDeskPlan,
     StormDeskRequest,
     Transfer,
+    WhatIfRequest,
+    WhatIfResult,
+    WhatIfRow,
 )
 from .service import Service
+from .whatif import Scenario
+from .whatif import run as run_what_if
 
 router = APIRouter(prefix="/api")
 Svc = Annotated[Service, Depends(get_service)]
@@ -70,7 +76,7 @@ def approve(body: ApproveRequest, user: Annotated[Me, Depends(planner)], svc: Sv
 
 @router.post("/transfers/reject", response_model=DecisionResult, tags=["transfers"], dependencies=[Depends(same_origin)])
 def reject(body: RejectRequest, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
-    return svc.decide("REJECTED", body.ids, user.email, body.reason)
+    return svc.decide("REJECTED", body.ids, user.email, body.reason, body.reason_code)
 
 
 @router.get("/transfers/{transfer_id}", response_model=Transfer, tags=["transfers"])
@@ -125,4 +131,49 @@ def storm_desk(body: StormDeskRequest, request: Request, user: User) -> StormDes
     return StormDeskPlan(
         answered=result.answered, plan=result.plan, message=result.message, transfers=transfers,
         steps=[{"what": s.tool.replace("get_", "").replace("_", " ").capitalize(), "result": s.detail} for s in result.steps],
+        debate=[{"agent": d.agent, "message": d.message} for d in result.debate],
     )
+
+
+@router.post("/what-if", response_model=WhatIfResult, tags=["what-if"], dependencies=[Depends(same_origin)])
+def what_if(body: WhatIfRequest, request: Request, user: User, svc: Svc) -> WhatIfResult:
+    """Simulates a storm and what it would cost. Read-only: it changes no data and approves nothing."""
+    import pandas as pd
+
+    if not request.app.state.what_if_limiter.allow(user.email):
+        raise problem(429, "slow_down", "That's a lot of simulations. Wait a minute, then try again.", **{"Retry-After": "60"})
+    scorer = request.app.state.forecast_scorer
+    if scorer is None:
+        return WhatIfResult(answered=False, message="The storm simulator needs the live workspace. It isn't available with sample data.")
+    source = svc.source
+    rows = source.forecast_inputs(body.region)
+    if not rows:
+        return WhatIfResult(answered=False, message="There is no forecast for the coming days to simulate.")
+    frame = pd.DataFrame(rows)
+    gaps = source.gaps(None, None)
+    as_of = max(g["as_of_date"] for g in gaps)
+    available = {(g["store_id"], g["product_id"]): float(g["available"] or 0) for g in gaps}
+    names = {s.id: s.name for s in svc.stores()} | {p["product_id"]: p["name"] for p in source.products()}
+    prices = {p["product_id"]: float(p["unit_price"]) for p in source.products()}
+    sc = Scenario(strength=body.strength, start_day=body.start_day, days=body.days, region=body.region)
+    result = run_what_if(frame, sc, as_of, scorer, available, prices, names)
+    change = source.stock_plan_change()
+    window = result["window"]
+    sentence = (f"A storm of strength {body.strength} from {window} would add about {result['extra_demand_units']} units of demand. "
+                f"Without moving stock, about ${result['extra_lost_usd']:,.0f} in sales would be lost. "
+                f"Moving about {result['stock_to_move_units']} units of stock would cover it.")
+    plan_change = None
+    if change:
+        b, n = change["before"], change["now"]
+        plan_change = PlanChange(
+            as_of=change["as_of"], before_version=change["before_version"], before_time=change["before_time"],
+            now_version=change["now_version"], now_time=change["now_time"],
+            shortage_stores_before=b["shortage_stores"], shortage_stores_now=n["shortage_stores"],
+            units_short_before=b["units_short"], units_short_now=n["units_short"],
+            sentence=(f"The stock plan changed after the last daily run: {n['shortage_stores']} stores now show a shortage, "
+                      f"compared with {b['shortage_stores']} before it."),
+        )
+    return WhatIfResult(answered=True, window=window, sentence=sentence, normal_units=result["normal_units"],
+                        storm_units=result["storm_units"], extra_demand_units=result["extra_demand_units"],
+                        extra_lost_usd=result["extra_lost_usd"], stock_to_move_units=result["stock_to_move_units"],
+                        rows=[WhatIfRow(**r) for r in result["rows"]], plan_change=plan_change)

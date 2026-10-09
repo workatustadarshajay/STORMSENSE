@@ -1,5 +1,5 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, ApiError } from "./client";
+import { api, ApiError, type RejectReason } from "./client";
 
 /** Waking data connections get a few patient retries; real errors get one. */
 export function retryPolicy(failures: number, error: unknown): boolean {
@@ -27,8 +27,9 @@ export const useForecast = (storeId: string | undefined) =>
 export function useDecide() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { action: "approve"; ids: string[]; note?: string } | { action: "reject"; ids: string[]; reason: string }) =>
-      v.action === "approve" ? api.approve(v.ids, v.note) : api.reject(v.ids, v.reason),
+    mutationFn: (
+      v: { action: "approve"; ids: string[]; note?: string } | { action: "reject"; ids: string[]; reason: string; reasonCode: RejectReason },
+    ) => (v.action === "approve" ? api.approve(v.ids, v.note) : api.reject(v.ids, v.reason, v.reasonCode)),
     onSettled: () => {
       for (const key of ["transfers", "overview", "history", "stores", "forecast"]) qc.invalidateQueries({ queryKey: [key] });
     },
@@ -37,3 +38,4 @@ export function useDecide() {
 
 export const useAsk = () => useMutation({ mutationFn: api.ask });
 export const useStormDesk = () => useMutation({ mutationFn: api.stormDesk });
+export const useWhatIf = () => useMutation({ mutationFn: api.whatIf });

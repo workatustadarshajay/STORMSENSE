@@ -5,6 +5,7 @@ import { Shell } from "./components/Shell";
 import Ask from "./pages/Ask";
 import History from "./pages/History";
 import StormDesk from "./pages/StormDesk";
+import WhatIf from "./pages/WhatIf";
 import Stores from "./pages/Stores";
 import Today from "./pages/Today";
 import Transfers from "./pages/Transfers";
@@ -30,6 +31,7 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="stores" element={<Stores />} />
           <Route path="ask" element={<Ask />} />
           <Route path="storm-desk" element={<StormDesk />} />
+          <Route path="what-if" element={<WhatIf />} />
           <Route path="history" element={<History />} />
           <Route path="*" element={<NotFound />} />
         </Route>

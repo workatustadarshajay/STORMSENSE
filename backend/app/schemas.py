@@ -84,9 +84,13 @@ class ApproveRequest(BaseModel):
     note: str | None = Field(None, max_length=280)
 
 
+RejectReason = Literal["TRUCK_UNAVAILABLE", "STORE_CLOSED", "ALREADY_COVERED", "ROUTE_TOO_SLOW", "OTHER"]
+
+
 class RejectRequest(BaseModel):
     ids: list[TransferId] = Field(min_length=1, max_length=50)
     reason: str = Field(min_length=3, max_length=280)
+    reason_code: RejectReason | None = Field(None, description="Structured reason; the daily run learns from it")
 
 
 class DecisionResult(BaseModel):
@@ -178,12 +182,61 @@ class DeskStep(BaseModel):
     result: str
 
 
+class DebateTurn(BaseModel):
+    agent: str = Field(description="Which role spoke: Forecaster, Risk checker or Summary writer")
+    message: str
+
+
 class StormDeskPlan(BaseModel):
     answered: bool
     plan: list[str] = Field(default_factory=list, description="The plan, one sentence per item")
     steps: list[DeskStep] = Field(default_factory=list, description="What storm desk checked, in order")
+    debate: list[DebateTurn] = Field(default_factory=list, description="How the three roles arrived at the plan")
     transfers: list[Transfer] = Field(default_factory=list, description="Pending transfers the plan refers to")
     message: str | None = None
 
 
 StormDeskPlan.model_rebuild()
+
+
+class WhatIfRequest(BaseModel):
+    strength: int = Field(ge=0, le=100, description="How strong the storm is, 0 to 100")
+    start_day: int = Field(ge=0, le=6, description="0 means tomorrow")
+    days: int = Field(ge=1, le=4, description="How many days the storm lasts")
+    region: Literal["Florida", "Texas", "California"] | None = None
+
+
+class WhatIfRow(BaseModel):
+    store: str
+    product: str
+    normal_units: int
+    storm_units: int
+    on_hand: int
+    extra_lost_usd: float
+
+
+class PlanChange(BaseModel):
+    as_of: str
+    before_version: int
+    before_time: str
+    now_version: int
+    now_time: str
+    shortage_stores_before: int
+    shortage_stores_now: int
+    units_short_before: int
+    units_short_now: int
+    sentence: str
+
+
+class WhatIfResult(BaseModel):
+    answered: bool
+    message: str | None = None
+    window: str | None = None
+    sentence: str | None = None
+    normal_units: int = 0
+    storm_units: int = 0
+    extra_demand_units: int = 0
+    extra_lost_usd: float = 0.0
+    stock_to_move_units: int = 0
+    rows: list[WhatIfRow] = Field(default_factory=list)
+    plan_change: PlanChange | None = None

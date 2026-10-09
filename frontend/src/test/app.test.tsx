@@ -85,19 +85,19 @@ describe("Transfers", () => {
     expect(server.calls.filter((c) => c.method === "POST")).toHaveLength(1);
   });
 
-  it("rejecting needs a reason", async () => {
+  it("rejecting needs a reason and records it", async () => {
     const user = userEvent.setup();
     const server = serve();
     open("/transfers");
     await user.click(await screen.findByRole("checkbox", { name: /Move 55/ }));
     await user.click(screen.getByRole("button", { name: "Reject" }));
     const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
-    expect(server.calls.some((c) => c.method === "POST")).toBe(false);
-    await user.type(within(dialog).getByLabelText(/Why are you rejecting/), "Store is closed");
+    expect(within(dialog).getByRole("button", { name: "Reject" })).toBeDisabled();
+    await user.selectOptions(within(dialog).getByRole("combobox"), "STORE_CLOSED");
+    await user.type(within(dialog).getByLabelText(/Anything to add/), "Store is closed");
     await user.click(within(dialog).getByRole("button", { name: "Reject" }));
     await screen.findByText("1 transfer rejected.");
-    expect(server.calls.find((c) => c.method === "POST")?.body).toEqual({ ids: ["TR-CCCCCCCCCC"], reason: "Store is closed" });
+    expect(server.calls.find((c) => c.method === "POST")?.body).toEqual({ ids: ["TR-CCCCCCCCCC"], reason: "Store is closed", reason_code: "STORE_CLOSED" });
   });
 
   it("viewers can look but not decide", async () => {

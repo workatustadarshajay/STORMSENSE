@@ -56,9 +56,15 @@ resources:
           environment_key: default
           notebook_task:
             notebook_path: ../notebooks/07_gaps.py
-        - task_key: recommendations
+        - task_key: learn_feedback
           disable_auto_optimization: true
           depends_on: [{ task_key: gaps }]
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/12_learn_from_feedback.py
+        - task_key: recommendations
+          disable_auto_optimization: true
+          depends_on: [{ task_key: learn_feedback }]
           environment_key: default
           notebook_task:
             notebook_path: ../notebooks/08_recommendations.py
@@ -132,8 +138,20 @@ resources:
           min_retry_interval_millis: 60000
           notebook_task:
             notebook_path: ../notebooks/07_gaps.py
-        - task_key: recommendations
+        - task_key: learn_feedback
           depends_on: [{ task_key: gaps }]
+          environment_key: default
+          notebook_task:
+            notebook_path: ../notebooks/12_learn_from_feedback.py
+        - task_key: learn_feedback
+          depends_on: [{ task_key: gaps }]
+          environment_key: default
+          max_retries: 2
+          min_retry_interval_millis: 60000
+          notebook_task:
+            notebook_path: ../notebooks/12_learn_from_feedback.py
+        - task_key: recommendations
+          depends_on: [{ task_key: learn_feedback }]
           environment_key: default
           max_retries: 2
           min_retry_interval_millis: 60000

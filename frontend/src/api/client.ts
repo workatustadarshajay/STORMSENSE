@@ -12,6 +12,9 @@ export type InventoryItem = S["InventoryItem"];
 export type AskResponse = S["AskResponse"];
 export type WeatherAlert = S["WeatherAlert"];
 export type StormDeskPlan = S["StormDeskPlan"];
+export type WhatIfResult = S["WhatIfResult"];
+export type WhatIfRequest = S["WhatIfRequest"];
+export type RejectReason = S["RejectRequest"]["reason_code"];
 
 /** A problem the server explained in plain words. */
 export class ApiError extends Error {
@@ -54,10 +57,12 @@ export const api = {
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),
   approve: (ids: string[], note?: string) => post<DecisionResult>("/api/transfers/approve", { ids, note: note || null }),
-  reject: (ids: string[], reason: string) => post<DecisionResult>("/api/transfers/reject", { ids, reason }),
+  reject: (ids: string[], reason: string, reasonCode?: RejectReason) =>
+    post<DecisionResult>("/api/transfers/reject", { ids, reason, reason_code: reasonCode ?? null }),
   stores: () => request<StoreSummary[]>("/api/stores"),
   forecast: (storeId: string) => request<StoreForecast>(`/api/stores/${storeId}/forecast`),
   history: () => request<Transfer[]>("/api/history"),
   ask: (question: string) => post<AskResponse>("/api/ask", { question }),
   stormDesk: (goal: string) => post<StormDeskPlan>("/api/storm-desk", { goal }),
+  whatIf: (body: WhatIfRequest) => post<WhatIfResult>("/api/what-if", body),
 };

@@ -113,3 +113,82 @@ def test_table_definitions_are_valid_sql_strings():
         assert len(literals) == len(table.columns) + 1, name  # one per column comment plus the table comment
         assert sql.count("'") - sql.count("\\'") == 2 * len(literals), name  # no stray quote outside a literal
     assert "planner\\'s" in create_sql("t", TABLES["transfer_recommendations"])
+
+
+def test_nws_days_are_store_local_not_utc():
+    """A Sunday 8 PM Eastern storm is 00:00 UTC Monday; it must still be labelled Sunday."""
+    from stormsense_core import weather
+
+    grid = {"properties": {
+        "temperature": {"values": [{"validTime": "2026-10-12T00:00:00+00:00/PT1H", "value": 25.0}]},
+        "windGust": {"values": [{"validTime": "2026-10-12T00:00:00+00:00/PT1H", "value": 80.0}]},
+        "quantitativePrecipitation": {"values": [{"validTime": "2026-10-12T00:00:00+00:00/PT1H", "value": 0.0}]},
+    }}
+    utc = weather.parse_nws_grid(grid, tz="UTC")
+    eastern = weather.parse_nws_grid(grid, tz="America/New_York")
+    assert str(utc.iloc[0].forecast_date) == "2026-10-12"
+    assert str(eastern.iloc[0].forecast_date) == "2026-10-11"  # Sunday evening Eastern
+
+
+def test_rejected_routes_rank_lower_and_say_why():
+    """A source whose route was rejected recently is tried after a farther source, and the reason says why."""
+    from datetime import date, datetime
+
+    from stormsense_core import planning
+    from stormsense_core.feedback import compute_route_preferences
+
+    rej = pd.DataFrame([
+        {"source_store_id": "S04", "dest_store_id": "S01", "product_id": "P01", "reason_code": "TRUCK_UNAVAILABLE",
+         "decided_at": "2026-10-06 15:00:00"},
+        {"source_store_id": "S04", "dest_store_id": "S01", "product_id": "P01", "reason_code": "TRUCK_UNAVAILABLE",
+         "decided_at": "2026-10-07 15:00:00"},
+    ])
+    prefs = compute_route_preferences(rej, date(2026, 10, 8))
+    assert prefs.iloc[0].penalty > 2.5 and prefs.iloc[0].rejections == 2 and prefs.iloc[0].last_reason == "truck unavailable"
+    old = compute_route_preferences(rej.assign(decided_at="2026-07-01 12:00:00"), date(2026, 10, 8))
+    assert old.empty  # outside the 60-day window: forgotten
+    today = compute_route_preferences(rej.iloc[[1]].assign(decided_at="2026-10-09 09:30:00"), date(2026, 10, 8),
+                                      now=datetime(2026, 10, 9, 10, 0))
+    assert len(today) == 1 and today.iloc[0].rejections == 1  # a decision made today, after the stock date, still counts
+
+    st = pd.DataFrame([
+        {"store_id": "S01", "name": "Orlando", "latitude": 28.54, "longitude": -81.38, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+        {"store_id": "S04", "name": "Jacksonville", "latitude": 30.33, "longitude": -81.66, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+        {"store_id": "S03", "name": "Miami", "latitude": 25.76, "longitude": -80.19, "city": "", "region": "",
+         "time_zone": "", "size_factor": 1.0},
+    ])
+    pr = reference.products_df().iloc[[0]].copy()
+    gaps = pd.DataFrame([
+        {"as_of_date": date(2026, 10, 8), "store_id": "S01", "product_id": "P01", "status": "SHORTAGE", "available": 5.0,
+         "forecast_units": 50.0, "forecast_p10": 40.0, "forecast_p90": 60.0, "avg_daily": 7.0, "safety_stock": 14.0,
+         "days_of_cover": 0.7, "runs_low_date": date(2026, 10, 9), "stockout_date": date(2026, 10, 10),
+         "shortfall_units": 60.0, "shortfall_p10": 50.0, "shortfall_p90": 70.0, "lost_units": 45.0, "spare_units": 0.0},
+        {"as_of_date": date(2026, 10, 8), "store_id": "S04", "product_id": "P01", "status": "SURPLUS", "available": 200.0,
+         "forecast_units": 20.0, "forecast_p10": 16.0, "forecast_p90": 24.0, "avg_daily": 3.0, "safety_stock": 6.0,
+         "days_of_cover": 30.0, "runs_low_date": None, "stockout_date": None, "shortfall_units": 0.0, "shortfall_p10": 0.0,
+         "shortfall_p90": 0.0, "lost_units": 0.0, "spare_units": 120.0},
+        {"as_of_date": date(2026, 10, 8), "store_id": "S03", "product_id": "P01", "status": "SURPLUS", "available": 200.0,
+         "forecast_units": 20.0, "forecast_p10": 16.0, "forecast_p90": 24.0, "avg_daily": 3.0, "safety_stock": 6.0,
+         "days_of_cover": 30.0, "runs_low_date": None, "stockout_date": None, "shortfall_units": 0.0, "shortfall_p10": 0.0,
+         "shortfall_p90": 0.0, "lost_units": 0.0, "spare_units": 120.0},
+    ])
+    settings = {"safety_stock_days": 2.0, "surplus_threshold_days": 21.0, "urgent_threshold_days": 2.0,
+                "urgent_lost_sales_usd": 5000.0, "max_transfer_distance_miles": 300.0, "min_transfer_qty": 10.0,
+                "forecast_horizon_days": 7.0}
+    wx = pd.DataFrame({"store_id": ["S01"], "forecast_date": [pd.Timestamp("2026-10-09")], "condition": ["clear"],
+                       "temp_max_f": [85.0], "rain_in": [0.0], "wind_max_mph": [5.0], "event_name": [None]})
+    base = planning.recommend_transfers(gaps, st, pr, wx, settings, date(2026, 10, 8), datetime(2026, 10, 9, 6))
+    learned = planning.recommend_transfers(gaps, st, pr, wx, settings, date(2026, 10, 8), datetime(2026, 10, 9, 6),
+                                           route_preferences=prefs)
+    assert not base.empty and not learned.empty
+    assert base.iloc[0].source_store_id == "S04"  # the nearer source wins with no feedback
+    assert learned.iloc[0].source_store_id == "S03"  # rejected route ranked lower
+    assert "Ranked lower" not in learned.iloc[0].reason  # the chosen route was never rejected
+    # Learning reorders, never removes: when the rejected route is the only option, it is still offered, with the reason.
+    only_rejected = planning.recommend_transfers(gaps[gaps.store_id != "S03"], st, pr, wx, settings, date(2026, 10, 8),
+                                                 datetime(2026, 10, 9, 6), route_preferences=prefs)
+    assert only_rejected.iloc[0].source_store_id == "S04"
+    assert "Ranked lower" in only_rejected.iloc[0].reason and "truck unavailable" in only_rejected.iloc[0].reason
+    assert "Ranked lower" not in base.iloc[0].reason

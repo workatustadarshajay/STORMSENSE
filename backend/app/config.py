@@ -28,6 +28,8 @@ class Settings(BaseSettings):
 
     # Chat model for storm desk. These answer tool calls in this workspace: databricks-gpt-5-mini, databricks-gpt-5-4-mini.
     storm_desk_model: str = Field("databricks-gpt-5-mini", validation_alias="STORMSENSE_AGENT_MODEL")
+    # Serving endpoint that scores the what-if simulator (created from the forecaster, version 3).
+    forecast_endpoint: str = Field("stormsense-forecaster", validation_alias="STORMSENSE_FORECAST_ENDPOINT")
     cache_seconds: int = 30
     query_budget_seconds: int = 45
     ask_timeout_seconds: int = 60

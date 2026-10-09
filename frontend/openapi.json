@@ -139,6 +139,25 @@
         "title": "DayUnits",
         "type": "object"
       },
+      "DebateTurn": {
+        "properties": {
+          "agent": {
+            "description": "Which role spoke: Forecaster, Risk checker or Summary writer",
+            "title": "Agent",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent",
+          "message"
+        ],
+        "title": "DebateTurn",
+        "type": "object"
+      },
       "DecisionResult": {
         "properties": {
           "action": {
@@ -440,6 +459,64 @@
         "title": "Overview",
         "type": "object"
       },
+      "PlanChange": {
+        "properties": {
+          "as_of": {
+            "title": "As Of",
+            "type": "string"
+          },
+          "before_time": {
+            "title": "Before Time",
+            "type": "string"
+          },
+          "before_version": {
+            "title": "Before Version",
+            "type": "integer"
+          },
+          "now_time": {
+            "title": "Now Time",
+            "type": "string"
+          },
+          "now_version": {
+            "title": "Now Version",
+            "type": "integer"
+          },
+          "sentence": {
+            "title": "Sentence",
+            "type": "string"
+          },
+          "shortage_stores_before": {
+            "title": "Shortage Stores Before",
+            "type": "integer"
+          },
+          "shortage_stores_now": {
+            "title": "Shortage Stores Now",
+            "type": "integer"
+          },
+          "units_short_before": {
+            "title": "Units Short Before",
+            "type": "integer"
+          },
+          "units_short_now": {
+            "title": "Units Short Now",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "as_of",
+          "before_version",
+          "before_time",
+          "now_version",
+          "now_time",
+          "shortage_stores_before",
+          "shortage_stores_now",
+          "units_short_before",
+          "units_short_now",
+          "sentence"
+        ],
+        "title": "PlanChange",
+        "type": "object"
+      },
       "ProductForecast": {
         "properties": {
           "available": {
@@ -565,6 +642,25 @@
             "minLength": 3,
             "title": "Reason",
             "type": "string"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "TRUCK_UNAVAILABLE",
+                  "STORE_CLOSED",
+                  "ALREADY_COVERED",
+                  "ROUTE_TOO_SLOW",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Structured reason; the daily run learns from it",
+            "title": "Reason Code"
           }
         },
         "required": [
@@ -653,6 +749,14 @@
           "answered": {
             "title": "Answered",
             "type": "boolean"
+          },
+          "debate": {
+            "description": "How the three roles arrived at the plan",
+            "items": {
+              "$ref": "#/components/schemas/DebateTurn"
+            },
+            "title": "Debate",
+            "type": "array"
           },
           "message": {
             "anyOf": [
@@ -978,6 +1082,180 @@
           "rain_in"
         ],
         "title": "WeatherDay",
+        "type": "object"
+      },
+      "WhatIfRequest": {
+        "properties": {
+          "days": {
+            "description": "How many days the storm lasts",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Florida",
+                  "Texas",
+                  "California"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "start_day": {
+            "description": "0 means tomorrow",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Start Day",
+            "type": "integer"
+          },
+          "strength": {
+            "description": "How strong the storm is, 0 to 100",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Strength",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "strength",
+          "start_day",
+          "days"
+        ],
+        "title": "WhatIfRequest",
+        "type": "object"
+      },
+      "WhatIfResult": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "boolean"
+          },
+          "extra_demand_units": {
+            "default": 0,
+            "title": "Extra Demand Units",
+            "type": "integer"
+          },
+          "extra_lost_usd": {
+            "default": 0.0,
+            "title": "Extra Lost Usd",
+            "type": "number"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "normal_units": {
+            "default": 0,
+            "title": "Normal Units",
+            "type": "integer"
+          },
+          "plan_change": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanChange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/WhatIfRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "sentence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentence"
+          },
+          "stock_to_move_units": {
+            "default": 0,
+            "title": "Stock To Move Units",
+            "type": "integer"
+          },
+          "storm_units": {
+            "default": 0,
+            "title": "Storm Units",
+            "type": "integer"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "answered"
+        ],
+        "title": "WhatIfResult",
+        "type": "object"
+      },
+      "WhatIfRow": {
+        "properties": {
+          "extra_lost_usd": {
+            "title": "Extra Lost Usd",
+            "type": "number"
+          },
+          "normal_units": {
+            "title": "Normal Units",
+            "type": "integer"
+          },
+          "on_hand": {
+            "title": "On Hand",
+            "type": "integer"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "store": {
+            "title": "Store",
+            "type": "string"
+          },
+          "storm_units": {
+            "title": "Storm Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "store",
+          "product",
+          "normal_units",
+          "storm_units",
+          "on_hand",
+          "extra_lost_usd"
+        ],
+        "title": "WhatIfRow",
         "type": "object"
       }
     }
@@ -1507,6 +1785,48 @@
         "summary": "Transfer",
         "tags": [
           "transfers"
+        ]
+      }
+    },
+    "/api/what-if": {
+      "post": {
+        "description": "Simulates a storm and what it would cost. Read-only: it changes no data and approves nothing.",
+        "operationId": "what_if_api_what_if_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhatIfRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatIfResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What If",
+        "tags": [
+          "what-if"
         ]
       }
     }

@@ -61,8 +61,8 @@ def _celsius_to_f(c: float) -> float:
 _DURATION = re.compile(r"P(?:(\d+)D)?(?:T(?:(\d+)H)?)?")
 
 
-def parse_nws_grid(grid: dict, days: int = 10) -> pd.DataFrame:
-    """Daily temp/wind/rain from an NWS gridpoint payload (pure function, unit-tested)."""
+def parse_nws_grid(grid: dict, days: int = 10, tz: str = "UTC") -> pd.DataFrame:
+    """Daily temp/wind/rain from an NWS gridpoint payload, grouped by the store's local calendar day."""
     props = grid["properties"]
 
     def hourly(name: str, spread: bool = False) -> pd.Series:
@@ -82,7 +82,7 @@ def parse_nws_grid(grid: dict, days: int = 10) -> pd.DataFrame:
     gust = hourly("windGust").combine_first(hourly("windSpeed")) * 0.621371  # km/h -> mph
     rain = hourly("quantitativePrecipitation", spread=True) / 25.4  # mm per period -> in per hour
     out = pd.DataFrame({"temp": temp, "gust": gust, "rain": rain})
-    out["day"] = out.index.tz_convert("UTC").date  # ponytail: UTC days; switch to store time zone for production
+    out["day"] = out.index.tz_convert(tz).date  # local days: an evening storm must not move to the next day
     daily = out.groupby("day").agg(temp_max_f=("temp", "max"), temp_min_f=("temp", "min"),
                                    wind_max_mph=("gust", "max"), rain_in=("rain", "sum"))
     daily = daily.dropna(subset=["temp_max_f"]).fillna({"wind_max_mph": 0.0, "rain_in": 0.0}).head(days)
@@ -97,7 +97,7 @@ def fetch_nws_forecast(stores: pd.DataFrame, days: int = 10) -> pd.DataFrame:
     for s in stores.itertuples():
         point = _get(f"{_NWS}/points/{s.latitude:.4f},{s.longitude:.4f}")
         grid = _get(point["properties"]["forecastGridData"])
-        daily = parse_nws_grid(grid, days)
+        daily = parse_nws_grid(grid, days, tz=s.time_zone)
         daily.insert(0, "store_id", s.store_id)
         frames.append(daily)
     df = pd.concat(frames, ignore_index=True)

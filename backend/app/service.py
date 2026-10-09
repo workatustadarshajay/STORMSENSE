@@ -115,9 +115,9 @@ class Service:
     def history(self) -> list[Transfer]:
         return [self._transfer(r) for r in self.source.history()]
 
-    def decide(self, action: str, ids: list[str], actor: str, note: str | None) -> DecisionResult:
+    def decide(self, action: str, ids: list[str], actor: str, note: str | None, reason_code: str | None = None) -> DecisionResult:
         unique = list(dict.fromkeys(ids))  # a double-click or repeated id changes nothing twice
-        d = self.source.decide(action, unique, actor, note, request_id=uuid.uuid4().hex)
+        d = self.source.decide(action, unique, actor, note, request_id=uuid.uuid4().hex, reason_code=reason_code)
         self._cache.pop("overview", None)
         return DecisionResult(action=action, changed=d.changed, skipped=d.skipped,  # type: ignore[arg-type]
                               message=decision_message(action, d.changed, d.skipped))
