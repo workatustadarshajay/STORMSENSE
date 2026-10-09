@@ -220,17 +220,19 @@ def s_team(sl):
     grid = cols(3, gap=228600)
     bodies = [
         ("Databricks layer",
-         ["15 governed Delta tables in Unity Catalog, 10 serverless notebooks, "
-          "a registered model served behind the champion alias, three Lakeflow "
-          "jobs and a Genie Ask space \u2014 every asset created from code."]),
+         ["16 governed Delta tables in Unity Catalog, 12 serverless notebooks, "
+          "a declarative pipeline of nine data-quality gates, a model served "
+          "behind the champion alias, three jobs, a Lakeview dashboard and a "
+          "Genie Ask space \u2014 every asset created from code."]),
         ("Application layer",
          ["A FastAPI gatekeeper with bound-parameter SQL, roles, audited "
           "approvals and OpenAPI-generated types, behind a React 18 / TypeScript "
-          "planner app built phone-first."]),
+          "planner app \u2014 phone-first, with the what-if simulator and the "
+          "three-agent storm desk."]),
         ("Proof and governance",
-         ["16 library tests, 47 API tests, 25 web unit tests and 23 browser "
-          "tests, plus a nine-check live smoke script run against the real "
-          "workspace."]),
+         ["18 library tests, 68 API and agent tests, 36 web unit tests and 28 "
+          "browser tests, plus a nine-check live smoke script run against the "
+          "real workspace."]),
     ]
     for (x, w), (headline, bl) in zip(grid, bodies):
         card(sl, x, 2760000, w, 2160000, headline, bl)
@@ -279,10 +281,10 @@ def s_solution(sl):
         ("Planner decides", "Approve or reject on a phone"),
     ])
     card(sl, M, 3570000, CW, 1350000, "The daily cycle", [
-        "A scheduled job refreshes weather, rebuilds leak-free features, scores "
-        "with the current champion model, finds gaps and writes ranked transfer "
-        "recommendations \u2014 idempotent, so re-running changes nothing it "
-        "should not.",
+        "A scheduled job pulls the live forecast, runs nine data-quality gates, "
+        "rebuilds leak-free features, scores with the champion, finds gaps, "
+        "learns from yesterday's rejections and writes ranked transfers \u2014 "
+        "idempotent, so re-running changes nothing it should not.",
         "The planner sees only the last box: a short, ranked list with the "
         "reason attached to every move.",
     ])
@@ -299,22 +301,28 @@ def s_novelty(sl):
         ("It ends in a decision, not a dashboard",
          ["The output is a ranked move with its reason in plain words, sized to "
           "the week \u2014 something a planner approves in seconds."]),
-        ("The horizon is the decision window",
-         ["Features are lagged by the full 7-day horizon so nothing leaks, and "
-          "the model is judged on the exact window a move has to land in."]),
         ("Trust is a gate the model has to pass",
          ["It reaches champion only by beating \u201csame as last week\u201d and "
-          "the trailing 28-day average on data held out of training."]),
-        ("Ask anything, change nothing",
-         ["A read-only space answers open questions in the planner's own words "
-          "and cannot modify a single row."]),
+          "the trailing 28-day average on data held out of training \u2014 and a "
+          "declarative pipeline drops or fails bad rows before a feature is "
+          "built."]),
+        ("It can rehearse a storm that hasn't happened",
+         ["The what-if simulator drives the served forecaster through a "
+          "planner's own scenario \u2014 strength, timing, region \u2014 and time "
+          "travel compares what the last run planned with what the live "
+          "forecast now says."]),
+        ("Every rejection makes the next ranking better",
+         ["A rejected move stores its reason; routes that keep being rejected "
+          "are ranked lower, with a note that says why. Learning never invents "
+          "or removes a move."]),
     ]
     for i, (headline, bl) in enumerate(bodies):
         x, w = g[i % 2]
         card(sl, x, rows[i // 2], w, GRID_H, headline, bl)
     sl.note("The unit of decision is what is new: a per-store, per-product gap "
-            "over the weather horizon, resolved to a move a non-technical "
-            "planner can approve. It is not a new charting technique.")
+            "over the weather horizon, resolved to a move a planner can approve. "
+            "Rehearsing the storm and learning from rejections are what no "
+            "off-the-shelf dashboard gives you.")
     return sl
 
 
@@ -323,7 +331,8 @@ def s_architecture(sl):
     grid = cols(3, gap=228600)
     bodies = [
         ("Databricks", "Data and forecasting",
-         ["15 Delta tables in Unity Catalog",
+         ["16 Delta tables in Unity Catalog",
+          "Nine data-quality gates before any feature is built",
           "Leak-free features over a 7-day horizon",
           "Promoted and served through the champion alias"]),
         ("FastAPI gatekeeper", "The only path to the data",
@@ -331,7 +340,7 @@ def s_architecture(sl):
           "Roles, guarded and idempotent approvals",
           "Every attempt written to an audit trail"]),
         ("React app", "Where the planner works",
-         ["Today, Transfers, Store forecast, Ask, History",
+         ["Today, Transfers, What-if, Storm desk, Ask, History",
           "Plain-language loading, empty and error states",
           "Phone-first and accessibility-tested"]),
     ]
@@ -342,16 +351,19 @@ def s_architecture(sl):
             [p_(run("The 6:00 AM daily cycle", sz=1150, b=True, c=INK),
                 lnSpc=100000)])
     chain(sl, 4440000, 1, [
-        ("Weather", "NWS or sample feed"),
+        ("Weather", "live NWS days"),
+        ("Quality", "9 gates, no bad rows"),
         ("Features", "lagged, no leakage"),
         ("Score", "champion alias"),
         ("Gaps", "short vs surplus"),
+        ("Learn", "route penalties"),
         ("Transfers", "ranked and merged"),
         ("Verify", "idempotency check"),
     ], gap=140000, box_h=760000)
     sl.note("The browser never talks to Databricks. The API holds the service "
-            "principal, so credentials never reach the client \u2014 and every "
-            "statement it runs is parameterised.",
+            "principal, so credentials never reach the client, and every "
+            "statement it runs is parameterised. The quality gate drops bad "
+            "rows before a feature is built.",
             rule_y=5300000, y=5360000)
     return sl
 

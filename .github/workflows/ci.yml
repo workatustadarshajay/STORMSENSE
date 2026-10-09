@@ -58,7 +58,12 @@ jobs:
           (cd frontend && npm run types)
           python databricks/scripts/make_fixtures.py
           python -c "import sys; sys.path.insert(0, 'databricks'); from stormsense_core.tables import data_dictionary; print(data_dictionary())" > docs/data-dictionary.md
-          git diff --exit-code -- frontend/openapi.json frontend/src/api/schema.d.ts backend/app/fixtures.json docs/data-dictionary.md
+          python infra/build_api_reference.py
+          git diff --exit-code -- frontend/openapi.json frontend/src/api/schema.d.ts backend/app/fixtures.json docs/data-dictionary.md docs/api-reference.md
+      - name: Build documentation site (strict)
+        run: |
+          pip install -r docs-requirements.txt
+          mkdocs build --strict --site-dir site-build
 
   browser:
     runs-on: ubuntu-latest

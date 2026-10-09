@@ -160,3 +160,16 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **MCP client agent (`stormsense-mcp/mcp_agent.py`):** a client that calls the MCP tools itself. A workspace chat model picks the tools; each check prints as it runs. Read-only unless `ALLOW_WRITES=1`. Verified on a sample API: it discovered the tools, ran three checks, and gave a plain answer citing transfer ids that came from the tools.
 - **Model access without a separate key:** Gemini runs as a workspace serving endpoint (`databricks-gemini-3-5-flash`), so the CLI sign-in is enough. The CareLoop `mcp/.env` key is a Google AI Studio key; it is not used here.
 - **Environment note:** the MCP folder must run on Python 3.12. On 3.13 the Databricks SDK call hung in this environment; the folder is pinned to SDK 0.149.0, the version the backend runs.
+
+---
+
+## 9. Documentation website (MkDocs Material)
+
+- **What:** the docs in `docs/` are now a site built with MkDocs Material. It has search, dark mode, a planner guide, a five-minute demo, an MCP integration page and a generated API reference.
+- **Files:** `mkdocs.yml`, `docs-requirements.txt` (pinned `mkdocs-material==9.6.14`), `docs/index.md` (home), `docs/planner-guide.md`, `docs/integrations/mcp.md`, `docs/api-reference.md` (generated), `docs/assets/logo.svg`, `infra/build_api_reference.py`.
+- **Renamed:** `docs/architecture.md` is now `docs/system-design.md`. The old name collided with the architecture diagrams at `/architecture/` on the combined Pages site. Links updated in `README.md`, `contect.md` and the hub page.
+- **Not published:** `what-changed.md` is not in the site because it contains an internal approval note. The architecture folder is excluded from the MkDocs build because it is built separately.
+- **Build:** `make docs-site` builds into `site-build/` in strict mode, so a broken link fails the build. `make docs-serve` previews it at http://127.0.0.1:8001.
+- **Checks:** strict build passes with no warnings; the home, planner guide and API reference pages load with no browser errors.
+- **CI and hosting:** CI regenerates the API reference and fails if it differs from the committed file, then builds the site. The Pages workflow builds the site into `/docs/` beside the marketing page and the architecture diagrams. Live URL: `https://workatustadarshajay.github.io/STORMSENSE/docs/`.
+- **Not done:** not committed or pushed. The Pages workflow publishes on the next push to `main`, so that push needs your go-ahead.

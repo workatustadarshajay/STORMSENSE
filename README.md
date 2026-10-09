@@ -82,7 +82,7 @@ Deployment creates the schema and tables, trains and registers the forecaster, s
 | [`backend/`](backend/) | FastAPI application, identity and role checks, decision endpoints, audit history, and deployment definition. |
 | [`databricks/`](databricks/) | Shared forecasting and planning code, notebooks, tables, and scheduled job resources. |
 | [`infra/`](infra/) | Workspace deployment script, Docker configuration, and environment examples. |
-| [`docs/`](docs/) | [Architecture](docs/architecture.md), [forecasting method](docs/forecasting.md), [runbook](docs/runbook.md), [verification guide](docs/how-to-verify.md), [data dictionary](docs/data-dictionary.md), and [demo script](docs/demo-script.md). |
+| [`docs/`](docs/) | [System design](docs/system-design.md), [forecasting method](docs/forecasting.md), [runbook](docs/runbook.md), [verification guide](docs/how-to-verify.md), [data dictionary](docs/data-dictionary.md), and [demo script](docs/demo-script.md). |
 | [`docs/screenshots/`](docs/screenshots/) | Saved product screenshots used in this README. |
 | `src/`, root `index.html` | Public marketing site, separate from the planner app in `frontend/`. |
 

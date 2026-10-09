@@ -1,0 +1,287 @@
+# API reference
+
+Every endpoint the web app and the MCP server call. This page is generated from the API's own description (`frontend/openapi.json`, version 1.0.0), so it matches the code.
+
+!!! note "Who can call what"
+    Reading is open to anyone who can sign in. Approving and rejecting need a planner or admin account. Storm desk, Ask and the what-if are rate-limited per person. Every write needs the `X-Requested-With: stormsense` header.
+
+Errors come back as `{"detail": {"code": "...", "message": "..."}}` with a plain-language message.
+
+### `POST /api/ask`
+
+Ask
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `question` | string | yes | min length 3; max length 500 |
+
+**Response**
+
+Returns AskResponse.
+
+| Field | Type | Notes |
+|---|---|---|
+| `answer` | string |  |
+| `answered` | boolean |  |
+| `table` | AskTable (optional) |  |
+
+### `GET /api/health`
+
+Health
+
+Liveness. With ?deep=true it also checks the data connection (this wakes the warehouse, so keep probes sparse).
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `deep` | query | boolean | no | default `false` |
+
+**Response**
+
+Returns Health.
+
+| Field | Type | Notes |
+|---|---|---|
+| `mode` | string |  |
+| `status` | one of `ok`, `starting`, `unavailable` |  |
+| `warehouse` | one of `ready`, `starting`, `unavailable`, `not_checked` |  |
+
+### `GET /api/history`
+
+History
+
+**Response**
+
+Returns list of Transfer.
+
+### `GET /api/inventory`
+
+Inventory
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `status` | query | one of `RUNNING_LOW`, `EXTRA` (optional) | no |  |
+
+**Response**
+
+Returns list of InventoryItem.
+
+### `GET /api/me`
+
+Me
+
+**Response**
+
+Returns Me.
+
+| Field | Type | Notes |
+|---|---|---|
+| `can_approve` | boolean |  |
+| `data_label` | string (optional) | Set to 'sample' while the app shows sample data |
+| `email` | string |  |
+| `name` | string |  |
+| `role` | one of `viewer`, `planner`, `admin` |  |
+
+### `GET /api/overview`
+
+Overview
+
+**Response**
+
+Returns Overview.
+
+| Field | Type | Notes |
+|---|---|---|
+| `alerts` | list of WeatherAlert |  |
+| `as_of` | string (optional) |  |
+| `next_action` | NextAction |  |
+| `next_alert` | WeatherAlert (optional) |  |
+| `pending_transfers` | integer |  |
+| `stores_at_risk` | integer |  |
+| `urgent_transfers` | integer |  |
+
+### `GET /api/stores`
+
+Stores
+
+**Response**
+
+Returns list of StoreSummary.
+
+### `GET /api/stores/{store_id}/forecast`
+
+Store Forecast
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `store_id` | path | string | yes | matches `"^S\\d{2}$"` |
+
+**Response**
+
+Returns StoreForecast.
+
+| Field | Type | Notes |
+|---|---|---|
+| `as_of` | string (optional) |  |
+| `products` | list of ProductForecast |  |
+| `store` | StoreSummary |  |
+| `weather` | list of WeatherDay |  |
+
+### `POST /api/storm-desk`
+
+Storm Desk
+
+Plans from the live data. Read-only: it can suggest moves but never approves or changes anything.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `goal` | string | yes | min length 3; max length 500 |
+
+**Response**
+
+Returns StormDeskPlan.
+
+| Field | Type | Notes |
+|---|---|---|
+| `answered` | boolean |  |
+| `debate` | list of DebateTurn | How the three roles arrived at the plan |
+| `message` | string (optional) |  |
+| `plan` | list of string | The plan, one sentence per item |
+| `steps` | list of DeskStep | What storm desk checked, in order |
+| `transfers` | list of Transfer | Pending transfers the plan refers to |
+
+### `GET /api/transfers`
+
+Transfers
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `status` | query | one of `PENDING`, `APPROVED`, `REJECTED` (optional) | no |  |
+| `urgency` | query | one of `URGENT`, `NORMAL` (optional) | no |  |
+
+**Response**
+
+Returns list of Transfer.
+
+### `POST /api/transfers/approve`
+
+Approve
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `ids` | list of string | yes | at least 1 items; at most 50 items |
+| `note` | string (optional) | no |  |
+
+**Response**
+
+Returns DecisionResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `action` | one of `APPROVED`, `REJECTED` |  |
+| `changed` | list of string |  |
+| `message` | string |  |
+| `skipped` | list of string |  |
+
+### `POST /api/transfers/reject`
+
+Reject
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `ids` | list of string | yes | at least 1 items; at most 50 items |
+| `reason` | string | yes | min length 3; max length 280 |
+| `reason_code` | one of `TRUCK_UNAVAILABLE`, `STORE_CLOSED`, `ALREADY_COVERED`, `ROUTE_TOO_SLOW`, `OTHER` (optional) | no | Structured reason; the daily run learns from it |
+
+**Response**
+
+Returns DecisionResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `action` | one of `APPROVED`, `REJECTED` |  |
+| `changed` | list of string |  |
+| `message` | string |  |
+| `skipped` | list of string |  |
+
+### `GET /api/transfers/{transfer_id}`
+
+Transfer
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `transfer_id` | path | string | yes | matches `"^TR-[A-Z0-9]{10}$"` |
+
+**Response**
+
+Returns Transfer.
+
+| Field | Type | Notes |
+|---|---|---|
+| `confidence` | one of `High`, `Medium`, `Low` |  |
+| `created_at` | string (optional) |  |
+| `decided_at` | string (optional) |  |
+| `decided_by` | string (optional) |  |
+| `distance_miles` | integer |  |
+| `from_store` | Ref |  |
+| `headline` | string |  |
+| `id` | string |  |
+| `note` | string (optional) |  |
+| `product` | ProductRef |  |
+| `qty` | integer |  |
+| `reason` | string |  |
+| `runs_low_day` | string (optional) |  |
+| `sales_protected_usd` | number |  |
+| `status` | one of `PENDING`, `APPROVED`, `REJECTED` |  |
+| `to_store` | Ref |  |
+| `urgency` | one of `URGENT`, `NORMAL` |  |
+
+### `POST /api/what-if`
+
+What If
+
+Simulates a storm and what it would cost. Read-only: it changes no data and approves nothing.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `days` | integer | yes | How many days the storm lasts; ≥ 1.0; ≤ 4.0 |
+| `region` | one of `Florida`, `Texas`, `California` (optional) | no |  |
+| `start_day` | integer | yes | 0 means tomorrow; ≥ 0.0; ≤ 6.0 |
+| `strength` | integer | yes | How strong the storm is, 0 to 100; ≥ 0.0; ≤ 100.0 |
+
+**Response**
+
+Returns WhatIfResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `answered` | boolean |  |
+| `extra_demand_units` | integer | default `0` |
+| `extra_lost_usd` | number | default `0.0` |
+| `message` | string (optional) |  |
+| `normal_units` | integer | default `0` |
+| `plan_change` | PlanChange (optional) |  |
+| `rows` | list of WhatIfRow |  |
+| `sentence` | string (optional) |  |
+| `stock_to_move_units` | integer | default `0` |
+| `storm_units` | integer | default `0` |
+| `window` | string (optional) |  |

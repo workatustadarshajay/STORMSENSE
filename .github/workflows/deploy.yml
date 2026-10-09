@@ -33,6 +33,14 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
       - name: Build architecture pages
         run: python3 infra/build_architecture_site.py --into dist/architecture
+      - name: Set up Python for the documentation site
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build documentation site
+        run: |
+          pip install -r docs-requirements.txt
+          mkdocs build --strict --site-dir dist/docs
       - name: Disable Jekyll
         run: touch dist/.nojekyll
       - name: Configure GitHub Pages

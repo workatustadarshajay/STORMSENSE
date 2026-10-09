@@ -8,7 +8,7 @@ export REQUESTS_CA_BUNDLE ?= /etc/ssl/certs/ca-certificates.crt
 export SSL_CERT_FILE ?= /etc/ssl/certs/ca-certificates.crt
 endif
 
-.PHONY: help setup dev dev-sample dev-api dev-web test lint e2e types fixtures docs architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
+.PHONY: help setup dev dev-sample dev-api dev-web test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -50,6 +50,13 @@ fixtures:  ## Regenerate the sample data the app uses without a workspace
 
 docs:  ## Regenerate the data dictionary
 	$(PY) -c "import sys; sys.path.insert(0, 'databricks'); from stormsense_core.tables import data_dictionary; print(data_dictionary())" > docs/data-dictionary.md
+
+docs-site:  ## Build the documentation website into site-build/ (fails on broken links)
+	python3 infra/build_api_reference.py
+	uv run --system-certs --no-project --with-requirements docs-requirements.txt mkdocs build --strict --site-dir site-build
+
+docs-serve:  ## Preview the documentation website at http://127.0.0.1:8001
+	uv run --system-certs --no-project --with-requirements docs-requirements.txt mkdocs serve --dev-addr 127.0.0.1:8001
 
 deck:  ## Rebuild the hackathon deck (StormSense-Databricks-Hackathon.pptx) from the UST template
 	$(PY) deck/make_assets.py
