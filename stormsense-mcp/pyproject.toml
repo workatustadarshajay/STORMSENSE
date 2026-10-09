@@ -1,0 +1,15 @@
+[project]
+name = "stormsense-mcp"
+version = "1.0.0"
+description = "StormSense MCP server: exposes the StormSense storm-stock API as MCP tools for assistants and existing apps."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27.0",
+    "databricks-sdk==0.149.0",
+    "mcp>=1.10,<2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+]

@@ -145,3 +145,18 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - The Databricks App deployment (blocked by the company filter, as before).
 - Lakehouse Monitoring for the feedback loop: the learning effect is shown only through the route notes, not a monitoring dashboard.
 - The what-if dashboard tile.
+
+---
+
+## 8. MCP server and demo client (new folder `stormsense-mcp/`)
+
+- **What:** the StormSense API exposed as ten MCP tools over Streamable HTTP (port 8200). Any MCP-capable assistant or app can read the plan, ask questions, run a what-if, and approve or reject transfers. The tools call the API, so its roles, rate limits and audit trail still apply.
+- **Files:** `server.py` (tools), `demo_client.py` (dependency-free client: handshake, tool discovery, reads, optional agent and approve steps), `test_server.py` (six checks against a stand-in API), `README.md`, `pyproject.toml`.
+- **Verified:** 6 of 6 tests pass. The demo ran end to end against a sample-mode API: discovery lists 10 tools, reads return data, approve changed one transfer, and the what-if and storm desk report that they need the live workspace in sample mode.
+- **Live-data check (read path only):** the what-if returned live figures through the MCP server (Florida, strength 80: about 516 extra units, about $15.6k lost without moved stock).
+- **Incident (undone, no data changed):** while testing, the demo's approve step reached the running live-mode API on port 8000 instead of a sample API, because port 8000 was already taken. The API refused it (403: that account is not a planner), and the transfer TR-05F77B4BDC is still pending. Afterwards I tested only against a sample-mode API on port 8001.
+- **Not done:** the MCP server has not been deployed. It needs the same sign-in proxy as the app (see its README); the CareLoop folder `mcp/` was left unchanged.
+
+- **MCP client agent (`stormsense-mcp/mcp_agent.py`):** a client that calls the MCP tools itself. A workspace chat model picks the tools; each check prints as it runs. Read-only unless `ALLOW_WRITES=1`. Verified on a sample API: it discovered the tools, ran three checks, and gave a plain answer citing transfer ids that came from the tools.
+- **Model access without a separate key:** Gemini runs as a workspace serving endpoint (`databricks-gemini-3-5-flash`), so the CLI sign-in is enough. The CareLoop `mcp/.env` key is a Google AI Studio key; it is not used here.
+- **Environment note:** the MCP folder must run on Python 3.12. On 3.13 the Databricks SDK call hung in this environment; the folder is pinned to SDK 0.149.0, the version the backend runs.
