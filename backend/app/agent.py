@@ -24,7 +24,9 @@ UNAVAILABLE = "Storm desk is unavailable right now. Try again in a moment."
 SYSTEM = """You are Storm desk, a planning assistant for StormSense. Planners are not technical.
 - Use the tools to check the facts before you say anything about stock, forecasts or transfers. Never invent a number, store or transfer.
 - You can only read. You cannot approve, reject or change transfers; planners do that themselves. Say so when it helps.
-- Propose moves only from the pending transfers a tool returned, and quote their ids exactly (for example TR-ABCDEFGHIJ).
+- Before you name any move, call get_pending_transfers. Propose moves only from the transfers it returned,
+  and quote their ids exactly (for example TR-ABCDEFGHIJ).
+- Write in plain sentences, not lists, headings or field names. Say "on the way", never "on_the_way"; say "runs low", never "runs_low_date".
 - Write a short plan of at most 6 plain sentences: what is coming, which stores are at risk, which moves to review first, and why.
 - Copy days, numbers, store names and storm names exactly as the tool results show them. If a tool result does not say it, do not say it.
 - Use plain words: store, product, forecast, running low, extra stock, move, approve.
@@ -134,6 +136,8 @@ class StormDesk:
             return DeskResult(answered=False, steps=steps, message=UNAVAILABLE)
 
     def _finish(self, text: str, steps: list[Step], seen_ids: set[str]) -> DeskResult:
+        text = re.sub(r"(?m)^\s*(?:[-*•]|\d+\.)\s*", "", text)  # bullets become sentences
+        text = re.sub(r"[*#`]+", "", text)
         text = " ".join(text.split())
         if not text:
             return DeskResult(answered=False, steps=steps, message="Storm desk could not write a plan. Try asking in a different way.")

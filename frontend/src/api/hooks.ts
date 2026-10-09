@@ -36,3 +36,4 @@ export function useDecide() {
 }
 
 export const useAsk = () => useMutation({ mutationFn: api.ask });
+export const useStormDesk = () => useMutation({ mutationFn: api.stormDesk });

@@ -177,6 +177,25 @@
         "title": "DecisionResult",
         "type": "object"
       },
+      "DeskStep": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "what": {
+            "description": "Plain-language description of what storm desk checked",
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "what",
+          "result"
+        ],
+        "title": "DeskStep",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -627,6 +646,69 @@
           "running_low"
         ],
         "title": "StoreSummary",
+        "type": "object"
+      },
+      "StormDeskPlan": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "boolean"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "plan": {
+            "description": "The plan, one sentence per item",
+            "items": {
+              "type": "string"
+            },
+            "title": "Plan",
+            "type": "array"
+          },
+          "steps": {
+            "description": "What storm desk checked, in order",
+            "items": {
+              "$ref": "#/components/schemas/DeskStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "transfers": {
+            "description": "Pending transfers the plan refers to",
+            "items": {
+              "$ref": "#/components/schemas/Transfer"
+            },
+            "title": "Transfers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answered"
+        ],
+        "title": "StormDeskPlan",
+        "type": "object"
+      },
+      "StormDeskRequest": {
+        "properties": {
+          "goal": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Goal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal"
+        ],
+        "title": "StormDeskRequest",
         "type": "object"
       },
       "Transfer": {
@@ -1180,6 +1262,48 @@
         "summary": "Store Forecast",
         "tags": [
           "stores"
+        ]
+      }
+    },
+    "/api/storm-desk": {
+      "post": {
+        "description": "Plans from the live data. Read-only: it can suggest moves but never approves or changes anything.",
+        "operationId": "storm_desk_api_storm_desk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StormDeskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StormDeskPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Storm Desk",
+        "tags": [
+          "storm desk"
         ]
       }
     },

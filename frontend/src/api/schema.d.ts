@@ -143,6 +143,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/storm-desk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Storm Desk
+         * @description Plans from the live data. Read-only: it can suggest moves but never approves or changes anything.
+         */
+        post: operations["storm_desk_api_storm_desk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/transfers": {
         parameters: {
             query?: never;
@@ -267,6 +287,16 @@ export interface components {
             message: string;
             /** Skipped */
             skipped: string[];
+        };
+        /** DeskStep */
+        DeskStep: {
+            /** Result */
+            result: string;
+            /**
+             * What
+             * @description Plain-language description of what storm desk checked
+             */
+            what: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -421,6 +451,33 @@ export interface components {
             region: string;
             /** Running Low */
             running_low: number;
+        };
+        /** StormDeskPlan */
+        StormDeskPlan: {
+            /** Answered */
+            answered: boolean;
+            /** Message */
+            message?: string | null;
+            /**
+             * Plan
+             * @description The plan, one sentence per item
+             */
+            plan?: string[];
+            /**
+             * Steps
+             * @description What storm desk checked, in order
+             */
+            steps?: components["schemas"]["DeskStep"][];
+            /**
+             * Transfers
+             * @description Pending transfers the plan refers to
+             */
+            transfers?: components["schemas"]["Transfer"][];
+        };
+        /** StormDeskRequest */
+        StormDeskRequest: {
+            /** Goal */
+            goal: string;
         };
         /** Transfer */
         Transfer: {
@@ -721,6 +778,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoreForecast"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    storm_desk_api_storm_desk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StormDeskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StormDeskPlan"];
                 };
             };
             /** @description Validation Error */

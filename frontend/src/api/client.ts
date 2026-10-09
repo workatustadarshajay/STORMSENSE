@@ -11,6 +11,7 @@ export type ProductForecast = S["ProductForecast"];
 export type InventoryItem = S["InventoryItem"];
 export type AskResponse = S["AskResponse"];
 export type WeatherAlert = S["WeatherAlert"];
+export type StormDeskPlan = S["StormDeskPlan"];
 
 /** A problem the server explained in plain words. */
 export class ApiError extends Error {
@@ -58,4 +59,5 @@ export const api = {
   forecast: (storeId: string) => request<StoreForecast>(`/api/stores/${storeId}/forecast`),
   history: () => request<Transfer[]>("/api/history"),
   ask: (question: string) => post<AskResponse>("/api/ask", { question }),
+  stormDesk: (goal: string) => post<StormDeskPlan>("/api/storm-desk", { goal }),
 };

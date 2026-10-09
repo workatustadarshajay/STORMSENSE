@@ -4,6 +4,7 @@ import { makeQueryClient } from "./api/hooks";
 import { Shell } from "./components/Shell";
 import Ask from "./pages/Ask";
 import History from "./pages/History";
+import StormDesk from "./pages/StormDesk";
 import Stores from "./pages/Stores";
 import Today from "./pages/Today";
 import Transfers from "./pages/Transfers";
@@ -28,6 +29,7 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="transfers" element={<Transfers />} />
           <Route path="stores" element={<Stores />} />
           <Route path="ask" element={<Ask />} />
+          <Route path="storm-desk" element={<StormDesk />} />
           <Route path="history" element={<History />} />
           <Route path="*" element={<NotFound />} />
         </Route>

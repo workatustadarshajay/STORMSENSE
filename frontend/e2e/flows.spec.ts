@@ -7,6 +7,7 @@ const PAGES = [
   ["Store forecast", "/stores"],
   ["Ask", "/ask"],
   ["History", "/history"],
+  ["Storm desk", "/storm-desk"],
 ] as const;
 const BANNED = /\b(sql|delta|databricks|genie|mlflow|warehouse|sku|mape|wape|model|api)\b/i;
 

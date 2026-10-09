@@ -130,6 +130,9 @@ export default function Transfers() {
     <>
       <h1 className="text-4xl font-extrabold">Transfers</h1>
       <p className="mt-1 text-muted">Moves that keep shelves full before the weather hits.</p>
+      <Link to="/storm-desk" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint">
+        Get a plan from storm desk
+      </Link>
 
       {me.data && !canDecide && (
         <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-rain-tint p-4 font-semibold text-rain">

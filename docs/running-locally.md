@@ -30,6 +30,8 @@ DATABRICKS_GENIE_SPACE_ID=<your Ask space id>        # printed by databricks/scr
 STORMSENSE_CATALOG=workspace
 STORMSENSE_SCHEMA=stormsense
 STORMSENSE_DEV_USER_EMAIL=<your workspace email>     # who you are when running locally
+# Optional: the chat model behind Storm desk. Default databricks-gpt-5-mini; databricks-gpt-5-4-mini also works.
+# STORMSENSE_AGENT_MODEL=databricks-gpt-5-mini
 ```
 
 Then:
@@ -80,6 +82,12 @@ The deployed app is the API serving the built web app, with no second server:
 make build-app                                  # builds the web app into backend/static
 cd backend && ../.venv/bin/python -m app.main   # http://localhost:8000
 ```
+
+## Storm desk (AI agent)
+
+Open **Transfers > Get a plan from storm desk**, or go to http://localhost:5173/storm-desk. Type a goal such as "Prepare Florida for Sunday's storm". Storm desk checks the overview, stock risks, pending transfers and store forecasts, then writes a short plan that names only real pending transfers. It cannot approve, reject or change anything. Every check it made is listed under "What storm desk checked". It needs the live workspace; with sample data it says so.
+
+Each plan calls a chat model in the workspace, so it uses a small amount of Databricks usage per question. Its checks are read-only queries, and the agent code is `backend/app/agent.py`.
 
 ## Tests
 
