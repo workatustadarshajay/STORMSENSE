@@ -19,8 +19,26 @@ def problem(status: int, code: str, message: str, **headers: str) -> HTTPExcepti
     return HTTPException(status, detail={"code": code, "message": message}, headers=headers or None)
 
 
+SOURCES = ("sample", "live")
+
+
+def requested_source(request: Request) -> str:
+    """The data the browser asked for (X-Data-Source), or the copy's default."""
+    return request.headers.get("x-data-source") or request.app.state.default_source
+
+
 def get_service(request: Request) -> Service:
-    return request.app.state.service
+    want = requested_source(request)
+    if want not in SOURCES:
+        raise problem(400, "bad_source", "Choose sample data or the live workspace.")
+    svc = request.app.state.services.get(want)
+    if svc is None:
+        raise problem(409, "not_connected", "The live workspace isn't connected on this copy. Sample data is still available.")
+    return svc
+
+
+def is_live(request: Request) -> bool:
+    return requested_source(request) == "live" and "live" in request.app.state.services
 
 
 def current_user(request: Request, service: Service = Depends(get_service)) -> Me:

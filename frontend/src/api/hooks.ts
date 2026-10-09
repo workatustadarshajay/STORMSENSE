@@ -15,6 +15,7 @@ export const retryDelay = (attempt: number) => Math.min(1500 * 1.4 ** attempt, 8
 export const makeQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: retryPolicy, retryDelay, staleTime: 15_000, refetchOnWindowFocus: false } } });
 
+export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });
 export const useOverview = (weather: WeatherMode = "live") =>
   useQuery({ queryKey: ["overview", weather], queryFn: () => api.overview(weather) });

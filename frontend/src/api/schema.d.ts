@@ -100,6 +100,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ingest/feeds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feeds */
+        get: operations["feeds_api_ingest_feeds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/feeds/{feed}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Clear */
+        delete: operations["clear_api_ingest_feeds__feed__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/feeds/{feed}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview */
+        get: operations["preview_api_ingest_feeds__feed__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/feeds/{feed}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rows In
+         * @description Send rows from another system as JSON. Same checks as a file upload.
+         */
+        post: operations["rows_in_api_ingest_feeds__feed__rows_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/feeds/{feed}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload */
+        post: operations["upload_api_ingest_feeds__feed__upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory": {
         parameters: {
             query?: never;
@@ -400,6 +488,19 @@ export interface components {
             /** Stores */
             stores: number;
         };
+        /** ColumnInfo */
+        ColumnInfo: {
+            /** Choices */
+            choices: string[];
+            /** Help */
+            help: string;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Required */
+            required: boolean;
+        };
         /** DayUnits */
         DayUnits: {
             /**
@@ -451,6 +552,25 @@ export interface components {
              * What
              * @description Plain-language description of what storm desk checked
              */
+            what: string;
+        };
+        /** FeedInfo */
+        FeedInfo: {
+            /** Columns */
+            columns: components["schemas"]["ColumnInfo"][];
+            /** Feed */
+            feed: string;
+            /** Kept */
+            kept: number;
+            /** Refused */
+            refused: number;
+            /** Template */
+            template: string;
+            /** Title */
+            title: string;
+            /** Updated */
+            updated: string | null;
+            /** What */
             what: string;
         };
         /** HTTPValidationError */
@@ -645,6 +765,13 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** Refusal */
+        Refusal: {
+            /** Line */
+            line: number;
+            /** Reason */
+            reason: string;
+        };
         /** RejectRequest */
         RejectRequest: {
             /** Ids */
@@ -656,6 +783,17 @@ export interface components {
              * @description Structured reason; the daily run learns from it
              */
             reason_code?: ("TRUCK_UNAVAILABLE" | "STORE_CLOSED" | "ALREADY_COVERED" | "ROUTE_TOO_SLOW" | "OTHER") | null;
+        };
+        /** RowsBody */
+        RowsBody: {
+            /** Mapping */
+            mapping?: {
+                [key: string]: string;
+            } | null;
+            /** Rows */
+            rows: {
+                [key: string]: unknown;
+            }[];
         };
         /** StoreForecast */
         StoreForecast: {
@@ -785,6 +923,41 @@ export interface components {
              * @enum {string}
              */
             urgency: "URGENT" | "NORMAL";
+        };
+        /** UploadBody */
+        UploadBody: {
+            /**
+             * Csv
+             * @description The whole file as text, with the column names on the first line
+             */
+            csv: string;
+            /**
+             * Mapping
+             * @description Your column name for each StormSense column, if the names differ
+             */
+            mapping?: {
+                [key: string]: string;
+            } | null;
+        };
+        /** UploadResult */
+        UploadResult: {
+            /** Feed */
+            feed: string;
+            /** Ignored Columns */
+            ignored_columns: string[];
+            /** Kept */
+            kept: number;
+            /** Message */
+            message: string;
+            /** Missing Columns */
+            missing_columns: string[];
+            /**
+             * Refusals
+             * @description The first 20 refused rows, with the line number and the reason
+             */
+            refusals: components["schemas"]["Refusal"][];
+            /** Refused */
+            refused: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -1043,6 +1216,164 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Transfer"][];
+                };
+            };
+        };
+    };
+    feeds_api_ingest_feeds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedInfo"][];
+                };
+            };
+        };
+    };
+    clear_api_ingest_feeds__feed__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_ingest_feeds__feed__preview_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                feed: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rows_in_api_ingest_feeds__feed__rows_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RowsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_ingest_feeds__feed__upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

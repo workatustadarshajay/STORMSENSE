@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
@@ -121,5 +121,27 @@ describe("Demo storm email", () => {
     await user.click(await screen.findByRole("button", { name: "Email this storm alert" }));
     expect(await screen.findByText(/Started. Databricks sends the email/)).toBeInTheDocument();
     expect(server.calls.some((c) => c.method === "POST" && c.path === "/api/demo/alert")).toBe(true);
+  });
+});
+
+describe("Data shown: sample or live", () => {
+  it("disables live where the copy is not connected to the workspace", async () => {
+    serve({ "GET /api/health": () => ({ status: "ok", mode: "mock", warehouse: "not_checked" }), "GET /api/me": () => fx.planner });
+    open("/");
+    const live = await screen.findByRole("button", { name: "Live workspace" });
+    await waitFor(() => expect(live).toBeDisabled());
+    expect(screen.getByRole("button", { name: "Sample data" })).toHaveAttribute("aria-pressed", "true");
+  });
+  it("switches to live and remembers the choice when the workspace is connected", async () => {
+    const user = userEvent.setup();
+    localStorage.clear();
+    serve({ "GET /api/health": () => ({ status: "ok", mode: "databricks", warehouse: "not_checked" }), "GET /api/me": () => fx.planner });
+    open("/");
+    const live = await screen.findByRole("button", { name: "Live workspace" });
+    await waitFor(() => expect(live).toBeEnabled());
+    await user.click(live);
+    expect(localStorage.getItem("stormsense.source")).toBe("live");
+    expect(live).toHaveAttribute("aria-pressed", "true");
+    localStorage.clear();
   });
 });

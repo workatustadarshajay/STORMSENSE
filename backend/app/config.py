@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     forecast_endpoint: str = Field("stormsense-forecaster", validation_alias="STORMSENSE_FORECAST_ENDPOINT")
     # Demo storm email: the Email button starts this Databricks job, and Databricks emails the job's alert address.
     demo_job_name: str = Field("StormSense - Demo storm alert", validation_alias="STORMSENSE_DEMO_JOB")
+    # Your own data: uploads are off unless this is on. The hackathon copy has no sign-in, so keep it off where others can reach it.
+    ingest_enabled: bool = Field(False, validation_alias="STORMSENSE_INGEST_ENABLED")
+    ingest_client_dir: Path = Field(
+        Path(__file__).resolve().parent.parent.parent / "ingestion-client" / "dist", validation_alias="STORMSENSE_INGEST_CLIENT_DIR"
+    )
+    ingest_dir: Path = Field(Path(__file__).resolve().parent.parent / "data" / "ingest", validation_alias="STORMSENSE_INGEST_DIR")
     cache_seconds: int = 30
     query_budget_seconds: int = 45
     ask_timeout_seconds: int = 60

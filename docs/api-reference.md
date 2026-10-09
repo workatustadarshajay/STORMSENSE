@@ -84,6 +84,107 @@ History
 
 Returns list of Transfer.
 
+### `GET /api/ingest/feeds`
+
+Feeds
+
+**Response**
+
+Returns list of FeedInfo.
+
+### `DELETE /api/ingest/feeds/{feed}`
+
+Clear
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `feed` | path | string | yes |  |
+
+**Response**
+
+Returns object.
+
+### `GET /api/ingest/feeds/{feed}/preview`
+
+Preview
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `feed` | path | string | yes |  |
+| `limit` | query | integer | no | default `20` |
+
+**Response**
+
+Returns list of object.
+
+### `POST /api/ingest/feeds/{feed}/rows`
+
+Rows In
+
+Send rows from another system as JSON. Same checks as a file upload.
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `feed` | path | string | yes |  |
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `mapping` | object (optional) | no |  |
+| `rows` | list of object | yes | at most 5000 items |
+
+**Response**
+
+Returns UploadResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `feed` | string |  |
+| `ignored_columns` | list of string |  |
+| `kept` | integer |  |
+| `message` | string |  |
+| `missing_columns` | list of string |  |
+| `refusals` | list of Refusal | The first 20 refused rows, with the line number and the reason |
+| `refused` | integer |  |
+
+### `POST /api/ingest/feeds/{feed}/upload`
+
+Upload
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `feed` | path | string | yes |  |
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `csv` | string | yes | The whole file as text, with the column names on the first line; max length 2000000 |
+| `mapping` | object (optional) | no | Your column name for each StormSense column, if the names differ |
+
+**Response**
+
+Returns UploadResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `feed` | string |  |
+| `ignored_columns` | list of string |  |
+| `kept` | integer |  |
+| `message` | string |  |
+| `missing_columns` | list of string |  |
+| `refusals` | list of Refusal | The first 20 refused rows, with the line number and the reason |
+| `refused` | integer |  |
+
 ### `GET /api/inventory`
 
 Inventory

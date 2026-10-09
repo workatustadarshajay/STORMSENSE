@@ -16,3 +16,6 @@ frontend/playwright-report
 docs/architecture/*.finalize*.json
 docs/architecture/*.browser-check.json
 site-build/
+backend/data/
+ingestion-client/dist/
+ingestion-client/node_modules/

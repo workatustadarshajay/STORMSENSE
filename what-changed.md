@@ -306,3 +306,33 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Accuracy:** the tool list and endpoints match the code. Writes need `X-Requested-With: stormsense`; identity comes from `X-Forwarded-Email`, which only the sign-in proxy sets in deployment.
 - **Status stated on the page:** the MCP server and API run locally, and the hosted deployment is still blocked.
 - **Also updated:** the home page's "Building on it" row links to the new page. The docs site builds in strict mode.
+
+---
+
+## 21. Your own data: upload and check (phase 1)
+
+- **What:** a **Your data** page and a set of routes that let a user replace the sample data with their own four files: stores, products, daily sales and daily stock. Each can be uploaded as a CSV (with a template to download), or sent as JSON from another system. Columns can be matched to ours on the page. Every row is checked; refused rows come back with the line and the reason. A column whose name looks like personal or card data refuses the whole file.
+- **Scope for the hackathon:** one customer per copy, and no sign-in. Off unless `STORMSENSE_INGEST_ENABLED=1`. Changes need the same-origin header. The page warns that it has no sign-in, and the docs say to keep it off wherever others can reach.
+- **Where it lives:** `backend/app/ingest.py` (feeds, checks, local storage), `backend/app/ingest_api.py` (routes), and the **ingestion client** in `ingestion-client/`, a separate small front end served by the backend at `/ingest/`. The upload page was moved out of the planner app. Uploaded files are kept under `backend/data/ingest/`, which is git-ignored. Uploads can be up to 3 MB and 5,000 rows.
+- **Verified:** the rules and routes are tested (backend 111 pass; web 46 pass; lint passes). On a running server, a sample store file was partly kept and partly refused, with the line number and reason.
+- **Not done (phase 2):** the planning screens, the forecast and the stock plan still read the sample data. Connecting uploads to them means running the planning pipeline on the uploaded files, then switching the app's data label from "Sample" to "Your data".
+- **Ingestion client (moved out of the planner app):** `ingestion-client/` is a separate front end with three parts: how to connect (upload, JSON from another system, or the MCP server), an upload card for each of the four files, and the row checks. It uses the existing backend and matches column names ignoring case, spaces and underscores. Checks: backend 111 pass; ingestion client unit tests pass; the built client is served at `/ingest/` and the planner app still loads.
+
+---
+
+## 22. `make dev` runs all three apps
+
+- **What:** `make dev` starts the planner app (API on 8000, web on 5173), the ingestion client (5174) and the MCP server (8200). `make dev-sample` does the same on sample data. Single targets `dev-ingest` and `dev-mcp` were added. `make setup` installs the ingestion client and the MCP server too.
+- **Uploads:** the development API switches on the ingestion routes, so the ingestion client works without extra steps. This is for local development only.
+- **Checked:** the ingestion client (5174) and the MCP server (8200) both start and respond. The full `make dev` was not run here, because ports 8000 and 5173 were already in use by the running servers.
+
+---
+
+## 23. Sample or live data switch; MCP out of `make dev`
+
+- **Switch:** the **Data shown** control in the sidebar changes every screen between the sample data and the live workspace. The browser sends its choice with each request (`X-Data-Source`), and the server uses the matching data. The choice is remembered in the browser. Live is disabled where the workspace isn't connected. Storm desk and the what-if use the live workspace only.
+- **Checked against the running server:** the sample and live answers differ (urgent moves: 7 on sample, 1 live). An unknown source is refused, and live on a copy without it gives a plain message.
+- **Note:** the live workspace's tables still hold the generated sample data, so its label reads "sample". The switch's description says it is the connected workspace.
+- **`make dev`:** now runs the planner API (8000), the planner web app (5173) and the ingestion client (5174). The MCP server is separate: `make dev-mcp`.
+- **Checks:** backend 115 pass; web unit 46 pass; browser 27 pass with 1 skipped; lint passes; the docs build.
+- **Not done:** uploaded files do not yet feed the planning screens. That is the next step for uploads.

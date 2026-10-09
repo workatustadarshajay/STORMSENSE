@@ -4,9 +4,16 @@ The web app and the API run side by side. The API reads and writes the Databrick
 
 | Piece | Command | Address |
 |---|---|---|
-| API (FastAPI) | `make dev-api` | http://localhost:8000 |
-| Web app (React) | `make dev-web` | http://localhost:5173 (sends `/api` to the API) |
-| Both | `make dev` | open http://localhost:5173 |
+| Planner app: API (FastAPI) | `make dev-api` | http://localhost:8000 |
+| Planner app: web (React) | `make dev-web` | http://localhost:5173 (sends `/api` to the API) |
+| Ingestion client | `make dev-ingest` | http://localhost:5174 |
+| All three apps | `make dev` (or `make dev-sample` on sample data) | open http://localhost:5173 and http://localhost:5174 |
+
+The MCP server is separate: `make dev-mcp` starts it on http://localhost:8200/mcp when you want an AI assistant to connect.
+
+**Sample or live data.** The **Data shown** switch in the sidebar changes every screen between the generated sample data and the live workspace. It is available only where the live workspace is connected (`backend/.env` set up). Your choice is remembered in the browser.
+
+`make setup` installs everything, including the ingestion client and the MCP server. Uploads are switched on for the local API in `make dev`, so the ingestion client works straight away.
 
 ## Once: set up
 
@@ -129,3 +136,17 @@ To change the data the daily job uses, set the bundle variable `weather_provider
 On Today, with **Demo storm** selected, **Email this storm alert** starts the Databricks job `StormSense - Demo storm alert`. Databricks then emails the alert address (given at deploy time with `--var alert_email=...`). No mail server or password is needed. The job has no schedule and runs only on click.
 
 Until the bundle is deployed, the button says the job isn't in the workspace yet. The button needs the live workspace; sample data cannot start jobs.
+
+## Your own data: the ingestion client
+
+The **ingestion client** is a separate small front end for connecting your data. It uses the same backend, so it needs the server setting `STORMSENSE_INGEST_ENABLED=1` and a restart. Keep that setting off anywhere other people can reach, because uploads have no sign-in.
+
+```bash
+cd ingestion-client && npm install
+npm run dev          # http://localhost:5174, forwards to the backend on port 8000
+npm run build        # then the backend serves it at http://localhost:8000/ingest/
+```
+
+Upload four CSV files, in this order: stores, products, daily sales, daily stock. Each file is checked row by row, and refused rows show the line and the reason. Other systems can send the same rows as JSON. Uploaded files are kept under `backend/data/ingest/`, which is not committed.
+
+The planning screens still show the sample data. Connecting uploaded files to them is the next step.

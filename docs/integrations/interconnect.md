@@ -5,6 +5,7 @@ StormSense can be used in three ways. Pick the one that matches what your app al
 | You want to... | Use | You build | You get |
 |---|---|---|---|
 | Let an AI assistant (Claude, ChatGPT, Gemini, or an agent framework) read the plan and ask questions | **MCP server** | Nothing. Point the assistant at the server | Ten tools: read the overview, transfers, stores, forecasts, what-if and the storm desk plan, plus approve and reject |
+| Load your own data into StormSense | **REST API**, or the **ingestion client** | Nothing for the upload route; or a file upload in the ingestion client | Checked rows, refused rows with reasons |
 | Show StormSense data inside your own app (a dashboard, a store system, a mobile app) | **REST API** | The screens, using the API's documented endpoints | Everything the planner app uses, with the same rules |
 | Give your team the full planning screens | **The StormSense web app** | Nothing. Open it in a browser | The complete planner experience |
 

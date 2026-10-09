@@ -36,12 +36,14 @@ class BodyLimit(BaseHTTPMiddleware):
     ponytail: trusts Content-Length; a chunked upload is still bounded by the field length limits in the request models.
     """
 
-    def __init__(self, app, max_bytes: int) -> None:  # noqa: ANN001
+    def __init__(self, app, max_bytes: int, upload_prefix: str = "/api/ingest/", upload_bytes: int = 3_000_000) -> None:  # noqa: ANN001
         super().__init__(app)
-        self.max_bytes = max_bytes
+        self.max_bytes, self.upload_prefix, self.upload_bytes = max_bytes, upload_prefix, upload_bytes
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if int(request.headers.get("content-length") or 0) > self.max_bytes:
+        # Your-own-data uploads carry whole CSV files; every other endpoint takes a small JSON body.
+        cap = self.upload_bytes if request.url.path.startswith(self.upload_prefix) else self.max_bytes
+        if int(request.headers.get("content-length") or 0) > cap:
             return JSONResponse({"detail": {"code": "too_large", "message": "That request is too large."}}, status_code=413)
         return await call_next(request)
 

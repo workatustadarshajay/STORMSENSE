@@ -8,7 +8,7 @@ export REQUESTS_CA_BUNDLE ?= /etc/ssl/certs/ca-certificates.crt
 export SSL_CERT_FILE ?= /etc/ssl/certs/ca-certificates.crt
 endif
 
-.PHONY: help setup dev dev-sample dev-api dev-web test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
+.PHONY: help setup dev dev-sample dev-api dev-web dev-ingest dev-mcp test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -17,18 +17,26 @@ setup:  ## Install everything needed to build and test locally
 	uv venv --python 3.12 .venv
 	uv pip install --python $(PY) -r backend/requirements-dev.txt -r databricks/requirements-dev.txt
 	cd frontend && npm ci
+	cd ingestion-client && npm ci
+	cd stormsense-mcp && uv sync --python 3.12 --group dev
 
-dev:  ## Run the app: API on :8000, web app on :5173. Real data if backend/.env exists, otherwise sample data
-	$(MAKE) -j2 dev-api dev-web
+dev:  ## Run the three apps: planner API :8000, planner web :5173, ingestion client :5174. Live workspace if backend/.env exists
+	$(MAKE) -j3 dev-api dev-web dev-ingest
 
-dev-sample:  ## Same, but always on sample data (no workspace needed)
-	STORMSENSE_MODE=mock STORMSENSE_DEV_USER_EMAIL=ava.planner@stormsense.test $(MAKE) -j2 dev-api dev-web
+dev-sample:  ## Same three apps, sample data only (no workspace needed)
+	STORMSENSE_MODE=mock STORMSENSE_DEV_USER_EMAIL=ava.planner@stormsense.test $(MAKE) -j3 dev-api dev-web dev-ingest
 
-dev-api:
-	cd backend && ../$(PY) -m uvicorn app.main:create_default_app --factory --reload --port 8000
+dev-api:  # uploads are switched on for local development only
+	cd backend && STORMSENSE_INGEST_ENABLED=1 ../$(PY) -m uvicorn app.main:create_default_app --factory --reload --port 8000
 
 dev-web:
 	cd frontend && npm run dev
+
+dev-ingest:
+	cd ingestion-client && npm run dev
+
+dev-mcp:
+	cd stormsense-mcp && STORMSENSE_API_URL=http://localhost:8000/api uv run --system-certs uvicorn server:app --port 8200
 
 test:  ## Library, API and web tests
 	$(PY) -m pytest databricks/tests backend -q

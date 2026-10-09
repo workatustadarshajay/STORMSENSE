@@ -20,6 +20,7 @@ export type WeatherMode = "live" | "demo";
 const weatherQuery = (mode: WeatherMode) => (mode === "demo" ? "?weather=demo" : "");
 export type BacktestStorm = S["BacktestStorm"];
 export type MarkdownSuggestion = S["MarkdownSuggestion"];
+export type Health = S["Health"];
 export type DemoAlertResult = S["DemoAlertResult"];
 
 /** A problem the server explained in plain words. */
@@ -29,12 +30,21 @@ export class ApiError extends Error {
   }
 }
 
+/** Which data the planner chose: "sample" or "live". Missing means the copy's default. */
+export const SOURCE_KEY = "stormsense.source";
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const source = typeof localStorage === "undefined" ? null : localStorage.getItem(SOURCE_KEY);
   let res: Response;
   try {
     res = await fetch(path, {
       ...init,
-      headers: { "Content-Type": "application/json", "X-Requested-With": "stormsense", ...init?.headers },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "stormsense",
+        ...(source ? { "X-Data-Source": source } : {}),
+        ...init?.headers,
+      },
     });
   } catch {
     throw new ApiError(0, "offline", "You seem to be offline. Check your connection and try again.");
@@ -59,6 +69,7 @@ const query = (params: Record<string, string | undefined>) => {
 
 export const api = {
   me: () => request<Me>("/api/me"),
+  health: () => request<Health>("/api/health"),
   overview: (weather: WeatherMode = "live") => request<Overview>(`/api/overview${weatherQuery(weather)}`),
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),

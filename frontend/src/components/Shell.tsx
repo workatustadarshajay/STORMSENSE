@@ -1,4 +1,5 @@
 import { CloudLightning, CloudSun, History, MessageCircle, Store, Truck, type LucideIcon } from "lucide-react";
+import { DataSourceSwitch } from "./DataSourceSwitch";
 import { useEffect, useRef } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useMe } from "../api/hooks";
@@ -70,6 +71,7 @@ export function Shell() {
           ))}
         </nav>
         <div className="mt-auto grid gap-3 text-sm">
+          <DataSourceSwitch />
           {label}
           {me.data && (
             <p className="text-[#a9b8c2]">

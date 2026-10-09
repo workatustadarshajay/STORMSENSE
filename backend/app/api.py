@@ -11,7 +11,7 @@ from fastapi.responses import Response
 
 from .agent import StormDesk
 from .alerts import JobMissing, start_demo_email
-from .auth import current_user, get_service, planner, problem, same_origin
+from .auth import current_user, get_service, is_live, planner, problem, same_origin
 from .dbx import WarmingUp
 from .schemas import (
     ApproveRequest,
@@ -188,15 +188,14 @@ def ask(body: AskRequest, request: Request, user: User, svc: Svc) -> AskResponse
 
 
 @router.post("/storm-desk", response_model=StormDeskPlan, tags=["storm desk"], dependencies=[Depends(same_origin)])
-def storm_desk(body: StormDeskRequest, request: Request, user: User) -> StormDeskPlan:
+def storm_desk(body: StormDeskRequest, request: Request, user: User, svc: Svc) -> StormDeskPlan:
     """Plans from the live data. Read-only: it can suggest moves but never approves or changes anything."""
     if not request.app.state.desk_limiter.allow(user.email):
         raise problem(429, "slow_down", "Storm desk has been asked a lot. Wait a minute, then try again.", **{"Retry-After": "60"})
     desk: StormDesk | None = request.app.state.storm_desk
-    if desk is None:
+    if desk is None or not is_live(request):
         return StormDeskPlan(answered=False, message="Storm desk needs the live workspace. It isn't available with sample data.")
     result = desk.run(body.goal.strip())
-    svc: Service = request.app.state.service
     transfers = [t for t in (svc.transfer(i) for i in result.transfer_ids) if t and t.status == "PENDING"]
     return StormDeskPlan(
         answered=result.answered, plan=result.plan, message=result.message, transfers=transfers,
@@ -213,7 +212,7 @@ def what_if(body: WhatIfRequest, request: Request, user: User, svc: Svc) -> What
     if not request.app.state.what_if_limiter.allow(user.email):
         raise problem(429, "slow_down", "That's a lot of simulations. Wait a minute, then try again.", **{"Retry-After": "60"})
     scorer = request.app.state.forecast_scorer
-    if scorer is None:
+    if scorer is None or not is_live(request):
         return WhatIfResult(answered=False, message="The storm simulator needs the live workspace. It isn't available with sample data.")
     source = svc.source
     rows = source.forecast_inputs(body.region)

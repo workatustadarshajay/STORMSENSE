@@ -175,6 +175,42 @@
         "title": "BacktestStorm",
         "type": "object"
       },
+      "ColumnInfo": {
+        "properties": {
+          "choices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "help": {
+            "title": "Help",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "required",
+          "help",
+          "choices"
+        ],
+        "title": "ColumnInfo",
+        "type": "object"
+      },
       "DayUnits": {
         "properties": {
           "date": {
@@ -291,6 +327,64 @@
           "result"
         ],
         "title": "DeskStep",
+        "type": "object"
+      },
+      "FeedInfo": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnInfo"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "feed": {
+            "title": "Feed",
+            "type": "string"
+          },
+          "kept": {
+            "title": "Kept",
+            "type": "integer"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "integer"
+          },
+          "template": {
+            "title": "Template",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          },
+          "what": {
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feed",
+          "title",
+          "what",
+          "kept",
+          "refused",
+          "updated",
+          "columns",
+          "template"
+        ],
+        "title": "FeedInfo",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -781,6 +875,24 @@
         "title": "Ref",
         "type": "object"
       },
+      "Refusal": {
+        "properties": {
+          "line": {
+            "title": "Line",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line",
+          "reason"
+        ],
+        "title": "Refusal",
+        "type": "object"
+      },
       "RejectRequest": {
         "properties": {
           "ids": {
@@ -824,6 +936,38 @@
           "reason"
         ],
         "title": "RejectRequest",
+        "type": "object"
+      },
+      "RowsBody": {
+        "properties": {
+          "mapping": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mapping"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 5000,
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "title": "RowsBody",
         "type": "object"
       },
       "StoreForecast": {
@@ -1144,6 +1288,89 @@
           "created_at"
         ],
         "title": "Transfer",
+        "type": "object"
+      },
+      "UploadBody": {
+        "properties": {
+          "csv": {
+            "description": "The whole file as text, with the column names on the first line",
+            "maxLength": 2000000,
+            "title": "Csv",
+            "type": "string"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Your column name for each StormSense column, if the names differ",
+            "title": "Mapping"
+          }
+        },
+        "required": [
+          "csv"
+        ],
+        "title": "UploadBody",
+        "type": "object"
+      },
+      "UploadResult": {
+        "properties": {
+          "feed": {
+            "title": "Feed",
+            "type": "string"
+          },
+          "ignored_columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ignored Columns",
+            "type": "array"
+          },
+          "kept": {
+            "title": "Kept",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "missing_columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Columns",
+            "type": "array"
+          },
+          "refusals": {
+            "description": "The first 20 refused rows, with the line number and the reason",
+            "items": {
+              "$ref": "#/components/schemas/Refusal"
+            },
+            "title": "Refusals",
+            "type": "array"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "feed",
+          "kept",
+          "refused",
+          "refusals",
+          "missing_columns",
+          "ignored_columns",
+          "message"
+        ],
+        "title": "UploadResult",
         "type": "object"
       },
       "ValidationError": {
@@ -1614,6 +1841,239 @@
         "summary": "History",
         "tags": [
           "transfers"
+        ]
+      }
+    },
+    "/api/ingest/feeds": {
+      "get": {
+        "operationId": "feeds_api_ingest_feeds_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeedInfo"
+                  },
+                  "title": "Response Feeds Api Ingest Feeds Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Feeds",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/feeds/{feed}": {
+      "delete": {
+        "operationId": "clear_api_ingest_feeds__feed__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feed",
+            "required": true,
+            "schema": {
+              "title": "Feed",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Clear Api Ingest Feeds  Feed  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/feeds/{feed}/preview": {
+      "get": {
+        "operationId": "preview_api_ingest_feeds__feed__preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feed",
+            "required": true,
+            "schema": {
+              "title": "Feed",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Preview Api Ingest Feeds  Feed  Preview Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/feeds/{feed}/rows": {
+      "post": {
+        "description": "Send rows from another system as JSON. Same checks as a file upload.",
+        "operationId": "rows_in_api_ingest_feeds__feed__rows_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feed",
+            "required": true,
+            "schema": {
+              "title": "Feed",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RowsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rows In",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/feeds/{feed}/upload": {
+      "post": {
+        "operationId": "upload_api_ingest_feeds__feed__upload_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feed",
+            "required": true,
+            "schema": {
+              "title": "Feed",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload",
+        "tags": [
+          "your data"
         ]
       }
     },

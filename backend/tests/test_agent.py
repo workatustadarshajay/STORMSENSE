@@ -164,8 +164,10 @@ def test_api_returns_the_plan_steps_debate_and_transfers(client):
         text(f"{tid} is sound."),
         text(f"Review {tid} first."),
     )
+    client.app.state.services["live"] = client.app.state.services["sample"]  # a live source is connected for this test
     client.app.state.storm_desk = desk(chat)
-    r = client.post("/api/storm-desk", json={"goal": "What should move?"}, headers={"X-Requested-With": "stormsense"}).json()
+    headers = {"X-Requested-With": "stormsense", "X-Data-Source": "live"}
+    r = client.post("/api/storm-desk", json={"goal": "What should move?"}, headers=headers).json()
     assert r["answered"] and r["plan"] == [f"Review {tid} first."]
     assert r["steps"][0]["what"] == "Pending transfers" and r["transfers"][0]["id"] == tid
     assert [d["agent"] for d in r["debate"]] == ["Forecaster", "Risk checker", "Summary writer"]
