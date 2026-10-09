@@ -72,3 +72,38 @@ describe("Weather switch on Today", () => {
     expect(server.calls.some((c) => c.path === "/api/overview")).toBe(true);
   });
 });
+
+describe("Price markdowns on Today", () => {
+  it("shows each suggestion with its discount and the cash it adds, and says nothing is changed", async () => {
+    serve({
+      "GET /api/overview": () => fx.overview, "GET /api/stores": () => fx.stores, "GET /api/me": () => fx.planner,
+      "GET /api/markdowns": () => [{
+        store: { id: "S01", name: "Orlando" }, product: { id: "P01", name: "1000W generator", name_plural: "1000W generators" },
+        spare_units: 30, current_price: 1299, discount_pct: 10, new_price: 1169.1, units_cleared: 30, clears_all: true,
+        extra_cash_usd: 260.48, note: "Mark 1000W generators down 10% to $1169.10 to sell about 30 of 30 in 14 days, about $260 more than holding them.",
+      }],
+    });
+    open("/");
+    expect(await screen.findByText("Orlando: 1000W generators, 10% off")).toBeInTheDocument();
+    expect(screen.getByText("+$260")).toBeInTheDocument();
+    expect(screen.getByText(/Nothing is changed here/)).toBeInTheDocument();
+  });
+});
+
+describe("Markdowns in demo weather", () => {
+  it("shows the demo response assumption when demo weather is on", async () => {
+    serve({
+      "GET /api/overview?weather=demo": () => ({ ...fx.overview, weather_source: "demo" }), "GET /api/stores?weather=demo": () => fx.stores,
+      "GET /api/me": () => fx.planner,
+      "GET /api/markdowns?weather=demo": () => [{
+        store: { id: "S04", name: "Jacksonville" }, product: { id: "P01", name: "1000W generator", name_plural: "1000W generators" },
+        spare_units: 39, current_price: 1299, discount_pct: 20, new_price: 1039.2, units_cleared: 39, clears_all: true,
+        extra_cash_usd: 1500, note: "Mark 1000W generators down 20% to $1039.20.", assumption: "Demo: each 10% off lifts sales by 40%.",
+      }],
+    });
+    open("/?weather=demo");
+    expect(await screen.findByText("Jacksonville: 1000W generators, 20% off")).toBeInTheDocument();
+    expect(screen.getByText(/Demo response: each 10% off is assumed to lift sales by 40%/)).toBeInTheDocument();
+  });
+});
+

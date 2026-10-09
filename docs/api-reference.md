@@ -83,6 +83,22 @@ Inventory
 
 Returns list of InventoryItem.
 
+### `GET /api/markdowns`
+
+Markdowns
+
+Surplus stock that would not sell in time at full price, with a discount that adds cash. Suggestions only: nothing changes.
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `weather` | query | one of `live`, `demo` | no | default `"live"` |
+
+**Response**
+
+Returns list of MarkdownSuggestion.
+
 ### `GET /api/me`
 
 Me

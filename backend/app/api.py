@@ -19,6 +19,7 @@ from .schemas import (
     DecisionResult,
     Health,
     InventoryItem,
+    MarkdownSuggestion,
     Me,
     Overview,
     PlanChange,
@@ -108,6 +109,12 @@ def export_transfers(user: User, svc: Svc, status: Literal["PENDING", "APPROVED"
         ]])
     return Response(buf.getvalue(), media_type="text/csv",
                     headers={"Content-Disposition": 'attachment; filename="stormsense-plan.csv"'})
+
+
+@router.get("/markdowns", response_model=list[MarkdownSuggestion], tags=["stores"])
+def markdowns(user: User, svc: Svc, weather: WeatherMode = "live") -> list[MarkdownSuggestion]:
+    """Surplus stock that would not sell in time at full price, with a discount that adds cash. Suggestions only: nothing changes."""
+    return svc.markdowns(weather)
 
 
 @router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])

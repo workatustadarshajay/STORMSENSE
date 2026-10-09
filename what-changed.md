@@ -242,3 +242,16 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Job-level switch (unchanged):** the bundle variable `weather_provider` (`nws` or `sample`) decides what the daily job uses. Changing it changes the plan the next time the job runs.
 - **Code:** `backend/app/demo_weather.py`; `service.py` (`_weather`, mode-aware overview, stores and forecast); `api.py` (`weather` query parameter on `/api/overview`, `/api/stores`, `/api/stores/{id}/forecast`); `frontend/src/pages/Today.tsx` (switch and banner).
 - **Checks:** backend 80 pass, web unit 41 pass, browser 27 pass with 1 skipped; lint passes.
+
+---
+
+## 15. Price markdown suggestions (revenue from surplus stock)
+
+- **What:** for surplus stock that would not sell at full price within 14 days, the app suggests the smallest discount (10% to 40%) that clears it and brings in more cash than holding it. Shown on Today under "Price markdowns" with the cash it adds.
+- **Rule and assumptions:** `backend/app/markdown.py`. Each 10% off lifts sales by 15% (an assumption to test on a pilot). Discounts stop at 40% because there is no cost data yet. No suggestion is made when a discount would lose money.
+- **Read-only:** suggestions only. No price changes are written anywhere.
+- **Sample result:** one suggestion, Los Angeles 1000W generators, 10% off, about $260 more than holding the stock. The rule is conservative on purpose: most sample surplus either sells at full price in time or is too large for a discount to pay.
+- **Code:** `backend/app/markdown.py`, `service.py` (`markdowns()`), `GET /api/markdowns`, `frontend/src/pages/Today.tsx`. Docs: planner guide.
+- **Checks:** backend 85 pass (4 rule tests and an endpoint test); web unit 42 pass; browser 27 pass with 1 skipped; lint passes.
+- **Not done:** cost and margin (needed to confirm a discount never sells below cost); pipeline table; the elasticity needs a pilot.
+- **Demo markdowns (section 15 follow-up):** in demo weather, markdowns use a stronger response assumption (each 10% off lifts sales by 40%, against the live 15%), so the rule has examples to show. The page labels the assumption. Live results are unchanged: the live rule finds none on this week's data, because even 40% off cannot clear large surplus at a 15% response. Checks: backend 87 pass; web unit 43 pass.

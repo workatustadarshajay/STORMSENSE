@@ -35,6 +35,12 @@ Under the glance numbers, **Storm readiness** shows each store as one percentage
 
 Select a store to open its forecast.
 
+## Today: price markdowns
+
+Under the readiness list, **Price markdowns** suggests a discount for surplus stock that would not sell at full price in two weeks. A suggestion appears only when the discount brings in more cash than holding the stock. Each line gives the store, the product, the discount, and the cash it adds.
+
+These are suggestions. Nothing changes until a store makes the price change. The estimate assumes that each 10% off lifts sales by 15%, so test it on a pilot before relying on it.
+
 ## Transfers: why a farther store is sending
 
 When a move comes from a store that isn't the nearest, the reason says why in one line. For example: "Tampa is closer but also short of 1000W generators." The possible reasons are that the nearer store is also short, has no spare stock to send, or a planner rejected that route recently.

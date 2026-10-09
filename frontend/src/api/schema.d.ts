@@ -97,6 +97,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/markdowns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Markdowns
+         * @description Surplus stock that would not sell in time at full price, with a discount that adds cash. Suggestions only: nothing changes.
+         */
+        get: operations["markdowns_api_markdowns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/me": {
         parameters: {
             query?: never;
@@ -445,6 +465,44 @@ export interface components {
              */
             status: "RUNNING_LOW" | "EXTRA" | "OK";
             store: components["schemas"]["Ref"];
+        };
+        /** MarkdownSuggestion */
+        MarkdownSuggestion: {
+            /**
+             * Assumption
+             * @description How the estimate was made, so it can be checked
+             */
+            assumption: string;
+            /** Clears All */
+            clears_all: boolean;
+            /** Current Price */
+            current_price: number;
+            /**
+             * Discount Pct
+             * @description Suggested discount, 10 to 40 percent
+             */
+            discount_pct: number;
+            /**
+             * Extra Cash Usd
+             * @description Cash expected over holding the stock at full price, an estimate
+             */
+            extra_cash_usd: number;
+            /** New Price */
+            new_price: number;
+            /** Note */
+            note: string;
+            product: components["schemas"]["ProductRef"];
+            /**
+             * Spare Units
+             * @description Stock the store will not need in the week ahead
+             */
+            spare_units: number;
+            store: components["schemas"]["Ref"];
+            /**
+             * Units Cleared
+             * @description Units expected to sell in the clearance window at this discount
+             */
+            units_cleared: number;
         };
         /** Me */
         Me: {
@@ -960,6 +1018,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InventoryItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    markdowns_api_markdowns_get: {
+        parameters: {
+            query?: {
+                weather?: "live" | "demo";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkdownSuggestion"][];
                 };
             };
             /** @description Validation Error */

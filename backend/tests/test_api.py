@@ -140,3 +140,16 @@ def test_precedents_cite_the_past_decision_on_the_same_route(client: TestClient)
     found = svc.precedents(rejected["rec_id"])
     assert found and found[0]["decision"] == "Rejected" and found[0]["reason"]
     assert svc.precedents("TR-DOESNOTEXIST") == []
+
+
+def test_markdowns_are_suggestions_with_a_discount_that_adds_cash(client: TestClient):
+    items = client.get("/api/markdowns").json()
+    assert all(10 <= m["discount_pct"] <= 40 and m["extra_cash_usd"] > 0 and m["new_price"] < m["current_price"] for m in items)
+    assert items == sorted(items, key=lambda m: -m["extra_cash_usd"])
+
+
+def test_demo_weather_shows_markdowns_and_says_which_assumption_it_uses(client: TestClient):
+    live = client.get("/api/markdowns").json()
+    demo = client.get("/api/markdowns", params={"weather": "demo"}).json()
+    assert demo and len(demo) > len(live)
+    assert all("Demo" in m["assumption"] for m in demo) and all("Demo" not in m["assumption"] for m in live)

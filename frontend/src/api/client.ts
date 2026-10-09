@@ -19,6 +19,7 @@ export type RejectReason = S["RejectRequest"]["reason_code"];
 export type WeatherMode = "live" | "demo";
 const weatherQuery = (mode: WeatherMode) => (mode === "demo" ? "?weather=demo" : "");
 export type BacktestStorm = S["BacktestStorm"];
+export type MarkdownSuggestion = S["MarkdownSuggestion"];
 
 /** A problem the server explained in plain words. */
 export class ApiError extends Error {
@@ -67,6 +68,7 @@ export const api = {
   forecast: (storeId: string) => request<StoreForecast>(`/api/stores/${storeId}/forecast`),
   history: () => request<Transfer[]>("/api/history"),
   backtest: () => request<BacktestStorm[]>("/api/backtest"),
+  markdowns: (weather: WeatherMode = "live") => request<MarkdownSuggestion[]>(`/api/markdowns${weatherQuery(weather)}`),
   ask: (question: string) => post<AskResponse>("/api/ask", { question }),
   stormDesk: (goal: string) => post<StormDeskPlan>("/api/storm-desk", { goal }),
   whatIf: (body: WhatIfRequest) => post<WhatIfResult>("/api/what-if", body),

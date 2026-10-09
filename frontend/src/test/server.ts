@@ -18,6 +18,7 @@ export function serve(routes: Record<string, Handler> = {}): Server {
     "GET /api/transfers?status=PENDING": () => fx.transfers,
     "GET /api/history": () => fx.history,
     "GET /api/stores": () => fx.stores,
+    "GET /api/markdowns": () => [],
     "GET /api/stores/S01/forecast": () => fx.forecast(fx.stores[0]),
     "GET /api/stores/S04/forecast": () => fx.forecast(fx.stores[1]),
     "POST /api/transfers/approve": (b) => fx.decided((b as { ids: string[] }).ids),

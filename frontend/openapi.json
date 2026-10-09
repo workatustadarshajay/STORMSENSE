@@ -387,6 +387,74 @@
         "title": "InventoryItem",
         "type": "object"
       },
+      "MarkdownSuggestion": {
+        "properties": {
+          "assumption": {
+            "description": "How the estimate was made, so it can be checked",
+            "title": "Assumption",
+            "type": "string"
+          },
+          "clears_all": {
+            "title": "Clears All",
+            "type": "boolean"
+          },
+          "current_price": {
+            "title": "Current Price",
+            "type": "number"
+          },
+          "discount_pct": {
+            "description": "Suggested discount, 10 to 40 percent",
+            "maximum": 40.0,
+            "minimum": 10.0,
+            "title": "Discount Pct",
+            "type": "integer"
+          },
+          "extra_cash_usd": {
+            "description": "Cash expected over holding the stock at full price, an estimate",
+            "title": "Extra Cash Usd",
+            "type": "number"
+          },
+          "new_price": {
+            "title": "New Price",
+            "type": "number"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductRef"
+          },
+          "spare_units": {
+            "description": "Stock the store will not need in the week ahead",
+            "title": "Spare Units",
+            "type": "integer"
+          },
+          "store": {
+            "$ref": "#/components/schemas/Ref"
+          },
+          "units_cleared": {
+            "description": "Units expected to sell in the clearance window at this discount",
+            "title": "Units Cleared",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "store",
+          "product",
+          "spare_units",
+          "current_price",
+          "discount_pct",
+          "new_price",
+          "units_cleared",
+          "clears_all",
+          "extra_cash_usd",
+          "note",
+          "assumption"
+        ],
+        "title": "MarkdownSuggestion",
+        "type": "object"
+      },
       "Me": {
         "properties": {
           "can_approve": {
@@ -1561,6 +1629,58 @@
           }
         },
         "summary": "Inventory",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
+    "/api/markdowns": {
+      "get": {
+        "description": "Surplus stock that would not sell in time at full price, with a discount that adds cash. Suggestions only: nothing changes.",
+        "operationId": "markdowns_api_markdowns_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "weather",
+            "required": false,
+            "schema": {
+              "default": "live",
+              "enum": [
+                "live",
+                "demo"
+              ],
+              "title": "Weather",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MarkdownSuggestion"
+                  },
+                  "title": "Response Markdowns Api Markdowns Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Markdowns",
         "tags": [
           "stores"
         ]

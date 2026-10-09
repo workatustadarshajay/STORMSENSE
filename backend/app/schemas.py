@@ -173,6 +173,20 @@ class AskResponse(BaseModel):
     table: AskTable | None = None
 
 
+class MarkdownSuggestion(BaseModel):
+    store: Ref
+    product: ProductRef
+    spare_units: int = Field(description="Stock the store will not need in the week ahead")
+    current_price: float
+    discount_pct: int = Field(ge=10, le=40, description="Suggested discount, 10 to 40 percent")
+    new_price: float
+    units_cleared: int = Field(description="Units expected to sell in the clearance window at this discount")
+    clears_all: bool
+    extra_cash_usd: float = Field(description="Cash expected over holding the stock at full price, an estimate")
+    note: str
+    assumption: str = Field(description="How the estimate was made, so it can be checked")
+
+
 class BacktestStorm(BaseModel):
     event_name: str
     start_date: date

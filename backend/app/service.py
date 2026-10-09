@@ -12,6 +12,7 @@ from typing import Any, TypeVar
 from .carbon import estimate_kg_co2e
 from .config import Settings
 from .demo_weather import with_demo_storm
+from .markdown import CLEAR_DAYS, DEMO_ELASTICITY, ELASTICITY, suggest
 from .readiness import label as readiness_label
 from .readiness import score as readiness_score
 from .readiness import storm_window_days
@@ -22,6 +23,7 @@ from .schemas import (
     DayUnits,
     DecisionResult,
     InventoryItem,
+    MarkdownSuggestion,
     Me,
     NextAction,
     Overview,
@@ -129,6 +131,31 @@ class Service:
             verb = "Approved" if r["status"] == "APPROVED" else "Rejected"
             out.append({"decision": verb, "decided_on": when, "reason": why or "no reason given"})
         return out
+
+    def markdowns(self, weather: str = "live") -> list[MarkdownSuggestion]:
+        def build() -> list[MarkdownSuggestion]:
+            stores, products = self._directory()
+            demo = weather == "demo"
+            elasticity = DEMO_ELASTICITY if demo else ELASTICITY
+            assumption = ("Demo: each 10% off lifts sales by 40%, to show a stronger response. Live assumption is 15%."
+                          if demo else "Each 10% off lifts sales by 15%. Test this on a pilot.")
+            out = []
+            for g in self.source.gaps(None, "SURPLUS"):
+                p, s = products[g["product_id"]], stores[g["store_id"]]
+                price = float(p["unit_price"])
+                plan = suggest(float(g["spare_units"] or 0), float(g["avg_daily"] or 0), price, elasticity)
+                if plan is None:
+                    continue
+                spare = round(float(g["spare_units"]))
+                note = (f"Mark {p['name_plural']} down {plan['discount_pct']}% to ${plan['new_price']:.2f} to sell about "
+                        f"{plan['units_cleared']} of {spare} in {CLEAR_DAYS} days, "
+                        f"about ${plan['extra_cash_usd']:,.0f} more than holding them.")
+                out.append(MarkdownSuggestion(
+                    store=Ref(id=s["store_id"], name=s["name"]),
+                    product=ProductRef(id=p["product_id"], name=p["name"], name_plural=p["name_plural"]),
+                    spare_units=spare, current_price=price, note=note, assumption=assumption, **plan))
+            return sorted(out, key=lambda m: -m.extra_cash_usd)
+        return self._cached(f"markdowns:{weather}", build)
 
     def backtest(self) -> list[BacktestStorm]:
         return [BacktestStorm.model_validate(r) for r in self.source.backtest()]

@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
-import { useMe, useOverview, useStores } from "../api/hooks";
+import { useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
 
@@ -73,6 +73,38 @@ function Readiness({ weather }: { weather: WeatherMode }) {
   );
 }
 
+function Markdowns({ weather }: { weather: WeatherMode }) {
+  const items = useMarkdowns(weather);
+  return (
+    <section aria-labelledby="md-h" className="mt-10">
+      <h2 id="md-h" className="text-xl font-extrabold">Price markdowns</h2>
+      <p className="mt-1 text-sm text-muted">
+        Surplus stock that would not sell at full price in two weeks. Each suggestion is only shown when a discount brings in more cash than holding. Nothing is changed here.
+      </p>
+      {weather === "demo" && (
+        <p className="mt-2 text-sm font-semibold text-heat">Demo response: each 10% off is assumed to lift sales by 40%, so more markdowns can pay. Live weather uses 15%.</p>
+      )}
+      <QueryView query={items} rows={2} isEmpty={(d) => d.length === 0} empty={<p className="mt-4 text-muted">No markdowns needed this week.</p>}>
+        {(list) => (
+          <ul className="mt-4 divide-y divide-line rounded-2xl border border-line bg-paper">
+            {list.map((m) => (
+              <li key={`${m.store.id}-${m.product.id}`} className="grid gap-1 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div>
+                  <p className="font-bold">
+                    {m.store.name}: {m.product.name_plural}, {m.discount_pct}% off
+                  </p>
+                  <p className="text-sm text-muted">{m.note}</p>
+                </div>
+                <p className="text-right text-sm font-extrabold text-teal-deep">+${Math.round(m.extra_cash_usd).toLocaleString("en-US")}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </QueryView>
+    </section>
+  );
+}
+
 function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weather: WeatherMode; onWeather: (m: WeatherMode) => void }) {
   const worst = (["storm", "heavy_rain", "heat"] as const).find((k) => o.alerts.some((a) => a.kind === k));
   const alert = o.next_alert;
@@ -103,6 +135,7 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
       </section>
 
       <Readiness weather={weather} />
+      <Markdowns weather={weather} />
 
       <Link
         to={o.next_action.path}
