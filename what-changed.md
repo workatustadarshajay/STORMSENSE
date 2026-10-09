@@ -185,3 +185,21 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Test fixes found on the way:** `backend/tests/conftest.py` now pins the test identity. A local `backend/.env` had changed the default account, and `test_me_reflects_role` failed because of it. The browser tests' port is now set by `E2E_PORT` (default 8000), so they can run while another StormSense API is on 8000.
 - **Checks:** backend 70 passed; web unit 36 passed; browser 27 passed (1 skipped, on port 8002); lint and type checks pass.
 - **Not done:** using carbon to choose between sources, a carbon total on the overview, and carbon in the history page.
+
+---
+
+## 11. Hackathon deck updated (22 to 27 slides)
+
+- **What:** `StormSense-Databricks-Hackathon.pptx` is rebuilt from the UST template with five new slides, and its figures are brought up to date. The template's sections and layouts are unchanged.
+- **New slides:**
+  - Decision tools: the what-if simulator and the storm desk crew.
+  - Learning and carbon: the feedback loop and the carbon estimate.
+  - Integrations: the MCP server, the built-in client agent, and the published sites.
+  - Operations: data-quality gates, live weather in the daily job, and the cost view.
+  - Roadmap: what is blocked, what needs a decision, and what comes next.
+- **Figures updated:** 70 API and agent tests (14 of them for the storm desk crew), 18 library tests, 63 web tests (36 unit and 27 browser).
+- **Checks:** `make deck` builds the file, and the verifier passes with 0 failures and 0 warnings, using real Arial metrics. No banned terms appear in the slides or the speaker notes.
+- **Not checked:** the slides were not rendered to images, because LibreOffice is not installed here. The layout checks are geometric only.
+- **Files:** `deck/build_deck.py` (slides, notes and titles), `deck/verify_deck.py` (slide count and order).
+- **Speaker notes rewritten point by point (deck section 11 follow-up):** every slide's notes now lead with a short label (WHO, SAY, THE LIVE CHECK, IF ASKED ...), followed by the points to say, in order, with the figures checked against the running system. Stale counts were corrected: 70 API and agent tests, 63 web tests, 14 for the crew.
+- **ROI slide corrected and filled (deck, business impact slide):** the slide now leads with the measured effect of live weather (shortages cut from 652 to 184 units, about 72%) and the current plan (11 moves, about $26.6k of sales protected, gross). Removed the earlier "$54k across 13 moves" and "nothing is estimated" wording, which no longer matched the live data. The speaker notes give the source of the 652 and 184 figures.

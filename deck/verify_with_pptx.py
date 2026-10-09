@@ -42,8 +42,17 @@ for i, slide in enumerate(prs.slides, 1):
         if getattr(shape, "has_table", False) and shape.has_table:
             tables += 1
             rows = [[c.text.strip() for c in r.cells] for r in shape.table.rows]
-            if len(rows) != 7 or len(rows[0]) != 3:
+            # header + 8 capability rows (pipeline, serving, dashboard and the
+            # cost row were added when those features landed).
+            if len(rows) != 9 or len(rows[0]) != 3:
                 fails.append(f"slide {i}: table shape {len(rows)}x{len(rows[0])}")
+            expected = ["Unity Catalog", "Lakeflow Declarative Pipeline",
+                        "Serverless notebooks and jobs", "MLflow and Model Serving",
+                        "AI/BI (Lakeview) dashboard", "Genie (Ask space)",
+                        "System tables and tags", "Declarative Automation Bundles"]
+            got = [r.cells[0].text.strip() for r in shape.table.rows][1:]
+            if got != expected:
+                fails.append(f"slide {i}: capability rows {got}")
         if shape.shape_type == 16:                          # MEDIA
             media += 1
         left, top = Emu(shape.left), Emu(shape.top)

@@ -230,7 +230,7 @@ def s_team(sl):
           "planner app \u2014 phone-first, with the what-if simulator and the "
           "three-agent storm desk."]),
         ("Proof and governance",
-         ["18 library tests, 68 API and agent tests, 36 web unit tests and 28 "
+         ["18 library tests, 70 API and agent tests, 36 web unit tests and 27 "
           "browser tests, plus a nine-check live smoke script run against the "
           "real workspace."]),
     ]
@@ -350,7 +350,7 @@ def s_architecture(sl):
     sl.text(M, 4130000, CW, 250000,
             [p_(run("The 6:00 AM daily cycle", sz=1150, b=True, c=INK),
                 lnSpc=100000)])
-    chain(sl, 4440000, 1, [
+    chain(sl, 4400000, 1, [
         ("Weather", "live NWS days"),
         ("Quality", "9 gates, no bad rows"),
         ("Features", "lagged, no leakage"),
@@ -359,7 +359,7 @@ def s_architecture(sl):
         ("Learn", "route penalties"),
         ("Transfers", "ranked and merged"),
         ("Verify", "idempotency check"),
-    ], gap=140000, box_h=760000)
+    ], gap=140000, box_h=840000)
     sl.note("The browser never talks to Databricks. The API holds the service "
             "principal, so credentials never reach the client, and every "
             "statement it runs is parameterised. The quality gate drops bad "
@@ -373,36 +373,44 @@ def s_databricks(sl):
     rows = [
         ["Databricks capability", "Where it does real work here", "What it buys"],
         ["Unity Catalog",
-         "15 Delta tables, the registered model and every grant for the app's "
+         "16 Delta tables, the registered model and every grant for the app's "
          "identity in one governed home",
          "One permission model for data, model and app"],
-        ["Serverless notebooks",
-         "10 notebooks, setup through verify, importing a shared pandas library "
-         "from the notebook path",
+        ["Lakeflow Declarative Pipeline",
+         "Three clean views with nine data-quality expectations; both jobs run "
+         "it before features",
+         "Bad rows drop out or stop the run; clean views only"],
+        ["Serverless notebooks and jobs",
+         "12 notebooks; the 6:00 AM cycle runs the quality gate, forecast, gaps "
+         "and learning with retries and an email on failure",
          "No cluster to size, stop or pay for while idle"],
-        ["Lakeflow Jobs (Workflows)",
-         "The 6:00 AM daily cycle: six tasks, retries and an email to the owner "
-         "on failure",
-         "Runs unattended; idempotent when re-run"],
-        ["MLflow + Model Registry",
-         "Versioned runs and a registered model; the live model is served "
-         "through the champion alias",
-         "Promote or roll back without a code change"],
+        ["MLflow and Model Serving",
+         "Versioned runs and the champion alias; a scale-to-zero endpoint served "
+         "the forecaster and scored 350 live rows",
+         "Promote or roll back in one step; bills only while it runs"],
+        ["AI/BI (Lakeview) dashboard",
+         "Urgent moves, sales protected, forecast accuracy and DBUs per day, "
+         "generated from code",
+         "One screen the business can open without asking"],
         ["Genie (Ask space)",
-         "A read-only space over eight tables, created from code, answering the "
-         "planner's own questions",
+         "A read-only space over the governed tables, created from code, "
+         "answering the planner's own questions",
          "Open questions without a query editor"],
+        ["System tables and tags",
+         "Spend per job from system.billing.usage, filtered to the project tag "
+         "on all three jobs",
+         "Real cost numbers instead of an estimate"],
         ["Declarative Automation Bundles",
-         "Tables, jobs, the model, the Ask space and the app are defined as code "
-         "and deployed by bundle",
-         "The whole environment is reproducible in one command"],
+         "Tables, jobs, pipeline, dashboard, model, Ask space and app are all "
+         "defined as code",
+         "The whole environment is reproducible"],
     ]
     sl.add(table(sl.nid(), "Databricks alignment", M, CARD_Y,
-                 [2900000, 4860480, 3700000], rows, row_h=500000,
+                 [2900000, 4860480, 3700000], rows, row_h=440000,
                  header_h=420000))
-    sl.note("Also used: Unity Catalog grants and RBAC for the app's "
-            "least-privilege identity, and scikit-learn HistGradientBoosting "
-            "with Poisson loss running on the serverless runtime.")
+    sl.note("Also used: least-privilege grants for the app's identity, and "
+            "scikit-learn HistGradientBoosting with Poisson loss on the "
+            "serverless runtime.", rule_y=5700000, y=5740000)
     return sl
 
 
@@ -425,12 +433,15 @@ def s_video(sl):
     for lead, rest in [
         ("Today \u2014 ", "11 positions short, 16 holding extra, 23 balanced: "
                           "what needs attention this morning."),
-        ("Transfers \u2014 ", "13 ranked moves waiting on a decision, 4 urgent, "
-                              "about $54k of stock cover, each with its reason."),
+        ("Transfers, as recorded \u2014 ", "13 ranked moves waiting on a decision, 4 "
+                              "urgent, about $54k of stock cover, each with its reason."),
         ("Forecast \u2014 ", "seven days of demand per product for one store, "
                              "and what the model got wrong before."),
         ("Ask \u2014 ", "an open question answered in plain language from the "
                         "same governed tables."),
+        ("Since this recording \u2014 ", "the what-if simulator and the "
+                                          "three-agent storm desk, both built "
+                                          "and verified on the workspace."),
     ]:
         paras.append(p_([run(lead, sz=1000, b=True, c=INK),
                          run(rest, sz=1000, c=BODY)], bu="\u2022", marL=170180,
@@ -460,22 +471,22 @@ def s_tests(sl):
         card(sl, x, CARD_Y, w, 2500000, headline, bl)
     tiles = cols(4)
     for (x, w), (value, label) in zip(tiles, [
-        ("16", "library tests"),
-        ("47", "API tests"),
-        ("48", "web tests \u00b7 25 unit + 23 browser"),
+        ("18", "library tests"),
+        ("70", "API and agent tests"),
+        ("63", "web tests \u00b7 36 unit + 27 browser"),
         ("9 / 9", "live smoke checks on the workspace"),
     ]):
         tile(sl, x, 4240000, w, 900000, value, label)
-    sl.note("The smoke script also asserts the two things Q&A is most likely to "
-            "probe: Ask answers 10 of 10 sample questions, and Ask cannot change "
-            "data.")
+    sl.note("14 of the 70 test the storm desk and its crew: a plan may only name "
+            "moves its own tools returned. The smoke script also proves Ask answers "
+            "10 of 10 sample questions and cannot change data.")
     return sl
 
 
 def s_results(sl):
     sl.head("Results", "Measured, not asserted")
     big_bars(sl, M, CARD_Y, 5760000, 2900000,
-             [("Champion model", 0.403, GOOD),
+             [("Champion model (v3)", 0.391, GOOD),
               ("Trailing 28-day average", 0.571, "AEBBC6"),
               ("Same as last week", 0.667, "AEBBC6")],
              max_val=0.70, track=4000000,
@@ -487,15 +498,16 @@ def s_results(sl):
     sw = (11826240 - sx - 200000) // 2
     stats = [
         ("350", "forecasts every run", "10 stores \u00d7 5 products \u00d7 7 days"),
-        ("13", "transfer recommendations", "ranked, awaiting a decision"),
-        ("4", "marked urgent", "where the shortfall is largest"),
-        ("~$54k", "sales protected", "stock the recommended moves cover"),
+        ("9 / 9", "quality gates passed", "zero rows failed an expectation"),
+        ("11 \u2192 9", "stores in shortage", "stale forecast vs live week"),
+        ("652 \u2192 184", "units short", "the live week is calmer"),
     ]
     for i, (v, l, s) in enumerate(stats):
         tile(sl, sx + (i % 2) * (sw + 200000), CARD_Y + (i // 2) * (1350000 + 200000),
              sw, 1350000, v, l, source=s)
-    sl.note("A single daily run on labelled sample data. The forecast beats both "
-            "naive baselines by a wide margin; no figure here is an estimate.")
+    sl.note("Champion v3 was retrained on regenerated history and still beats "
+            "both naive baselines by a wide margin. Every figure is read from "
+            "the workspace, not estimated; the app keeps its sample-data label.")
     return sl
 
 
@@ -504,119 +516,167 @@ def s_impact(sl):
     grid = cols(2, gap=200000)
     bodies = [
         ("Revenue impact",
-         ["Stock moves to the store the forecast says will sell it, inside the "
-          "few days the weather creates \u2014 instead of sitting where demand "
-          "has moved away from.",
-          "One morning's run covers about $54k of sales across 13 ranked moves; "
-          "done by hand it is 50 store \u00d7 product positions against a 7-day "
-          "forecast.",
-          "Nothing is estimated: the value is the sales the covered stock "
-          "represents, read from the run."]),
+         ["Using live weather, the plan cut the units expected to run short "
+          "across the network from 652 to 184, about 72%, with the same stock "
+          "and the same sales data.",
+          "The current plan has 11 ranked moves protecting about $26.6k of "
+          "sales. By hand it would be 50 store \u00d7 product positions checked "
+          "against a 7-day forecast.",
+          "Sales protected is the forecast's estimate on sample sales data. It is "
+          "gross revenue, not profit."]),
         ("Cost effectiveness",
          ["The cycle runs unattended at 6:00 AM on serverless compute that stops "
           "when the job ends \u2014 no cluster kept warm between runs.",
+          "Every job is tagged by project and a cost view over Databricks "
+          "system tables reports spend per run \u2014 built and tagged now, "
+          "filled in as billing lands.",
           "Every asset is defined in code and created by one command, so there "
-          "is no hand-built environment to maintain or drift.",
-          "A planner's time goes into deciding a short ranked list, not "
-          "assembling one \u2014 and surplus moves off the shelf instead of "
-          "being written down."]),
+          "is no hand-built environment to maintain or drift."]),
     ]
     for (x, w), (headline, bl) in zip(grid, bodies):
         card(sl, x, CARD_Y, w, CARD_H, headline, bl)
     sl.note("Revenue and cost statements are limited to what the running system "
-            "actually outputs. No ROI, adoption or savings figure has been "
-            "invented for this deck.")
+            "actually outputs. The cost view is built and tagged but billing "
+            "lands hours late, so no dollar cost is claimed here yet.")
     return sl
 
 
 # ------------------------------------------------------- speaker notes -------
 NOTE = {
  "slide4": [
-  "Introduce yourself in one line: owner of the whole stack, and the person "
-  "who ran it.",
-  "Stress that everything in this deck was executed: the notebooks ran, the "
-  "jobs ran, the tests ran, the smoke script ran.",
-  "Set the expectation for the next three minutes: the problem, the flow, then "
-  "the running application.",
+  "WHO: Adarsh Ajay, owner and builder of the whole stack.",
+  "SAY: everything in this deck was run, not just written: the notebooks, the pipeline, the jobs, the tests and the smoke script.",
+  "ROADMAP OF THE TALK: the problem, the idea, the architecture, a video, the test evidence, then the business case and what is open.",
+  "IF ASKED WHO TO TRUST: the numbers in this deck come from the test runs and the live workspace, and each one has a source named on its slide.",
  ],
  "slide6": [
-  "Open with the planner's morning question, not with technology.",
-  "The two weather drivers matter: a storm and a heat wave can hit two regions "
-  "in the same week, in opposite directions.",
-  "Land the constraint: the window is a few days, and 50 positions by hand "
-  "does not fit inside it.",
+  "OPEN WITH: a planner's morning question. Which stores run short this week, and what moves where before the storm?",
+  "THE SCALE: 10 stores and 5 products, so 50 store-product positions to decide each morning.",
+  "THE TWO WEATHER DRIVERS: a storm pulls generators, plywood and tarps forward; a heat wave lifts coolers and pumps. They can hit two regions in one week, in opposite directions.",
+  "THE CONSTRAINT: the window is a few days. Doing 50 positions by hand does not fit inside it.",
+  "IF ASKED WHY NOT A DASHBOARD: a dashboard shows the gap. StormSense turns the gap into an approvable move.",
  ],
  "slide18": [
-  "Walk the chain left to right. Weather in, ranked decision out.",
-  "Emphasise what is behind each box: leak-free features, a champion model "
-  "promoted only if it beats the baselines, and an idempotent merge into "
-  "pending rows.",
-  "The planner only ever sees the last box.",
+  "WALK THE CHAIN LEFT TO RIGHT: weather in, ranked decision out.",
+  "WEATHER: observed history and the seven-day forecast. Live from the US National Weather Service in the daily job.",
+  "FORECAST: one model for all stores and products, trained on features that only use information available at the time (sales are lagged seven days).",
+  "GAPS: projected stock against the safety level, per store and product.",
+  "TRANSFERS: the nearest spare stock, in whole packs, ranked by urgency and sales protected.",
+  "PLANNER DECIDES: approve or reject on a phone. Only pending rows change.",
+  "IF ASKED WHAT IS BEHIND EACH BOX: nine data-quality expectations, a champion model that must beat two simple baselines, and a learning step that ranks down routes planners keep rejecting.",
  ],
  "slide19": [
-  "Answer the obvious question before it is asked: this is not another "
-  "dashboard.",
-  "The unit of decision \u2014 a per-store, per-product gap over the weather "
-  "horizon \u2014 is what is new. Be honest that the techniques are standard; "
-  "the framing, the constraints and the trust gates are the contribution.",
-  "Mention Ask here: it answers open questions and cannot change a row.",
+  "ANSWER THE QUESTION BEFORE IT IS ASKED: this is not another dashboard.",
+  "WHAT IS NEW: the unit of decision. A gap per store and product over the weather horizon, resolved to a move a planner can approve.",
+  "BE HONEST: the techniques are standard (gradient boosting, nearest-source matching). The framing, the constraints and the trust gates are the contribution.",
+  "TRUST GATES: a model reaches champion only if it beats 'same as last week' and the trailing 28-day average on held-out data.",
+  "SINCE THE LAST REVIEW: a what-if simulator rehearses a storm; a feedback loop lowers the rank of any route planners keep rejecting.",
+  "IF ASKED WHAT LEARNING CAN BREAK: it never adds or removes a move. It only changes the order of options.",
  ],
  "slide8": [
-  "Three layers, one decision. The browser never touches Databricks.",
-  "Point at the FastAPI layer as the security boundary: bound parameters, "
-  "roles, an audit row for every attempt.",
-  "Then read the daily cycle: six tasks, 6:00 AM, idempotent.",
+  "THE RULE: three layers, one decision. The browser never talks to Databricks.",
+  "DATABRICKS: 16 governed tables in Unity Catalog, the model registry, the jobs, the pipeline and the Ask space.",
+  "FASTAPI: the only path to the data. Bound-parameter SQL, roles, and an audit row for every approval attempt, including refused ones.",
+  "REACT: where the planner works. Today, Transfers, What if, Storm desk, Ask and History.",
+  "THE DAILY CYCLE, 6:00 AM: weather, features, quality gate, forecast, gaps, learning, recommendations, verification. Every step can be re-run safely.",
+  "IF ASKED WHAT HAPPENS ON FAILURE: each task retries twice, and a failed run emails the account that deployed it.",
  ],
  "slide20": [
-  "This is the slide to come back to when the judges ask about Databricks "
-  "alignment.",
-  "For each row, say where it does real work \u2014 not that it is used, but "
-  "what it buys: reproducibility, no idle cost, alias-based rollout, governed "
-  "access.",
-  "If asked what is missing: the app itself has not been deployed, and that is "
-  "a network-policy decision.",
+  "THIS IS THE SLIDE FOR JUDGES WHO ASK ABOUT DATABRICKS ALIGNMENT. Go row by row.",
+  "UNITY CATALOG: one governed home for tables, the model and the app's grants.",
+  "LAKEFLOW PIPELINE: three clean views and nine quality expectations, run before the features each morning.",
+  "SERVERLESS JOBS: 12 notebooks, with no cluster to size or pay for while idle.",
+  "MLFLOW AND MODEL SERVING: versioned runs, the champion alias, and a scale-to-zero endpoint that scored 350 live rows.",
+  "DASHBOARD AND GENIE: a generated dashboard, and a read-only Ask space the planner can question in plain words.",
+  "SYSTEM TABLES: spend per job, filtered to the project tag on all three jobs.",
+  "IF ASKED WHAT IS MISSING: Lakehouse Monitoring, real billing figures (the cost view is empty until billing lands), and the app deployment, which is blocked by the company network filter.",
+ ],
+ "slide23": [
+  "THE PLANNER'S QUESTION: before a storm, what would it cost us, and how much stock would have to move?",
+  "THE LIVE CHECK: a Florida storm of strength 80 over two days. 516 extra units. About $15,600 of sales at risk if no stock moves. 197 units to move to cover it.",
+  "HOW TO READ IT: the simulator changes only the forecast inputs for the storm days. It writes nothing.",
+  "THE CREW: three agents with separate jobs. A forecaster drafts, a risk checker tests each proposed move against the stock figures, and a summary writer writes the plan.",
+  "THE RULE THAT MATTERS: a plan can name only moves its own tools returned. Any other sentence is dropped.",
+  "THE LIVE RUN: 51 seconds, and every transfer it cited came from a tool result.",
+  "IF ASKED WHETHER IT CAN ACT: it is read-only. It can suggest moves but cannot approve or change anything.",
+ ],
+ "slide24": [
+  "THE LOOP IN ONE BREATH: a planner says why a move was wrong, and the next plan ranks that route lower.",
+  "THE REASONS: no truck free, store closed, already covered, route too slow, or other. A reason is required.",
+  "THE DECAY: a rejection's weight halves every 14 days, and it stops counting after 60 days. The penalty is capped at 4.0.",
+  "THE LIVE EXAMPLE: a rejection on Jacksonville to Orlando pumps gave the route a penalty of 2.0. The next run sourced Orlando's pumps from Miami instead.",
+  "THE CARBON ESTIMATE: about 0.9 kg CO2 per loaded truck-mile, and a truck carries about 200 units. The figure appears on every move.",
+  "BE PLAIN ABOUT IT: the carbon figure is an estimate, not a measurement. It is shown to planners but does not yet choose the source. The nearest source still wins.",
+  "IF ASKED WHAT LEARNING CAN BREAK: it only reorders options a planner can already see.",
+ ],
+ "slide25": [
+  "THE POINT FOR A JUDGE: StormSense is not a closed app. Any MCP-capable assistant can read the plan, ask questions and run a what-if.",
+  "THE MCP SERVER: ten tools. Eight read the plan, two approve or reject. Each one calls the same API as the app, so roles and rate limits apply.",
+  "THE BUILT-IN CLIENT: a workspace model reads the tool list and decides which checks to run. It is read-only unless writes are enabled, and it needs no separate model key.",
+  "THE WRITES ARE NARROW: approve and reject only, with the same role checks and audit trail as the app.",
+  "THE DOCUMENTATION: a planner guide, setup pages and an API reference generated from the API's own description, so it always matches the code.",
+  "THE DIAGRAMS: five interactive views, from the whole system to deployment.",
+  "IF ASKED WHERE IT RUNS: the MCP server runs beside the API. It is not yet deployed; that waits on the same network decision as the app.",
+ ],
+ "slide26": [
+  "QUALITY FIRST: nine expectations stop bad rows before any feature is built. An impossible temperature stops the run outright.",
+  "LATEST RUN: zero rows failed an expectation.",
+  "LIVE WEATHER: the US National Weather Service, grouped by each store's own time zone, so an evening storm in Florida lands on the right day.",
+  "THE DAILY JOB ON THE LIVE FEED: ran end to end on serverless compute, and all seven tasks succeeded.",
+  "THIS WEEK: the live forecast has no storm or heat alert. That is exactly why the what-if simulator exists.",
+  "COST: a view over system billing, filtered to the project tag on all three jobs. It has no rows yet, because billing data lags by hours. Quote DBUs after a run, not dollars.",
+  "DASHBOARD: six live datasets. Its layout has not yet been checked in a browser, so say so if asked.",
  ],
  "slide10": [
-  "Play the 63-second video. It is the whole story: the problem, the flow, "
-  "then the application.",
-  "While it plays, point at the four things to watch: Today, Transfers, the "
-  "forecast view and Ask.",
-  "If it cannot play, use this slide's bullets \u2014 they are the video's "
-  "content.",
+  "PLAY THE 63-SECOND VIDEO. It tells the whole story: the problem, the flow, then the application.",
+  "WHILE IT PLAYS, WATCH FOR: Today, the Transfers list, the store forecast, and Ask.",
+  "THE VIDEO PREDATES TWO THINGS: the what-if simulator and the three-agent storm desk. Both are built and checked, and they are shown on the decision-tools slide.",
+  "IF THE VIDEO WON'T PLAY: the same screens can be shown live from the running app.",
  ],
  "slide12": [
-  "Test cases are the argument, not a list. Each card is a claim someone "
-  "could challenge.",
-  "Give the numbers: 16 + 47 + 48 tests, and 9 of 9 smoke checks on the real "
-  "workspace.",
-  "Offer the double-approve case as a live Q&A probe.",
+  "TEST CASES ARE THE ARGUMENT. Each card is a claim someone could challenge, so each has a test behind it.",
+  "THE MODEL MUST EARN ITS PLACE: promotion to champion is tested against two baselines on the last 28 days, held out of training.",
+  "AN APPROVAL CANNOT DOUBLE-APPLY: only pending rows change, and a repeat is told it was already handled. Browser tests approve the same transfer twice.",
+  "THE VOCABULARY IS ENFORCED: a test fails the build if a technical term appears in the planner interface.",
+  "THE NUMBERS: 18 library tests, 70 API and agent tests, and 63 web tests (36 unit and 27 browser).",
+  "THE LIVE CHECK: 9 of 9 smoke checks on the real workspace. Ask answered 10 of 10 sample questions and changed no data.",
+  "THE CREW'S TESTS: 14 of the 70. A plan may name only moves its tools returned.",
+  "OFFER A LIVE PROBE: try approving the same transfer twice in two browsers.",
  ],
  "slide21": [
-  "Read the chart once: 0.403 against 0.667 and 0.571. Lower is better, and "
-  "the grey bars are what the business effectively uses today.",
-  "Then the run itself: 350 forecasts, 13 recommendations, 4 urgent, about "
-  "$54k of stock cover.",
-  "Say plainly that the dataset is generated sample data, labelled as such in "
-  "the app.",
+  "READ THE CHART ONCE: champion v3 at 0.391 WAPE, against 0.571 for the trailing 28-day average and 0.667 for same-as-last-week. Lower is better.",
+  "THE GREY BARS are the simple methods the business effectively uses today.",
+  "WHAT WAPE MEANS: total absolute error divided by total actual units. It is the headline figure; MAPE is not used because it breaks at zero.",
+  "THE LIVE WEATHER EFFECT: the time-travel comparison. Before the live weather, 11 stores ran short, 652 units in total. After it, 9 stores, 184 units.",
+  "THE QUALITY GATES: all nine expectations passed on every row.",
+  "BE PLAIN: sales and stock figures are still generated sample data. The app labels this on every screen.",
  ],
  "slide14": [
-  "Split the slide in two: revenue on the left, cost on the right.",
-  "Revenue: stock reaches the store the forecast says will sell it, inside "
-  "the window the weather creates.",
-  "Cost: serverless compute that stops when the job ends, everything from "
-  "code, and a planner approving a list instead of assembling one.",
-  "Do not invent an ROI number \u2014 say what the system outputs.",
+  "SPLIT THE SLIDE IN TWO: revenue on the left, cost on the right.",
+  "THE ROI LINE: using live weather, the plan cut the units expected to run short from 652 to 184 across the network, about 72%, with the same stock and the same sales data.",
+  "THE CURRENT PLAN: 11 ranked moves protecting about $26.6k of sales. That is gross revenue, not profit.",
+  "WHERE 652 TO 184 COMES FROM: the time-travel check on the what-if page, which compares the plan saved before the live weather with the plan now (11 stores short, down to 9).",
+  "REVENUE, IN WORDS: stock reaches the store the forecast says will sell it, inside the window the weather creates.",
+  "COST: serverless compute that stops when the job ends, everything defined as code, and every job tagged so spend can be read per run.",
+  "DO NOT INVENT AN ROI: the cost view exists, but billing lands hours late. The honest figures today are the run's DBU usage and the sales each move protects.",
+  "IF ASKED FOR A PILOT NUMBER: none has been measured on a customer's data yet. That needs a pilot retailer's feed.",
  ],
  "slide22": [
-  "Show that the architecture survives the sample data leaving.",
-  "Be direct about the one blocker: the hosted app is not deployed because "
-  "this network filters one upload; the code is written and the workspace is "
-  "wired.",
-  "Close on the roadmap: real feeds, more stores, go-live alerting.",
+  "THE ARCHITECTURE SURVIVES THE SAMPLE DATA LEAVING. Live National Weather Service data is already in the daily job.",
+  "THE ONE BLOCKER: the hosted app is not deployed, because this network filters one upload. The code is written and the workspace is wired.",
+  "WHAT CHANGES WITH REAL FEEDS: more stores, real sales and stock, and go-live alerting.",
+  "NEXT ON THE MODEL: Lakehouse Monitoring on the forecasts, so accuracy is watched over time.",
+ ],
+ "slide27": [
+  "CLOSE ON WHAT IS OPEN. Two things would move the project most: the app deployment and a pilot retailer's feed.",
+  "BLOCKED: the company web filter stops the upload of one service file. Options are IT approval, a CI deploy with a service identity, or a Git folder in the workspace.",
+  "DECISIONS NEEDED: pick a pilot segment, remove the stale October 7 forecast rows (with approval), and confirm one generator move approved without a note.",
+  "NEXT FEATURES, IN ORDER OF SCORING VALUE: a storm trigger that drafts moves from warnings (business impact), and evaluation of the crew (alignment).",
+  "ASK FOR THE DECISIONS, NOT FOR APPROVAL OF THE WHOLE ROADMAP.",
  ],
  "slide15": [
-  "Thank the panel, state the one-line pitch, then invite questions.",
-  "Keep the contact line on screen while you take questions.",
+  "THANK THE PANEL. State the one-line pitch: weather in, a ranked decision out, every morning at 6:00 AM.",
+  "THEN INVITE QUESTIONS. Keep the contact line on screen: Adarsh Ajay, 308638@ust.com.",
  ],
 }
 
@@ -657,6 +717,11 @@ TITLES = {
     "slide15": "Thank you",
     "slide16": "Together, we build for boundless impact",
     "slide17": "Copyright and confidentiality notice",
+    "slide23": "Test a storm before it arrives, and have a crew check the plan",
+    "slide24": "Every rejection teaches the next plan, and every move shows its carbon",
+    "slide25": "Open to any assistant, through one standard",
+    "slide26": "Quality gates, real weather, and cost you can see",
+    "slide27": "What is blocked, what needs a decision, and what comes next",
 }
 
 
@@ -666,29 +731,31 @@ def s_scale(sl):
     rows = [CARD_Y, CARD_Y + GRID_H + GRID_GAP]
     bodies = [
         ("Real feeds",
-         ["Swap the sample generator and the sample weather provider for the "
-          "retailer's sales, stock and a live forecast feed. The feature, model "
-          "and planning code does not change."]),
+         ["The daily job already runs on the live National Weather Service "
+          "forecast by default; only the sales and stock feeds are still "
+          "sample. Swapping the generator for the retailer's feeds leaves the "
+          "feature, model and planning code unchanged."]),
         ("More of the estate",
          ["Regions, stores and products are dimensions in Unity Catalog, so a "
-          "larger estate is more data through the same six-task job \u2014 not "
-          "a rewrite."]),
+          "larger estate is more data through the same job \u2014 not a "
+          "rewrite."]),
         ("Deploy the app",
          ["The app bundle is written and the workspace is wired. Deployment is "
           "currently blocked by this network's upload filter on one file, not by "
           "the application."]),
         ("Watch it",
-         ["The daily job already retries and emails the owner on failure; "
-          "go-live adds alerting on forecast drift and on recommendation volume "
-          "per run."]),
+         ["The daily job already retries and emails the owner on failure. Next "
+          "is Lakehouse Monitoring on forecast accuracy and drift, plus alerting "
+          "on recommendation volume per run."]),
     ]
     for i, (headline, bl) in enumerate(bodies):
         x, w = g[i % 2]
         card(sl, x, rows[i // 2], w, GRID_H, headline, bl)
-    sl.note("Honest status, for Q&A: the pipeline, model, API and app are "
-            "verified running against the real workspace. The hosted Databricks "
-            "App has not been deployed \u2014 that needs a security decision, "
-            "not more code.")
+    sl.note("Honest status, for Q&A: the pipeline, model, API, dashboard, "
+            "serving endpoint and app code are built against the real workspace, "
+            "and the daily job runs end to end on live weather. The hosted "
+            "Databricks App is not deployed \u2014 that needs a security decision, "
+            "not more code. Lakehouse Monitoring is the named next step.")
     return sl
 
 
@@ -715,6 +782,132 @@ def s_thanks(sl):
     return sl
 
 
+def s_decision_tools(sl):
+    sl.head("Decision tools", "Test a storm before it arrives, and have a crew check the plan")
+    g = cols(2, gap=200000)
+    card(sl, g[0][0], CARD_Y, g[0][1], 2450000, "What-if storm simulator", [
+        ("Choose the storm: ", "how strong it is, when it hits, how long it lasts, and the region."),
+        ("See the cost first: ", "extra units, sales lost if no stock moves, and the stock that would need to move."),
+        ("Compare with the plan: ", "the storm week is set against the normal week and against the last saved plan."),
+    ])
+    card(sl, g[1][0], CARD_Y, g[1][1], 2450000, "Storm desk crew", [
+        ("Three agents, three jobs: ", "a forecaster drafts the plan, a risk checker tests each move against stock, and a summary writer writes it up."),
+        ("Only real moves: ", "a plan may name only transfers its own tools returned. Any other sentence is dropped."),
+        ("Read-only: ", "it can suggest moves but never approves or changes anything."),
+    ])
+    tiles = cols(3)
+    for (x, w), (value, label, source) in zip(tiles, [
+        ("516", "extra units in a test storm", "Florida, strength 80, two days"),
+        ("$15.6k", "sales at risk if no stock moves", "same test storm, live data"),
+        ("197", "units of stock to move to cover it", "same test storm, live data"),
+    ]):
+        tile(sl, x, 4240000, w, 900000, value, label, source)
+    sl.note("Simulator figures are estimates to plan with. The crew's plan in the "
+            "live check took 51 seconds and cited only transfers its tools returned.")
+    return sl
+
+
+def s_learning_carbon(sl):
+    sl.head("Learning and carbon", "Every rejection teaches the next plan, and every move shows its carbon")
+    g = cols(2, gap=200000)
+    card(sl, g[0][0], CARD_Y, g[0][1], 2450000, "Feedback loop", [
+        ("A reason is required: ", "no truck free, store closed, already covered, route too slow, or other."),
+        ("Recent decisions weigh more: ", "the weight halves every 14 days and stops counting after 60."),
+        ("Learning ranks, never removes: ", "a rejected route is offered lower, with the reason shown. No move is added or dropped."),
+    ])
+    card(sl, g[1][0], CARD_Y, g[1][1], 2450000, "Carbon per move", [
+        ("Shown on every move: ", "an estimate of kg CO₂ next to the distance."),
+        ("How it is estimated: ", "a loaded truck emits about 0.9 kg CO₂ per mile, and a truck carries about 200 units."),
+        ("Not yet used to choose: ", "the nearest source still wins. Carbon is shown, not optimised."),
+    ])
+    tiles = cols(3)
+    for (x, w), (value, label, source) in zip(tiles, [
+        ("14 days", "half-life of a rejection", "its weight halves each time"),
+        ("2.0", "route penalty after one rejection", "live check, Jacksonville to Orlando"),
+        ("Miami", "new source for Orlando's pumps", "the next plan, after the penalty"),
+    ]):
+        tile(sl, x, 4240000, w, 900000, value, label, source)
+    sl.note("The loop only reorders options a planner can already see. The carbon "
+            "figure is an estimate and is labelled as one everywhere it appears.")
+    return sl
+
+
+def s_connect(sl):
+    sl.head("Integrations", "Open to any assistant, through one standard")
+    g = cols(3, gap=200000)
+    card(sl, g[0][0], CARD_Y, g[0][1], 2450000, "MCP server", [
+        ("Ten tools: ", "eight read the plan and two approve or reject. Each calls the same API as the app."),
+        ("Same rules: ", "roles, rate limits and the audit trail all apply. Writes need a planner account."),
+        ("Standard protocol: ", "Streamable HTTP, so any MCP-capable client can connect."),
+    ])
+    card(sl, g[1][0], CARD_Y, g[1][1], 2450000, "Built-in client agent", [
+        ("Chooses its own checks: ", "a workspace model reads the tool list and decides what to look at."),
+        ("Read-only by default: ", "approve and reject stay hidden unless enabled."),
+        ("No extra key: ", "it uses the workspace sign-in, and the model runs in the workspace."),
+    ])
+    card(sl, g[2][0], CARD_Y, g[2][1], 2450000, "Published documentation", [
+        ("Documentation site: ", "planner guide, setup, design notes and a generated API reference."),
+        ("Architecture diagrams: ", "five interactive views, from the whole system to deployment."),
+        ("Rebuilt on each push: ", "the sites are published from the main branch on GitHub Pages."),
+    ])
+    tiles = cols(3)
+    for (x, w), (value, label, source) in zip(tiles, [
+        ("10", "MCP tools", "each one checked by tests"),
+        ("6", "server tests", "run against a stand-in API"),
+        ("3", "public pages", "landing, documentation, diagrams"),
+    ]):
+        tile(sl, x, 4240000, w, 900000, value, label, source)
+    sl.note("Any system that speaks MCP can use StormSense without a new integration, "
+            "under the same permissions as the app.")
+    return sl
+
+
+def s_operations(sl):
+    sl.head("Operations", "Quality gates, real weather, and cost you can see")
+    g = cols(3, gap=200000)
+    card(sl, g[0][0], CARD_Y, g[0][1], 3300000, "Data quality gates", [
+        ("Nine expectations: ", "bad sales, stock, rain or wind rows are dropped, and an impossible temperature stops the run."),
+        ("Latest run: ", "zero rows failed an expectation."),
+        ("Where it runs: ", "a declarative pipeline, before the features are built each morning."),
+    ])
+    card(sl, g[1][0], CARD_Y, g[1][1], 3300000, "Live weather in the daily job", [
+        ("Live forecast: ", "the US National Weather Service, grouped by each store's own time zone."),
+        ("Verified: ", "the daily job ran end to end on serverless compute, and all seven tasks succeeded."),
+        ("This week: ", "no storm or heat alert appears in the live forecast, so storms are tested with the what-if."),
+    ])
+    card(sl, g[2][0], CARD_Y, g[2][1], 3300000, "Cost and dashboard", [
+        ("Cost view: ", "built on system billing, filtered to the project tag on all three jobs."),
+        ("Still empty: ", "billing data lags by hours, so the cost view has no rows yet."),
+        ("Dashboard: ", "six live datasets. Its layout has not yet been checked in a browser."),
+    ])
+    sl.note("Each claim here is one the running system produced. Where something is "
+            "still waiting for data, the slide says so.")
+    return sl
+
+
+def s_roadmap(sl):
+    sl.head("Roadmap", "What is blocked, what needs a decision, and what comes next")
+    g = cols(3, gap=200000)
+    card(sl, g[0][0], CARD_Y, g[0][1], 3300000, "Blocked", [
+        ("Planner app deployment: ", "the company web filter blocks the upload of one service file."),
+        ("Options: ", "IT approval, a CI deploy with a service identity, or a Git folder in the workspace."),
+        ("Until then: ", "the app runs locally against the live workspace."),
+    ])
+    card(sl, g[1][0], CARD_Y, g[1][1], 3300000, "Decisions needed", [
+        ("Pilot retailer: ", "choose a regional grocer or hardware chain for a live sales feed."),
+        ("Data clean-up: ", "remove the stale October 7 forecast rows, with approval."),
+        ("One approval to confirm: ", "a Tampa generator move was approved with no note."),
+    ])
+    card(sl, g[2][0], CARD_Y, g[2][1], 3300000, "Next features", [
+        ("Storm trigger: ", "draft moves from weather warnings automatically; planners still approve."),
+        ("Joint optimisation: ", "solve all moves together for cost, sales and carbon."),
+        ("Evaluation and precedents: ", "score the crew against approved answers, and find similar past decisions."),
+    ])
+    sl.note("Be direct about what is blocked. Every other item has a working version "
+            "that was checked on the workspace.")
+    return sl
+
+
 # =============================================================== assembly ===
 # (mode, part name, builder, layout, speaker notes)
 SLIDES = [
@@ -729,6 +922,10 @@ SLIDES = [
     ("keep",  "slide7",  None,           None,            None),
     ("write", "slide8",  s_architecture, "slideLayout39", NOTE["slide8"]),
     ("write", "slide20", s_databricks,   "slideLayout39", NOTE["slide20"]),
+    ("write", "slide23", s_decision_tools, "slideLayout39", NOTE["slide23"]),
+    ("write", "slide24", s_learning_carbon, "slideLayout39", NOTE["slide24"]),
+    ("write", "slide25", s_connect,      "slideLayout39", NOTE["slide25"]),
+    ("write", "slide26", s_operations,   "slideLayout39", NOTE["slide26"]),
     ("keep",  "slide9",  None,           None,            None),
     ("write", "slide10", s_video,        "slideLayout39", NOTE["slide10"]),
     ("keep",  "slide11", None,           None,            None),
@@ -737,6 +934,7 @@ SLIDES = [
     ("keep",  "slide13", None,           None,            None),
     ("write", "slide14", s_impact,       "slideLayout39", NOTE["slide14"]),
     ("write", "slide22", s_scale,        "slideLayout39", NOTE["slide22"]),
+    ("write", "slide27", s_roadmap,     "slideLayout39", NOTE["slide27"]),
     ("write", "slide15", s_thanks,       "slideLayout43", NOTE["slide15"]),
     ("keep",  "slide16", None,           None,            None),
     ("keep",  "slide17", None,           None,            None),
