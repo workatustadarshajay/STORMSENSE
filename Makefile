@@ -8,7 +8,7 @@ export REQUESTS_CA_BUNDLE ?= /etc/ssl/certs/ca-certificates.crt
 export SSL_CERT_FILE ?= /etc/ssl/certs/ca-certificates.crt
 endif
 
-.PHONY: help setup dev dev-sample dev-api dev-web test lint e2e types fixtures docs architecture build-app smoke deploy deploy-data deploy-app pause resume
+.PHONY: help setup dev dev-sample dev-api dev-web test lint e2e types fixtures docs architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -50,6 +50,11 @@ fixtures:  ## Regenerate the sample data the app uses without a workspace
 
 docs:  ## Regenerate the data dictionary
 	$(PY) -c "import sys; sys.path.insert(0, 'databricks'); from stormsense_core.tables import data_dictionary; print(data_dictionary())" > docs/data-dictionary.md
+
+deck:  ## Rebuild the hackathon deck (StormSense-Databricks-Hackathon.pptx) from the UST template
+	$(PY) deck/make_assets.py
+	$(PY) deck/build_deck.py
+	$(PY) deck/verify_deck.py
 
 architecture:  ## Regenerate the architecture website's diagrams from docs/architecture/src (set ARCHIFY_CHROME to a Chrome binary)
 	@for spec in "architecture architecture-system system" "dataflow dataflow-daily-pipeline daily-pipeline" \
