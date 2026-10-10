@@ -41,6 +41,7 @@ export const useStormDecide = () => {
     },
   });
 };
+export const useLoads = () => useQuery({ queryKey: ["loads"], queryFn: api.loads });
 export const useImpact = () => useQuery({ queryKey: ["impact"], queryFn: api.impact });
 export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });

@@ -157,6 +157,9 @@ export default function Transfers() {
       <Link to="/storm-desk" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint">
         Get a plan from storm desk
       </Link>
+      <Link to="/loads" className="mt-4 ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint">
+        Shared truck loads
+      </Link>
       <Link to="/what-if" className="mt-4 ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 font-bold text-signal-deep hover:border-signal hover:bg-signal-tint">
         What if a storm comes?
       </Link>

@@ -6,6 +6,7 @@ import Ask from "./pages/Ask";
 import Backtest from "./pages/Backtest";
 import Analysis from "./pages/Analysis";
 import Impact from "./pages/Impact";
+import Loads from "./pages/Loads";
 import StormResponse from "./pages/StormResponse";
 import YourData from "./pages/YourData";
 import History from "./pages/History";
@@ -43,6 +44,7 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="analysis" element={<Analysis />} />
           <Route path="impact" element={<Impact />} />
           <Route path="response" element={<StormResponse />} />
+          <Route path="loads" element={<Loads />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

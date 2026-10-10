@@ -120,3 +120,7 @@ The draft holds the moves waiting for a decision, the open markdown suggestions,
 
 The store notes are drafts only. Store email addresses are not set up yet, so nothing is sent to store managers.
 
+## Shared truck loads
+
+**Transfers** links to **Shared truck loads**. Moves that go on the same route can share a truck. The page shows the truck trips today, the trips if the moves share loads, and the trucking and carbon saved, with each route's moves listed. It only suggests loads, and nothing changes until the moves are approved.
+

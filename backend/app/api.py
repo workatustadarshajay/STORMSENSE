@@ -27,6 +27,7 @@ from .schemas import (
     Impact,
     ImpactHeadline,
     InventoryItem,
+    Loads,
     MarkdownSuggestion,
     Me,
     Overview,
@@ -290,6 +291,18 @@ def briefing(user: User, svc: Svc) -> Briefing:
 
     data = build(svc.overview(), svc.stores(), svc.transfers("PENDING", None), svc.markdowns("live"))
     return Briefing(**data)
+
+
+@router.get("/loads", response_model=Loads, tags=["transfers"])
+def loads(request: Request, user: User, svc: Svc) -> Loads:
+    """Moves waiting for a decision, grouped by route, with the truck trips that sharing a load would save. Suggestion only."""
+    from .ingest import IngestStore
+    from .ingest_plan import DEFAULT_ECONOMICS, economics
+    from .loads import plan_loads
+
+    settings = request.app.state.settings
+    econ = economics(IngestStore(settings.ingest_dir)) if settings.ingest_enabled else dict(DEFAULT_ECONOMICS)
+    return Loads(**plan_loads(svc.transfers("PENDING", None), econ["truck_cost_per_mile"]))
 
 
 @router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])

@@ -290,3 +290,20 @@ describe("Storm response", () => {
     expect(screen.getByRole("link", { name: "Review the storm response" })).toHaveAttribute("href", "/response");
   });
 });
+
+describe("Shared truck loads", () => {
+  it("shows the trips and money saved, and which moves share a route", async () => {
+    serve({
+      "GET /api/loads": () => ({
+        trips_now: 2, trips_together: 1, saved_usd: 200, saved_kg: 90, cost_per_mile: 2, truck_units: 200,
+        routes: [{ from_store: "Jacksonville", to_store: "Orlando", miles: 100, units: 120, trips_now: 2, trips_together: 1, saved_usd: 200, saved_kg: 90,
+          moves: [{ id: "TR1", product: "tarps", qty: 60 }, { id: "TR2", product: "pumps", qty: 60 }] }],
+      }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/loads");
+    expect(await screen.findByText("Jacksonville to Orlando")).toBeInTheDocument();
+    expect(screen.getByText(/2 trips today, 1 together: saves \$200/)).toBeInTheDocument();
+    expect(screen.getByText("60 tarps")).toBeInTheDocument();
+  });
+});

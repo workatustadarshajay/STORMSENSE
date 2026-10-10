@@ -323,6 +323,34 @@ class DraftDecision(BaseModel):
     reason: str = Field("Not needed for this storm.", min_length=3, max_length=280)
 
 
+class LoadMove(BaseModel):
+    id: str
+    product: str
+    qty: int
+
+
+class LoadRoute(BaseModel):
+    from_store: str
+    to_store: str
+    miles: int
+    units: int
+    moves: list[LoadMove]
+    trips_now: int
+    trips_together: int
+    saved_usd: float
+    saved_kg: float
+
+
+class Loads(BaseModel):
+    routes: list[LoadRoute]
+    trips_now: int
+    trips_together: int
+    saved_usd: float
+    saved_kg: float
+    cost_per_mile: float
+    truck_units: int
+
+
 class ImpactHeadline(BaseModel):
     protected_usd: float
     margin_usd: float

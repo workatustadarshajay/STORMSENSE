@@ -397,3 +397,12 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Limits:** drafts are kept in memory and reset on restart. Drafting happens when a planner opens Today or the page. There is no background drafting from the storm trigger yet, because that job is not deployed.
 - **Code:** `backend/app/storm_response.py`; `api.py` (`POST /api/response/draft`, `GET /api/response/{id}`, `POST /api/response/{id}/decide`); `frontend/src/pages/StormResponse.tsx`; the card in `pages/Today.tsx`.
 - **Checks:** backend 144 pass (6 new); planner unit 56 pass; planner browser 33 pass with 1 skipped, including the new page for accessibility and banned words; lint passes; the API reference regenerated.
+
+---
+
+## 29. Truck consolidation (shared truck loads)
+
+- **What:** the moves waiting for a decision are grouped by route. Moves on one route can share trucks, so the page shows the trips today, the trips if loads are shared, and the trucking and carbon saved.
+- **How:** `backend/app/loads.py` (a truck carries 200 units; each trip costs the per-mile rate over the route's miles, the same model as the impact page). Endpoint `GET /api/loads`. Page `/loads`, linked from Transfers.
+- **Limits:** the saving counts whole trips, so a route with partial trucks saves less than a fully loaded one. It is a suggestion only.
+- **Checks:** backend 148 pass (4 new); planner unit 57 pass; planner browser 34 pass with 1 skipped; lint passes.

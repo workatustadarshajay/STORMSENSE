@@ -395,6 +395,26 @@ Inventory
 
 Returns list of InventoryItem.
 
+### `GET /api/loads`
+
+Loads
+
+Moves waiting for a decision, grouped by route, with the truck trips that sharing a load would save. Suggestion only.
+
+**Response**
+
+Returns Loads.
+
+| Field | Type | Notes |
+|---|---|---|
+| `cost_per_mile` | number |  |
+| `routes` | list of LoadRoute |  |
+| `saved_kg` | number |  |
+| `saved_usd` | number |  |
+| `trips_now` | integer |  |
+| `trips_together` | integer |  |
+| `truck_units` | integer |  |
+
 ### `GET /api/markdowns`
 
 Markdowns

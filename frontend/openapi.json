@@ -944,6 +944,131 @@
         "title": "InventoryItem",
         "type": "object"
       },
+      "LoadMove": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "product",
+          "qty"
+        ],
+        "title": "LoadMove",
+        "type": "object"
+      },
+      "LoadRoute": {
+        "properties": {
+          "from_store": {
+            "title": "From Store",
+            "type": "string"
+          },
+          "miles": {
+            "title": "Miles",
+            "type": "integer"
+          },
+          "moves": {
+            "items": {
+              "$ref": "#/components/schemas/LoadMove"
+            },
+            "title": "Moves",
+            "type": "array"
+          },
+          "saved_kg": {
+            "title": "Saved Kg",
+            "type": "number"
+          },
+          "saved_usd": {
+            "title": "Saved Usd",
+            "type": "number"
+          },
+          "to_store": {
+            "title": "To Store",
+            "type": "string"
+          },
+          "trips_now": {
+            "title": "Trips Now",
+            "type": "integer"
+          },
+          "trips_together": {
+            "title": "Trips Together",
+            "type": "integer"
+          },
+          "units": {
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "from_store",
+          "to_store",
+          "miles",
+          "units",
+          "moves",
+          "trips_now",
+          "trips_together",
+          "saved_usd",
+          "saved_kg"
+        ],
+        "title": "LoadRoute",
+        "type": "object"
+      },
+      "Loads": {
+        "properties": {
+          "cost_per_mile": {
+            "title": "Cost Per Mile",
+            "type": "number"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/LoadRoute"
+            },
+            "title": "Routes",
+            "type": "array"
+          },
+          "saved_kg": {
+            "title": "Saved Kg",
+            "type": "number"
+          },
+          "saved_usd": {
+            "title": "Saved Usd",
+            "type": "number"
+          },
+          "trips_now": {
+            "title": "Trips Now",
+            "type": "integer"
+          },
+          "trips_together": {
+            "title": "Trips Together",
+            "type": "integer"
+          },
+          "truck_units": {
+            "title": "Truck Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "routes",
+          "trips_now",
+          "trips_together",
+          "saved_usd",
+          "saved_kg",
+          "cost_per_mile",
+          "truck_units"
+        ],
+        "title": "Loads",
+        "type": "object"
+      },
       "MarkdownDecision": {
         "properties": {
           "decision": {
@@ -3191,6 +3316,28 @@
         "summary": "Inventory",
         "tags": [
           "stores"
+        ]
+      }
+    },
+    "/api/loads": {
+      "get": {
+        "description": "Moves waiting for a decision, grouped by route, with the truck trips that sharing a load would save. Suggestion only.",
+        "operationId": "loads_api_loads_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Loads"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Loads",
+        "tags": [
+          "transfers"
         ]
       }
     },

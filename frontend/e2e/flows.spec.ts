@@ -5,6 +5,7 @@ const PAGES = [
   ["Analysis", "/analysis"],
   ["Business impact", "/impact"],
   ["Storm response", "/response"],
+  ["Shared truck loads", "/loads"],
   ["Today", "/"],
   ["Transfers", "/transfers"],
   ["Store forecast", "/stores"],

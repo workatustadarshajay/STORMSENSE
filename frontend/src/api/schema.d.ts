@@ -440,6 +440,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/loads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Loads
+         * @description Moves waiting for a decision, grouped by route, with the truck trips that sharing a load would save. Suggestion only.
+         */
+        get: operations["loads_api_loads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/markdowns": {
         parameters: {
             query?: never;
@@ -1092,6 +1112,53 @@ export interface components {
              */
             status: "RUNNING_LOW" | "EXTRA" | "OK";
             store: components["schemas"]["Ref"];
+        };
+        /** LoadMove */
+        LoadMove: {
+            /** Id */
+            id: string;
+            /** Product */
+            product: string;
+            /** Qty */
+            qty: number;
+        };
+        /** LoadRoute */
+        LoadRoute: {
+            /** From Store */
+            from_store: string;
+            /** Miles */
+            miles: number;
+            /** Moves */
+            moves: components["schemas"]["LoadMove"][];
+            /** Saved Kg */
+            saved_kg: number;
+            /** Saved Usd */
+            saved_usd: number;
+            /** To Store */
+            to_store: string;
+            /** Trips Now */
+            trips_now: number;
+            /** Trips Together */
+            trips_together: number;
+            /** Units */
+            units: number;
+        };
+        /** Loads */
+        Loads: {
+            /** Cost Per Mile */
+            cost_per_mile: number;
+            /** Routes */
+            routes: components["schemas"]["LoadRoute"][];
+            /** Saved Kg */
+            saved_kg: number;
+            /** Saved Usd */
+            saved_usd: number;
+            /** Trips Now */
+            trips_now: number;
+            /** Trips Together */
+            trips_together: number;
+            /** Truck Units */
+            truck_units: number;
         };
         /** MarkdownDecision */
         MarkdownDecision: {
@@ -2281,6 +2348,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    loads_api_loads_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Loads"];
                 };
             };
         };
