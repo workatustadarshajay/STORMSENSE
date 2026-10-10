@@ -282,6 +282,47 @@ class WhatIfResult(BaseModel):
     plan_change: PlanChange | None = None
 
 
+class DraftMove(BaseModel):
+    id: str
+    headline: str
+    urgency: str
+    qty: int
+    sales_protected_usd: float
+    distance_miles: int
+    co2_kg: float
+    reason: str
+
+
+class StoreNote(BaseModel):
+    store: str
+    text: str
+
+
+class StormDraft(BaseModel):
+    id: str
+    status: str = Field(description="draft until a planner decides, then decided")
+    source: str
+    storm: str
+    weekday: str
+    onset: date
+    stores: list[str]
+    moves: list[DraftMove]
+    protected_usd: float
+    co2_kg: float
+    markdowns_open: int
+    store_notes: list[StoreNote] = Field(description="Draft notes for store managers. Not sent: store email addresses are not set up.")
+    created_at: str
+    decided_by: str | None
+    decided_at: str | None
+    approved: int
+    rejected: int
+
+
+class DraftDecision(BaseModel):
+    approve_ids: list[str] = Field(default_factory=list, description="The moves to approve. Every other move in the draft is rejected.")
+    reason: str = Field("Not needed for this storm.", min_length=3, max_length=280)
+
+
 class ImpactHeadline(BaseModel):
     protected_usd: float
     margin_usd: float

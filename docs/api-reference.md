@@ -487,6 +487,113 @@ Returns Overview.
 | `urgent_transfers` | integer |  |
 | `weather_source` | one of `live`, `demo` | demo means a demo storm is placed on the weather screens; default `"live"` |
 
+### `POST /api/response/draft`
+
+Storm Draft
+
+Drafts the storm response for the current storm warning. Idempotent: returns the open draft if there is one. Sends nothing.
+
+**Response**
+
+Returns StormDraft.
+
+| Field | Type | Notes |
+|---|---|---|
+| `approved` | integer |  |
+| `co2_kg` | number |  |
+| `created_at` | string |  |
+| `decided_at` | string (optional) |  |
+| `decided_by` | string (optional) |  |
+| `id` | string |  |
+| `markdowns_open` | integer |  |
+| `moves` | list of DraftMove |  |
+| `onset` | string |  |
+| `protected_usd` | number |  |
+| `rejected` | integer |  |
+| `source` | string |  |
+| `status` | string | draft until a planner decides, then decided |
+| `store_notes` | list of StoreNote | Draft notes for store managers. Not sent: store email addresses are not set up. |
+| `stores` | list of string |  |
+| `storm` | string |  |
+| `weekday` | string |  |
+
+### `GET /api/response/{draft_id}`
+
+Storm Draft Get
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `draft_id` | path | string | yes |  |
+
+**Response**
+
+Returns StormDraft.
+
+| Field | Type | Notes |
+|---|---|---|
+| `approved` | integer |  |
+| `co2_kg` | number |  |
+| `created_at` | string |  |
+| `decided_at` | string (optional) |  |
+| `decided_by` | string (optional) |  |
+| `id` | string |  |
+| `markdowns_open` | integer |  |
+| `moves` | list of DraftMove |  |
+| `onset` | string |  |
+| `protected_usd` | number |  |
+| `rejected` | integer |  |
+| `source` | string |  |
+| `status` | string | draft until a planner decides, then decided |
+| `store_notes` | list of StoreNote | Draft notes for store managers. Not sent: store email addresses are not set up. |
+| `stores` | list of string |  |
+| `storm` | string |  |
+| `weekday` | string |  |
+
+### `POST /api/response/{draft_id}/decide`
+
+Storm Decide
+
+A planner approves the chosen moves and rejects the rest. The same approval path as every transfer.
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `draft_id` | path | string | yes |  |
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `approve_ids` | list of string | no | The moves to approve. Every other move in the draft is rejected. |
+| `reason` | string | no | min length 3; max length 280; default `"Not needed for this storm."` |
+
+**Response**
+
+Returns StormDraft.
+
+| Field | Type | Notes |
+|---|---|---|
+| `approved` | integer |  |
+| `co2_kg` | number |  |
+| `created_at` | string |  |
+| `decided_at` | string (optional) |  |
+| `decided_by` | string (optional) |  |
+| `id` | string |  |
+| `markdowns_open` | integer |  |
+| `moves` | list of DraftMove |  |
+| `onset` | string |  |
+| `protected_usd` | number |  |
+| `rejected` | integer |  |
+| `source` | string |  |
+| `status` | string | draft until a planner decides, then decided |
+| `store_notes` | list of StoreNote | Draft notes for store managers. Not sent: store email addresses are not set up. |
+| `stores` | list of string |  |
+| `storm` | string |  |
+| `weekday` | string |  |
+
 ### `GET /api/stores`
 
 Stores

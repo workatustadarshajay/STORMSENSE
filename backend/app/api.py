@@ -22,6 +22,7 @@ from .schemas import (
     ChangeSince,
     DecisionResult,
     DemoAlertResult,
+    DraftDecision,
     Health,
     Impact,
     ImpactHeadline,
@@ -35,6 +36,7 @@ from .schemas import (
     StoreSummary,
     StormDeskPlan,
     StormDeskRequest,
+    StormDraft,
     TimelineEvent,
     Transfer,
     WhatIfRequest,
@@ -226,9 +228,54 @@ def describe(e: dict[str, Any]) -> str:
         return f"Approved {e.get('count', 0)} move{'s' if e.get('count', 0) != 1 else ''}."
     if kind == "transfers_rejected":
         return f"Rejected {e.get('count', 0)} move{'s' if e.get('count', 0) != 1 else ''}."
+    if kind == "storm_response_decided":
+        return f"Storm response decided: {e.get('approved', 0)} approved, {e.get('rejected', 0)} rejected."
     if kind == "markdown_decided":
         return f"{'Approved' if e.get('decision') == 'APPROVED' else 'Rejected'} a markdown."
     return kind.replace("_", " ").capitalize()
+
+
+@router.post("/response/draft", response_model=StormDraft, tags=["storm response"], dependencies=[Depends(same_origin)])
+def storm_draft(user: User, request: Request, svc: Svc) -> StormDraft:
+    """Drafts the storm response for the current storm warning. Idempotent: returns the open draft if there is one. Sends nothing."""
+    from .storm_response import build_draft, draft_id
+
+    o = svc.overview()
+    alert = next((a for a in o.alerts if a.kind in ("storm", "heat")), None) if o.alerts else None
+    if alert is None:
+        raise problem(404, "no_storm", "No storm or heat warning is in the forecast right now.")
+    source = requested_source(request)
+    book = request.app.state.responses
+    existing = book.drafts.get(draft_id(alert))  # a decided response is never reopened by drafting it again
+    if existing and existing["source"] == source:
+        return StormDraft(**existing)
+    draft = build_draft(alert, svc.transfers("PENDING", None), sum(1 for m in svc.markdowns("live") if m.decision == "pending"), source)
+    book.drafts[draft["id"]] = draft
+    return StormDraft(**draft)
+
+
+@router.get("/response/{draft_id}", response_model=StormDraft, tags=["storm response"])
+def storm_draft_get(draft_id: str, request: Request, user: User) -> StormDraft:
+    found = request.app.state.responses.drafts.get(draft_id)
+    if not found:
+        raise problem(404, "not_found", "That storm response is no longer open.")
+    return StormDraft(**found)
+
+
+@router.post("/response/{draft_id}/decide", response_model=StormDraft, tags=["storm response"], dependencies=[Depends(same_origin)])
+def storm_decide(draft_id: str, body: DraftDecision, request: Request, user: Annotated[Me, Depends(planner)], svc: Svc) -> StormDraft:
+    """A planner approves the chosen moves and rejects the rest. The same approval path as every transfer."""
+    from .storm_response import decide
+
+    book = request.app.state.responses
+    found = book.drafts.get(draft_id)
+    if not found or found["status"] != "draft":
+        raise problem(409, "already_decided", "This storm response was already decided.")
+    if found["source"] != requested_source(request):
+        raise problem(409, "wrong_source", "Switch to the data this response was drafted from, then decide it.")
+    decided = decide(found, svc, user.email, body.approve_ids, body.reason)
+    log_event(request, "storm_response_decided", user.name, approved=decided["approved"], rejected=decided["rejected"])
+    return StormDraft(**decided)
 
 
 class Briefing(BaseModel):

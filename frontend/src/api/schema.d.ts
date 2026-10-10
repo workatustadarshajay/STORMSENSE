@@ -514,6 +514,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/response/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Storm Draft
+         * @description Drafts the storm response for the current storm warning. Idempotent: returns the open draft if there is one. Sends nothing.
+         */
+        post: operations["storm_draft_api_response_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/response/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Storm Draft Get */
+        get: operations["storm_draft_get_api_response__draft_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/response/{draft_id}/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Storm Decide
+         * @description A planner approves the chosen moves and rejects the rest. The same approval path as every transfer.
+         */
+        post: operations["storm_decide_api_response__draft_id__decide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stores": {
         parameters: {
             query?: never;
@@ -891,6 +948,38 @@ export interface components {
              */
             what: string;
         };
+        /** DraftDecision */
+        DraftDecision: {
+            /**
+             * Approve Ids
+             * @description The moves to approve. Every other move in the draft is rejected.
+             */
+            approve_ids?: string[];
+            /**
+             * Reason
+             * @default Not needed for this storm.
+             */
+            reason: string;
+        };
+        /** DraftMove */
+        DraftMove: {
+            /** Co2 Kg */
+            co2_kg: number;
+            /** Distance Miles */
+            distance_miles: number;
+            /** Headline */
+            headline: string;
+            /** Id */
+            id: string;
+            /** Qty */
+            qty: number;
+            /** Reason */
+            reason: string;
+            /** Sales Protected Usd */
+            sales_protected_usd: number;
+            /** Urgency */
+            urgency: string;
+        };
         /** DropResult */
         DropResult: {
             /** Folder */
@@ -1240,6 +1329,13 @@ export interface components {
              */
             weather_source: "live" | "demo";
         };
+        /** StoreNote */
+        StoreNote: {
+            /** Store */
+            store: string;
+            /** Text */
+            text: string;
+        };
         /** StoreSummary */
         StoreSummary: {
             /** City */
@@ -1302,6 +1398,52 @@ export interface components {
         StormDeskRequest: {
             /** Goal */
             goal: string;
+        };
+        /** StormDraft */
+        StormDraft: {
+            /** Approved */
+            approved: number;
+            /** Co2 Kg */
+            co2_kg: number;
+            /** Created At */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By */
+            decided_by: string | null;
+            /** Id */
+            id: string;
+            /** Markdowns Open */
+            markdowns_open: number;
+            /** Moves */
+            moves: components["schemas"]["DraftMove"][];
+            /**
+             * Onset
+             * Format: date
+             */
+            onset: string;
+            /** Protected Usd */
+            protected_usd: number;
+            /** Rejected */
+            rejected: number;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @description draft until a planner decides, then decided
+             */
+            status: string;
+            /**
+             * Store Notes
+             * @description Draft notes for store managers. Not sent: store email addresses are not set up.
+             */
+            store_notes: components["schemas"]["StoreNote"][];
+            /** Stores */
+            stores: string[];
+            /** Storm */
+            storm: string;
+            /** Weekday */
+            weekday: string;
         };
         /** TimelineEvent */
         TimelineEvent: {
@@ -2245,6 +2387,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Overview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    storm_draft_api_response_draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StormDraft"];
+                };
+            };
+        };
+    };
+    storm_draft_get_api_response__draft_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StormDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    storm_decide_api_response__draft_id__decide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StormDraft"];
                 };
             };
             /** @description Validation Error */

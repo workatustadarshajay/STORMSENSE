@@ -251,3 +251,42 @@ describe("Morning briefing", () => {
     expect(screen.getByText("Your morning briefing")).toBeInTheDocument();
   });
 });
+
+describe("Storm response", () => {
+  const draftFixture = {
+    id: "SR-TEST0001", status: "draft", source: "sample", storm: "Tropical Storm Odalys", weekday: "Sunday", onset: "2026-10-11",
+    stores: ["Orlando", "Tampa"],
+    moves: [
+      { id: "TR-AAAA000001", headline: "Move 54 1000W generators from Jacksonville to Orlando", urgency: "URGENT", qty: 54, sales_protected_usd: 18578, distance_miles: 140, co2_kg: 41, reason: "Storm on Sunday." },
+      { id: "TR-BBBB000002", headline: "Move 14 coolers from Miami to Tampa", urgency: "NORMAL", qty: 14, sales_protected_usd: 900, distance_miles: 210, co2_kg: 13, reason: "Demand rising." },
+    ],
+    protected_usd: 19478, co2_kg: 54, markdowns_open: 1,
+    store_notes: [{ store: "Orlando", text: "Storm expected Sunday." }],
+    created_at: "2026-10-10T08:00:00", decided_by: null, decided_at: null, approved: 0, rejected: 0,
+  };
+  it("shows the draft's moves, keeps all of them by default, and approves the chosen ones", async () => {
+    const user = userEvent.setup();
+    const server = serve({
+      "POST /api/response/draft": () => draftFixture,
+      "POST /api/response/SR-TEST0001/decide": () => ({ ...draftFixture, status: "decided", approved: 1, rejected: 1, decided_by: "Ava" }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/response");
+    expect(await screen.findByText("Move 54 1000W generators from Jacksonville to Orlando")).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: /Keep: Move 14 coolers/ }));
+    await user.click(screen.getByRole("button", { name: "Approve 1, reject 1" }));
+    expect(await screen.findByText(/Decided by Ava: 1 approved, 1 rejected/)).toBeInTheDocument();
+    const body = server.calls.find((c) => c.path === "/api/response/SR-TEST0001/decide")?.body as { approve_ids: string[] };
+    expect(body.approve_ids).toEqual(["TR-AAAA000001"]);
+  });
+  it("tells the planner on Today that a storm response is ready, and sends them to review it", async () => {
+    serve({
+      "POST /api/response/draft": () => draftFixture,
+      "GET /api/overview": () => ({ ...fx.overview, alerts: [{ date: "2026-10-11", weekday: "Sunday", kind: "storm", title: "Tropical Storm Odalys expected Sunday", detail: "", stores: ["Orlando"] }] }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/");
+    expect(await screen.findByText(/2 moves are drafted for tropical storm odalys, protecting/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Review the storm response" })).toHaveAttribute("href", "/response");
+  });
+});

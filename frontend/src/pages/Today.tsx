@@ -1,8 +1,8 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
-import { useBriefing, useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
+import { useBriefing, useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores, useStormDraft } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
-import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
+import { greeting, longDate, money, plural, shortDay, parseDay } from "../lib/format";
 
 const KIND = { storm: "Storm", heavy_rain: "Heavy rain", heat: "Heat wave" } as const;
 
@@ -140,6 +140,25 @@ function Markdowns({ weather }: { weather: WeatherMode }) {
   );
 }
 
+function StormResponseCard({ hasStorm }: { hasStorm: boolean }) {
+  const me = useMe();
+  const draft = useStormDraft(hasStorm && me.data?.can_approve === true);
+  if (!hasStorm || !draft.data) return null;
+  const d = draft.data;
+  return (
+    <section aria-labelledby="storm-card-h" className="mt-6 rounded-2xl border border-signal/40 bg-signal-tint p-5">
+      <h2 id="storm-card-h" className="text-sm font-bold uppercase tracking-wide text-signal-deep">Storm response</h2>
+      <p className="mt-2 text-lg font-extrabold">
+        {d.status === "decided"
+          ? `Decided: ${d.approved} approved, ${d.rejected} rejected.`
+          : `${d.moves.length} moves are drafted for ${d.storm.toLowerCase()}, protecting about ${money(d.protected_usd)}.`}
+      </p>
+      <p className="mt-1 text-sm text-ink-soft">Nothing has been sent or moved. You decide.</p>
+      <Link to="/response" className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-ink px-4 font-bold text-white">Review the storm response</Link>
+    </section>
+  );
+}
+
 function Briefing() {
   const briefing = useBriefing();
   return (
@@ -171,6 +190,7 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
         <p className="mt-1.5 opacity-90">{o.next_action.detail}</p>
       </section>
 
+      <StormResponseCard hasStorm={o.alerts.some((a) => a.kind === "storm" || a.kind === "heat")} />
       <Briefing />
       <WeatherSwitch mode={weather} onChange={onWeather} />
       {weather === "demo" && (

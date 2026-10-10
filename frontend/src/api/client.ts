@@ -25,6 +25,8 @@ export type Analysis = S["Analysis"];
 export type PlanStatus = S["PlanStatus"];
 export type Impact = S["Impact"];
 export type Briefing = S["Briefing"];
+export type StormDraft = S["StormDraft"];
+export type DraftDecision = S["DraftDecision"];
 export type AnalysisCharts = {
   as_of: string | null;
   demand_by_day: { date: string; units: number }[];
@@ -85,6 +87,8 @@ export const api = {
   analysisCharts: () => request<AnalysisCharts>("/api/analysis/charts"),
   impact: () => request<Impact>("/api/impact"),
   briefing: () => request<Briefing>("/api/briefing"),
+  stormDraft: () => post<StormDraft>("/api/response/draft", {}),
+  stormDecide: (id: string, body: DraftDecision) => post<StormDraft>(`/api/response/${id}/decide`, body),
   ingestAnalysis: () => request<Analysis>("/api/ingest/analysis"),
   planStatus: () => request<PlanStatus>("/api/ingest/plan/status"),
   decideMarkdown: (store_id: string, product_id: string, decision: "APPROVED" | "REJECTED") =>

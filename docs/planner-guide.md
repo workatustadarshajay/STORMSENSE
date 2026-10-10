@@ -112,3 +112,11 @@ On Today, a planner can **Approve** or **Reject** each price markdown suggestion
 
 The top of **Today** is your morning briefing: a headline and a few plain sentences. It says how many moves are urgent and waiting, the next weather alert, which stores are at risk and the least ready, the biggest move and what it protects, any markdowns to decide, and when stock was last counted. Every figure comes from the data you're looking at, so it follows the chosen source. It is not written by a model.
 
+## Storm response
+
+When a storm or heat warning is in the forecast, Today shows a **Storm response** card. It says how many moves are drafted for the storm and the sales they protect. **Review the storm response** opens the draft.
+
+The draft holds the moves waiting for a decision, the open markdown suggestions, the carbon and the sales protected, and a draft note for each affected store. Nothing has been sent or moved. Tick the moves to keep, give a reason for the rest, and approve. The chosen moves are approved and the others are rejected, through the same approval path as every transfer, and the decision is recorded in the timeline. A decided response is not reopened.
+
+The store notes are drafts only. Store email addresses are not set up yet, so nothing is sent to store managers.
+

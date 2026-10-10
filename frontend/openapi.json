@@ -557,6 +557,75 @@
         "title": "DeskStep",
         "type": "object"
       },
+      "DraftDecision": {
+        "properties": {
+          "approve_ids": {
+            "description": "The moves to approve. Every other move in the draft is rejected.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Approve Ids",
+            "type": "array"
+          },
+          "reason": {
+            "default": "Not needed for this storm.",
+            "maxLength": 280,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "DraftDecision",
+        "type": "object"
+      },
+      "DraftMove": {
+        "properties": {
+          "co2_kg": {
+            "title": "Co2 Kg",
+            "type": "number"
+          },
+          "distance_miles": {
+            "title": "Distance Miles",
+            "type": "integer"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "sales_protected_usd": {
+            "title": "Sales Protected Usd",
+            "type": "number"
+          },
+          "urgency": {
+            "title": "Urgency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "headline",
+          "urgency",
+          "qty",
+          "sales_protected_usd",
+          "distance_miles",
+          "co2_kg",
+          "reason"
+        ],
+        "title": "DraftMove",
+        "type": "object"
+      },
       "DropResult": {
         "properties": {
           "folder": {
@@ -1504,6 +1573,24 @@
         "title": "StoreForecast",
         "type": "object"
       },
+      "StoreNote": {
+        "properties": {
+          "store": {
+            "title": "Store",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "text"
+        ],
+        "title": "StoreNote",
+        "type": "object"
+      },
       "StoreSummary": {
         "properties": {
           "city": {
@@ -1627,6 +1714,125 @@
           "goal"
         ],
         "title": "StormDeskRequest",
+        "type": "object"
+      },
+      "StormDraft": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "co2_kg": {
+            "title": "Co2 Kg",
+            "type": "number"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "markdowns_open": {
+            "title": "Markdowns Open",
+            "type": "integer"
+          },
+          "moves": {
+            "items": {
+              "$ref": "#/components/schemas/DraftMove"
+            },
+            "title": "Moves",
+            "type": "array"
+          },
+          "onset": {
+            "format": "date",
+            "title": "Onset",
+            "type": "string"
+          },
+          "protected_usd": {
+            "title": "Protected Usd",
+            "type": "number"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "description": "draft until a planner decides, then decided",
+            "title": "Status",
+            "type": "string"
+          },
+          "store_notes": {
+            "description": "Draft notes for store managers. Not sent: store email addresses are not set up.",
+            "items": {
+              "$ref": "#/components/schemas/StoreNote"
+            },
+            "title": "Store Notes",
+            "type": "array"
+          },
+          "stores": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stores",
+            "type": "array"
+          },
+          "storm": {
+            "title": "Storm",
+            "type": "string"
+          },
+          "weekday": {
+            "title": "Weekday",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "source",
+          "storm",
+          "weekday",
+          "onset",
+          "stores",
+          "moves",
+          "protected_usd",
+          "co2_kg",
+          "markdowns_open",
+          "store_notes",
+          "created_at",
+          "decided_by",
+          "decided_at",
+          "approved",
+          "rejected"
+        ],
+        "title": "StormDraft",
         "type": "object"
       },
       "TimelineEvent": {
@@ -3147,6 +3353,123 @@
         "summary": "Overview",
         "tags": [
           "today"
+        ]
+      }
+    },
+    "/api/response/draft": {
+      "post": {
+        "description": "Drafts the storm response for the current storm warning. Idempotent: returns the open draft if there is one. Sends nothing.",
+        "operationId": "storm_draft_api_response_draft_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StormDraft"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Storm Draft",
+        "tags": [
+          "storm response"
+        ]
+      }
+    },
+    "/api/response/{draft_id}": {
+      "get": {
+        "operationId": "storm_draft_get_api_response__draft_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StormDraft"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Storm Draft Get",
+        "tags": [
+          "storm response"
+        ]
+      }
+    },
+    "/api/response/{draft_id}/decide": {
+      "post": {
+        "description": "A planner approves the chosen moves and rejects the rest. The same approval path as every transfer.",
+        "operationId": "storm_decide_api_response__draft_id__decide_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StormDraft"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Storm Decide",
+        "tags": [
+          "storm response"
         ]
       }
     },

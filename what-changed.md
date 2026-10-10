@@ -386,3 +386,14 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **What:** the top of Today shows a headline and a few plain sentences built from today's figures: urgent and waiting moves, the next weather alert, stores at risk and the least ready, the biggest move, markdowns to decide, and when stock was counted.
 - **How:** `backend/app/briefing.py` fills fixed sentences with the figures. No language model writes it, so it can't invent numbers. Endpoint `GET /api/briefing`, which follows the chosen data source.
 - **Checks:** backend 138 pass (3 new); planner unit 54 pass; planner browser 31 pass with 1 skipped, including the plain-language check on Today.
+
+---
+
+## 28. Storm autopilot with a planner's veto (idea 1)
+
+- **What:** when a storm or heat warning is in the forecast, the app drafts the storm response: the moves waiting for a decision, the open markdown suggestions, the sales protected, the carbon, and a draft note for each affected store. Today shows a **Storm response** card, and the new **Storm response** page holds the draft.
+- **The planner's veto:** the planner ticks the moves to keep and gives a reason for the rest. Approving the chosen moves and rejecting the others goes through the same approval path as every transfer, and is logged in the timeline. A decided response can't be drafted again or reopened.
+- **Nothing sends or moves on its own:** the draft is only a draft. Store notes are not sent, because store email addresses aren't set up.
+- **Limits:** drafts are kept in memory and reset on restart. Drafting happens when a planner opens Today or the page. There is no background drafting from the storm trigger yet, because that job is not deployed.
+- **Code:** `backend/app/storm_response.py`; `api.py` (`POST /api/response/draft`, `GET /api/response/{id}`, `POST /api/response/{id}/decide`); `frontend/src/pages/StormResponse.tsx`; the card in `pages/Today.tsx`.
+- **Checks:** backend 144 pass (6 new); planner unit 56 pass; planner browser 33 pass with 1 skipped, including the new page for accessibility and banned words; lint passes; the API reference regenerated.

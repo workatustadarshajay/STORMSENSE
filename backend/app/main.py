@@ -84,6 +84,9 @@ def create_app(settings: Settings | None = None, source: DataSource | None = Non
     app.state.services = services
     app.state.default_source = default
     app.state.service = services[default]
+    from .storm_response import ResponseBook
+
+    app.state.responses = ResponseBook()
     app.state.limiter = RateLimiter(settings.ask_per_minute)
     app.state.desk_limiter = RateLimiter(5)
     app.state.storm_desk = build_storm_desk(settings, services["live"]) if "live" in services else None

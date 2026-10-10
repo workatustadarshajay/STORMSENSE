@@ -27,6 +27,20 @@ export const useDecideMarkdown = () => {
 };
 export const useAnalysisCharts = () => useQuery({ queryKey: ["analysis-charts"], queryFn: api.analysisCharts });
 export const useBriefing = () => useQuery({ queryKey: ["briefing"], queryFn: api.briefing });
+export const useStormDraft = (enabled = true) =>
+  useQuery({ queryKey: ["storm-draft"], queryFn: api.stormDraft, retry: false, enabled, staleTime: 60_000, refetchOnWindowFocus: false });
+export const useStormDecide = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; approve_ids: string[]; reason: string }) =>
+      api.stormDecide(v.id, { approve_ids: v.approve_ids, reason: v.reason }),
+    onSuccess: (draft) => {
+      client.setQueryData(["storm-draft"], draft);
+      client.invalidateQueries({ queryKey: ["transfers"] });
+      client.invalidateQueries({ queryKey: ["overview"] });
+    },
+  });
+};
 export const useImpact = () => useQuery({ queryKey: ["impact"], queryFn: api.impact });
 export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });
