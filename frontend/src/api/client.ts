@@ -23,6 +23,16 @@ export type MarkdownSuggestion = S["MarkdownSuggestion"];
 export type Health = S["Health"];
 export type Analysis = S["Analysis"];
 export type PlanStatus = S["PlanStatus"];
+export type Impact = S["Impact"];
+export type Briefing = S["Briefing"];
+export type AnalysisCharts = {
+  as_of: string | null;
+  demand_by_day: { date: string; units: number }[];
+  stock_available: number;
+  shortages_by_store: { store: string; count: number }[];
+  transfers_by_urgency: { urgency: string; moves: number; protected_usd: number }[];
+  protected_by_product: { product: string; protected_usd: number }[];
+};
 export type DemoAlertResult = S["DemoAlertResult"];
 
 /** A problem the server explained in plain words. */
@@ -72,6 +82,9 @@ const query = (params: Record<string, string | undefined>) => {
 export const api = {
   me: () => request<Me>("/api/me"),
   health: () => request<Health>("/api/health"),
+  analysisCharts: () => request<AnalysisCharts>("/api/analysis/charts"),
+  impact: () => request<Impact>("/api/impact"),
+  briefing: () => request<Briefing>("/api/briefing"),
   ingestAnalysis: () => request<Analysis>("/api/ingest/analysis"),
   planStatus: () => request<PlanStatus>("/api/ingest/plan/status"),
   decideMarkdown: (store_id: string, product_id: string, decision: "APPROVED" | "REJECTED") =>

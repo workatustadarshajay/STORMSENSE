@@ -25,6 +25,9 @@ export const useDecideMarkdown = () => {
     onSuccess: () => client.invalidateQueries({ queryKey: ["markdowns"] }),
   });
 };
+export const useAnalysisCharts = () => useQuery({ queryKey: ["analysis-charts"], queryFn: api.analysisCharts });
+export const useBriefing = () => useQuery({ queryKey: ["briefing"], queryFn: api.briefing });
+export const useImpact = () => useQuery({ queryKey: ["impact"], queryFn: api.impact });
 export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });
 export const useOverview = (weather: WeatherMode = "live") =>

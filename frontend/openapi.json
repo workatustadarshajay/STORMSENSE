@@ -329,6 +329,64 @@
         "title": "BacktestStorm",
         "type": "object"
       },
+      "Briefing": {
+        "properties": {
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "headline",
+          "lines"
+        ],
+        "title": "Briefing",
+        "type": "object"
+      },
+      "ChangeSince": {
+        "properties": {
+          "last_plan_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Plan At"
+          },
+          "moves_now": {
+            "title": "Moves Now",
+            "type": "integer"
+          },
+          "moves_then": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moves Then"
+          }
+        },
+        "required": [
+          "last_plan_at",
+          "moves_then",
+          "moves_now"
+        ],
+        "title": "ChangeSince",
+        "type": "object"
+      },
       "ChecksResult": {
         "properties": {
           "sentences": {
@@ -647,6 +705,109 @@
           "warehouse"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "Impact": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "changes": {
+            "$ref": "#/components/schemas/ChangeSince"
+          },
+          "headline": {
+            "$ref": "#/components/schemas/ImpactHeadline"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEvent"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source",
+          "as_of",
+          "headline",
+          "assumptions",
+          "changes",
+          "timeline"
+        ],
+        "title": "Impact",
+        "type": "object"
+      },
+      "ImpactHeadline": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "co2_kg": {
+            "title": "Co2 Kg",
+            "type": "number"
+          },
+          "margin_usd": {
+            "title": "Margin Usd",
+            "type": "number"
+          },
+          "moves": {
+            "title": "Moves",
+            "type": "integer"
+          },
+          "net_usd": {
+            "title": "Net Usd",
+            "type": "number"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          },
+          "protected_usd": {
+            "title": "Protected Usd",
+            "type": "number"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "trucking_usd": {
+            "title": "Trucking Usd",
+            "type": "number"
+          }
+        },
+        "required": [
+          "protected_usd",
+          "margin_usd",
+          "trucking_usd",
+          "net_usd",
+          "co2_kg",
+          "moves",
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "ImpactHeadline",
         "type": "object"
       },
       "InventoryItem": {
@@ -1468,6 +1629,34 @@
         "title": "StormDeskRequest",
         "type": "object"
       },
+      "TimelineEvent": {
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "at": {
+            "title": "At",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "kind",
+          "actor",
+          "detail"
+        ],
+        "title": "TimelineEvent",
+        "type": "object"
+      },
       "Transfer": {
         "properties": {
           "co2_kg": {
@@ -2025,6 +2214,30 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/analysis/charts": {
+      "get": {
+        "description": "Demand, stock, shortages, transfers and protected sales, for the chosen data source.",
+        "operationId": "analysis_charts_api_analysis_charts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Analysis Charts Api Analysis Charts Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Analysis Charts",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
     "/api/ask": {
       "post": {
         "operationId": "ask_api_ask_post",
@@ -2089,6 +2302,28 @@
         "summary": "Backtest",
         "tags": [
           "history"
+        ]
+      }
+    },
+    "/api/briefing": {
+      "get": {
+        "description": "The morning briefing: a few plain sentences from today's figures, for the chosen data source.",
+        "operationId": "briefing_api_briefing_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Briefing"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Briefing",
+        "tags": [
+          "today"
         ]
       }
     },
@@ -2183,6 +2418,28 @@
         ]
       }
     },
+    "/api/impact": {
+      "get": {
+        "description": "What the plan is worth: protected sales, estimated profit and carbon, the decisions made, and the timeline of updates.",
+        "operationId": "impact_api_impact_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Impact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Impact",
+        "tags": [
+          "impact"
+        ]
+      }
+    },
     "/api/ingest/analysis": {
       "get": {
         "description": "A plain analysis of your uploaded data. Needs the stores, products, sales and stock files.",
@@ -2200,6 +2457,30 @@
           }
         },
         "summary": "Analysis",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/charts": {
+      "get": {
+        "description": "Chart data about your uploads: sales and stock by day, cover by store, status counts, and what was loaded.",
+        "operationId": "upload_charts_route_api_ingest_charts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Upload Charts Route Api Ingest Charts Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Upload Charts Route",
         "tags": [
           "your data"
         ]

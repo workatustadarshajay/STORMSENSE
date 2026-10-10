@@ -157,6 +157,12 @@ def _excel_rows(feed: str, encoded: str) -> list[dict[str, str]]:
         raise problem(422, "not_excel", "That Excel file could not be read. Save it as .xlsx and try again.") from None
 
 
+def _log(store: IngestStore, kind: str, **detail) -> None:  # noqa: ANN003
+    from .events import record
+
+    record(store.folder, kind, "upload app", **detail)
+
+
 def _apply(f, rows: list[dict[str, str]], mapping: dict[str, str] | None, request: Request) -> UploadResult:  # noqa: ANN001
     store = _store(request)
     try:
@@ -165,6 +171,7 @@ def _apply(f, rows: list[dict[str, str]], mapping: dict[str, str] | None, reques
         raise problem(422, "not_accepted", str(e)) from None
     if not out.missing:
         store.save(f.key, out, {**auto_mapping(f, list(rows[0].keys()) if rows else []), **(mapping or {})})
+        _log(store, "upload", feed=f.title, kept=len(out.accepted), refused=len(out.refused))
     return _result(f, out, len(out.accepted) if not out.missing else 0)
 
 
@@ -275,7 +282,18 @@ def scan_drop_now(request: Request) -> DropResult:
     from .ingest import DROP_DIR, scan_drop
 
     store = _store(request)
-    return DropResult(folder=str(store.folder / DROP_DIR), loaded=scan_drop(store))
+    loaded = scan_drop(store)
+    if loaded:
+        _log(store, "drop_loaded", feeds=loaded)
+    return DropResult(folder=str(store.folder / DROP_DIR), loaded=loaded)
+
+
+@router.get("/charts")
+def upload_charts_route(request: Request) -> dict[str, Any]:
+    """Chart data about your uploads: sales and stock by day, cover by store, status counts, and what was loaded."""
+    from .ingest_charts import upload_charts
+
+    return upload_charts(_store(request))
 
 
 @router.get("/plan/status", response_model=PlanStatus)
@@ -296,6 +314,7 @@ def build_plan(request: Request) -> PlanStatus:
         raise problem(409, "not_ready", str(e)) from None
     path = save(store, plan)
     request.app.state.services["upload"] = Service(MockSource(path), request.app.state.settings)
+    _log(store, "plan_built", transfers=plan["summary"]["transfers"], short=plan["summary"]["short"], as_of=plan["as_of"])
     return _plan_status(store)
 
 
@@ -309,8 +328,9 @@ def get_economics(request: Request) -> EconomicsBody:
 @router.put("/economics", response_model=EconomicsBody, dependencies=[Depends(same_origin)])
 def set_economics(body: EconomicsBody, request: Request) -> EconomicsBody:
     """Truck cost per mile and product margin, used for the estimated profit of the plan."""
-    path = _store(request).folder / "economics.json"
-    path.write_text(json.dumps(body.model_dump()))
+    store = _store(request)
+    (store.folder / "economics.json").write_text(json.dumps(body.model_dump()))
+    _log(store, "economics_saved", truck_cost_per_mile=body.truck_cost_per_mile, margin_pct=body.margin_pct)
     return body
 
 
@@ -336,6 +356,8 @@ def load_demo(request: Request) -> dict[str, Any]:
     except PlanNotReady as e:  # cannot happen with the sample files, but keep the message plain
         raise problem(409, "not_ready", str(e)) from None
     request.app.state.services["upload"] = Service(MockSource(save(store, plan)), request.app.state.settings)
+    _log(store, "demo_loaded", feeds=list(loaded))
+    _log(store, "plan_built", transfers=plan["summary"]["transfers"], short=plan["summary"]["short"], as_of=plan["as_of"])
     return {"loaded": loaded, "checks": checks_for(store), "plan": _plan_status(store).model_dump()}
 
 

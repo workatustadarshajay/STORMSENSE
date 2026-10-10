@@ -366,3 +366,23 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Not built:** store-level logins. They need a real sign-in, which the hackathon copy doesn't have.
 - **Checks:** backend 128 pass; upload app unit 2 pass; planner unit 51 pass; planner browser 27 pass with 1 skipped; lint passes; the API reference regenerated; the docs build. The one-click flow was checked in a browser: sample loaded, plan built with the profit line, checks and analysis shown.
 - **Fix (approve and reject on local copies):** the local operator's identity (`STORMSENSE_DEV_USER_EMAIL`) was missing from the sample account list, so on the sample copy and on **Your uploads** it fell back to the read-only viewer role and the approve and reject buttons were refused. A local copy's operator now has the planner role when not otherwise listed. Other accounts that are not in the list stay read-only. Tests: backend 130 pass.
+
+---
+
+## 26. Charts, the Analysis page and the business impact page
+
+- **Upload app, "Your data in pictures":** sales each day, stock on hand each day, days of stock left by store (with 7- and 21-day lines), and store and product pairs by status. Each chart has a **Show as a table** link. Built with Recharts.
+- **Planner, Analysis page (`/analysis`):** demand expected each day against stock available, shortages by store, moves by urgency, and protected sales by product. Follows the chosen data source.
+- **Planner, Business impact page (`/impact`):** sales protected, margin, trucking, estimated profit and carbon; decisions so far; what has changed since the last plan; the assumptions; and a timeline of uploads, plans, cost changes, approvals, rejections and markdown decisions, with who did each.
+- **Event log:** `backend/data/ingest/events.jsonl`, one line per event, written only on a copy with uploads switched on. Each approval, rejection and markdown decision is now logged too.
+- **Data endpoints:** `GET /api/ingest/charts`, `GET /api/analysis/charts`, `GET /api/impact`.
+- **Checks:** backend 135 pass; upload app builds and draws its charts in a browser; planner unit 53 pass; planner browser 31 pass with 1 skipped, including the two new pages for accessibility and banned words; lint passes.
+- **Not done:** the timeline lives in a local file rather than a database, and the impact figures on sample data are estimates.
+
+---
+
+## 27. Morning briefing
+
+- **What:** the top of Today shows a headline and a few plain sentences built from today's figures: urgent and waiting moves, the next weather alert, stores at risk and the least ready, the biggest move, markdowns to decide, and when stock was counted.
+- **How:** `backend/app/briefing.py` fills fixed sentences with the figures. No language model writes it, so it can't invent numbers. Endpoint `GET /api/briefing`, which follows the chosen data source.
+- **Checks:** backend 138 pass (3 new); planner unit 54 pass; planner browser 31 pass with 1 skipped, including the plain-language check on Today.

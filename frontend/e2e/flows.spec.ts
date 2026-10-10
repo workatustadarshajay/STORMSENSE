@@ -2,6 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const PAGES = [
+  ["Analysis", "/analysis"],
+  ["Business impact", "/impact"],
   ["Today", "/"],
   ["Transfers", "/transfers"],
   ["Store forecast", "/stores"],

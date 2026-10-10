@@ -7,6 +7,16 @@ Every endpoint the web app and the MCP server call. This page is generated from 
 
 Errors come back as `{"detail": {"code": "...", "message": "..."}}` with a plain-language message.
 
+### `GET /api/analysis/charts`
+
+Analysis Charts
+
+Demand, stock, shortages, transfers and protected sales, for the chosen data source.
+
+**Response**
+
+Returns object.
+
 ### `POST /api/ask`
 
 Ask
@@ -38,6 +48,21 @@ An upper bound, not a forecast.
 **Response**
 
 Returns list of BacktestStorm.
+
+### `GET /api/briefing`
+
+Briefing
+
+The morning briefing: a few plain sentences from today's figures, for the chosen data source.
+
+**Response**
+
+Returns Briefing.
+
+| Field | Type | Notes |
+|---|---|---|
+| `headline` | string |  |
+| `lines` | list of string |  |
 
 ### `POST /api/demo/alert`
 
@@ -84,6 +109,25 @@ History
 
 Returns list of Transfer.
 
+### `GET /api/impact`
+
+Impact
+
+What the plan is worth: protected sales, estimated profit and carbon, the decisions made, and the timeline of updates.
+
+**Response**
+
+Returns Impact.
+
+| Field | Type | Notes |
+|---|---|---|
+| `as_of` | string (optional) |  |
+| `assumptions` | list of string |  |
+| `changes` | ChangeSince |  |
+| `headline` | ImpactHeadline |  |
+| `source` | string |  |
+| `timeline` | list of TimelineEvent |  |
+
 ### `GET /api/ingest/analysis`
 
 Analysis
@@ -108,6 +152,16 @@ Returns Analysis.
 | `stores` | integer |  |
 | `watch` | integer |  |
 | `window_days` | integer |  |
+
+### `GET /api/ingest/charts`
+
+Upload Charts Route
+
+Chart data about your uploads: sales and stock by day, cover by store, status counts, and what was loaded.
+
+**Response**
+
+Returns object.
 
 ### `GET /api/ingest/checks`
 

@@ -202,3 +202,52 @@ describe("Your uploads as a data source", () => {
   });
 });
 
+
+describe("Analysis and business impact", () => {
+  it("shows the plan's charts, each with its numbers in a table", async () => {
+    serve({
+      "GET /api/analysis/charts": () => ({
+        as_of: "2026-10-07", stock_available: 1200,
+        demand_by_day: [{ date: "2026-10-08", units: 300 }],
+        shortages_by_store: [{ store: "Orlando", count: 4 }],
+        transfers_by_urgency: [{ urgency: "URGENT", moves: 1, protected_usd: 2308 }],
+        protected_by_product: [{ product: "Generators", protected_usd: 2308 }],
+      }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/analysis");
+    expect(await screen.findByText("Demand this week")).toBeInTheDocument();
+    expect(screen.getByText("Shortages by store")).toBeInTheDocument();
+    expect(screen.getAllByText("Show as a table")).toHaveLength(4);
+  });
+  it("explains the money, what changed, the assumptions and the timeline in plain words", async () => {
+    serve({
+      "GET /api/impact": () => ({
+        source: "upload", as_of: "2026-10-07",
+        headline: { protected_usd: 24944, margin_usd: 7483, trucking_usd: 4175, net_usd: 3308, co2_kg: 512, moves: 11, pending: 10, approved: 1, rejected: 0 },
+        assumptions: ["Margin on sales is 30% (your figure, or the default)."],
+        changes: { last_plan_at: "2026-10-08T09:12:00", moves_then: 11, moves_now: 10 },
+        timeline: [{ at: "2026-10-08T09:12:00", kind: "plan_built", actor: "upload app", detail: "Built the plan: 11 moves, 11 products short." }],
+      }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/impact");
+    expect(await screen.findByText("Estimated profit")).toBeInTheDocument();
+    expect(screen.getByText(/The last plan was built 2026-10-08 at 09:12:00/)).toBeInTheDocument();
+    expect(screen.getByText("Built the plan: 11 moves, 11 products short.")).toBeInTheDocument();
+    expect(screen.getAllByText("Your uploads").length).toBeGreaterThan(0);
+  });
+});
+
+describe("Morning briefing", () => {
+  it("shows the headline and the plain lines at the top of Today", async () => {
+    serve({
+      "GET /api/briefing": () => ({ headline: "Review 2 urgent moves first.", lines: ["2 urgent, 9 waiting for a decision in total."] }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/");
+    expect(await screen.findByText("Review 2 urgent moves first.")).toBeInTheDocument();
+    expect(screen.getByText("2 urgent, 9 waiting for a decision in total.")).toBeInTheDocument();
+    expect(screen.getByText("Your morning briefing")).toBeInTheDocument();
+  });
+});

@@ -100,3 +100,15 @@ Once a plan has been built from your files, the **Data shown** switch has a thir
 
 On Today, a planner can **Approve** or **Reject** each price markdown suggestion. This records the decision and who made it. It does not change any prices in the stores.
 
+## Analysis
+
+**Analysis** shows the plan in pictures for whichever data is chosen: the demand expected each day against the stock available, the shortages by store, the moves by urgency, and the protected sales by product. Every chart has a **Show as a table** link with the same numbers.
+
+## Business impact
+
+**Business impact** shows what the plan is worth: the sales protected, the estimated margin, trucking and profit, and the estimated carbon. It also shows the decisions made so far, what has changed since the last plan, the assumptions behind the money figures, and a timeline of uploads, plans, cost changes and decisions, with who made each one. The money figures are estimates, not results.
+
+## Morning briefing
+
+The top of **Today** is your morning briefing: a headline and a few plain sentences. It says how many moves are urgent and waiting, the next weather alert, which stores are at risk and the least ready, the biggest move and what it protects, any markdowns to decide, and when stock was last counted. Every figure comes from the data you're looking at, so it follows the chosen source. It is not written by a model.
+

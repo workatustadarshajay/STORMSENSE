@@ -164,3 +164,6 @@ npm run build        # then the backend serves it at http://localhost:8000/inges
 Upload four CSV files, in this order: stores, products, daily sales, daily stock. Each file is checked row by row, and refused rows show the line and the reason. Other systems can send the same rows as JSON. Uploaded files are kept under `backend/data/ingest/`, which is not committed.
 
 The planning screens still show the sample data. Connecting uploaded files to them is the next step.
+
+The upload app now shows **Your data in pictures**: sales and stock by day, days of stock left by store, and the status of each store and product. The planner has an **Analysis** page with the plan in pictures, and a **Business impact** page with the figures, the decisions, the assumptions and a timeline of updates. The timeline is kept in `backend/data/ingest/events.jsonl`, which is not committed.
+

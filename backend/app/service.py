@@ -137,6 +137,55 @@ class Service:
             out.append({"decision": verb, "decided_on": when, "reason": why or "no reason given"})
         return out
 
+    def analysis_charts(self) -> dict[str, Any]:
+        """Chart data for the Analysis page, from whichever source is chosen."""
+        stores, _ = self._directory()
+        demand: dict[str, float] = defaultdict(float)
+        for sid in stores:
+            for row in self.source.predictions(sid):
+                demand[str(row["forecast_date"])[:10]] += float(row["predicted_units"] or 0)
+        gaps = self.source.gaps(None, None)
+        short: dict[str, int] = defaultdict(int)
+        for g in gaps:
+            if g["status"] == "SHORTAGE":
+                short[stores[g["store_id"]]["name"]] += 1
+        pending = self.source.transfers("PENDING", None)
+        by_urgency: dict[str, dict[str, float]] = defaultdict(lambda: {"moves": 0, "protected_usd": 0.0})
+        by_product: dict[str, float] = defaultdict(float)
+        _, products = self._directory()
+        for t in pending:
+            by_urgency[t["urgency"]]["moves"] += 1
+            by_urgency[t["urgency"]]["protected_usd"] += float(t["sales_protected_usd"] or 0)
+            by_product[products[t["product_id"]]["name_plural"]] += float(t["sales_protected_usd"] or 0)
+        return {
+            "as_of": self._as_of().isoformat() if self._as_of() else None,
+            "demand_by_day": [{"date": d, "units": round(u)} for d, u in sorted(demand.items())],
+            "stock_available": round(sum(float(g["available"] or 0) for g in gaps)),
+            "shortages_by_store": [{"store": s, "count": n} for s, n in sorted(short.items(), key=lambda x: -x[1])],
+            "transfers_by_urgency": [{"urgency": u, "moves": int(v["moves"]), "protected_usd": round(v["protected_usd"], 2)}
+                                     for u, v in sorted(by_urgency.items())],
+            "protected_by_product": [{"product": p, "protected_usd": round(v, 2)}
+                                     for p, v in sorted(by_product.items(), key=lambda x: -x[1])],
+        }
+
+    def impact_figures(self) -> dict[str, Any]:
+        """Headline figures for the business impact page: protected sales, estimated profit, carbon, and decisions."""
+        from .carbon import estimate_kg_co2e
+
+        rows = self.source.transfers(None, None)
+        live_moves = [r for r in rows if r["status"] in ("PENDING", "APPROVED")]
+        protected = sum(float(r["sales_protected_usd"] or 0) for r in live_moves)
+        miles = sum(float(r["distance_miles"] or 0) for r in live_moves)
+        co2 = sum(estimate_kg_co2e(int(r["qty"]), int(r["distance_miles"] or 0)) for r in live_moves)
+        return {
+            "protected_usd": round(protected, 2), "miles": round(miles), "co2_kg": round(co2, 1),
+            "moves": len(live_moves),
+            "pending": sum(1 for r in rows if r["status"] == "PENDING"),
+            "approved": sum(1 for r in rows if r["status"] == "APPROVED"),
+            "rejected": sum(1 for r in rows if r["status"] == "REJECTED"),
+            "as_of": self._as_of().isoformat() if self._as_of() else None,
+        }
+
     def markdowns(self, weather: str = "live") -> list[MarkdownSuggestion]:
         def build() -> list[MarkdownSuggestion]:
             stores, products = self._directory()

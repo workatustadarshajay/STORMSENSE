@@ -1,4 +1,4 @@
-import { CloudLightning, CloudSun, History, MessageCircle, Store, Truck, type LucideIcon } from "lucide-react";
+import { ChartColumn, CloudLightning, CloudSun, History, MessageCircle, Store, Truck, TrendingUp, type LucideIcon } from "lucide-react";
 import { DataSourceSwitch } from "./DataSourceSwitch";
 import { useEffect, useRef } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -9,6 +9,8 @@ const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
   { to: "/transfers", label: "Transfers", icon: Truck },
   { to: "/stores", label: "Stores", icon: Store },
   { to: "/ask", label: "Ask", icon: MessageCircle },
+  { to: "/analysis", label: "Analysis", icon: ChartColumn },
+  { to: "/impact", label: "Business impact", icon: TrendingUp },
   { to: "/history", label: "History", icon: History },
 ];
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import Response
@@ -12,16 +12,19 @@ from pydantic import BaseModel, Field
 
 from .agent import StormDesk
 from .alerts import JobMissing, start_demo_email
-from .auth import current_user, get_service, is_live, planner, problem, same_origin
+from .auth import current_user, get_service, is_live, planner, problem, requested_source, same_origin
 from .dbx import WarmingUp
 from .schemas import (
     ApproveRequest,
     AskRequest,
     AskResponse,
     BacktestStorm,
+    ChangeSince,
     DecisionResult,
     DemoAlertResult,
     Health,
+    Impact,
+    ImpactHeadline,
     InventoryItem,
     MarkdownSuggestion,
     Me,
@@ -32,6 +35,7 @@ from .schemas import (
     StoreSummary,
     StormDeskPlan,
     StormDeskRequest,
+    TimelineEvent,
     Transfer,
     WhatIfRequest,
     WhatIfResult,
@@ -82,13 +86,17 @@ def transfers(user: User, svc: Svc, status: Literal["PENDING", "APPROVED", "REJE
 
 
 @router.post("/transfers/approve", response_model=DecisionResult, tags=["transfers"], dependencies=[Depends(same_origin)])
-def approve(body: ApproveRequest, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
-    return svc.decide("APPROVED", body.ids, user.email, body.note)
+def approve(body: ApproveRequest, request: Request, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
+    result = svc.decide("APPROVED", body.ids, user.email, body.note)
+    log_event(request, "transfers_approved", user.name, count=len(result.changed))
+    return result
 
 
 @router.post("/transfers/reject", response_model=DecisionResult, tags=["transfers"], dependencies=[Depends(same_origin)])
-def reject(body: RejectRequest, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
-    return svc.decide("REJECTED", body.ids, user.email, body.reason, body.reason_code)
+def reject(body: RejectRequest, request: Request, user: Annotated[Me, Depends(planner)], svc: Svc) -> DecisionResult:
+    result = svc.decide("REJECTED", body.ids, user.email, body.reason, body.reason_code)
+    log_event(request, "transfers_rejected", user.name, count=len(result.changed))
+    return result
 
 
 EXPORT_COLUMNS = ["Transfer id", "Status", "Urgency", "Product", "Quantity", "From store", "To store",
@@ -147,12 +155,94 @@ class MarkdownDecision(BaseModel):
 
 
 @router.post("/markdowns/decision", response_model=MarkdownSuggestion, tags=["stores"], dependencies=[Depends(same_origin)])
-def decide_markdown(body: MarkdownDecision, user: Annotated[Me, Depends(planner)], svc: Svc) -> MarkdownSuggestion:
+def decide_markdown(body: MarkdownDecision, request: Request, user: Annotated[Me, Depends(planner)], svc: Svc) -> MarkdownSuggestion:
     """A planner approves or rejects a markdown suggestion. Records the decision; nothing changes in the stores."""
     found = svc.decide_markdown(body.store_id, body.product_id, body.decision, user.name)
     if found is None:
         raise problem(404, "not_found", "That markdown suggestion is no longer on the list.")
+    log_event(request, "markdown_decided", user.name, decision=body.decision)
     return found
+
+
+def log_event(request: Request, kind: str, actor: str, **detail: Any) -> None:
+    """Writes to the event log that feeds the business impact timeline. Only on a copy with uploads switched on."""
+    settings = request.app.state.settings
+    if settings.ingest_enabled:
+        from .events import record
+
+        record(settings.ingest_dir, kind, actor, **detail)
+
+
+@router.get("/analysis/charts", tags=["analysis"])
+def analysis_charts(user: User, svc: Svc) -> dict[str, Any]:
+    """Demand, stock, shortages, transfers and protected sales, for the chosen data source."""
+    return svc.analysis_charts()
+
+
+@router.get("/impact", response_model=Impact, tags=["impact"])
+def impact(request: Request, user: User, svc: Svc) -> Impact:
+    """What the plan is worth: protected sales, estimated profit and carbon, the decisions made, and the timeline of updates."""
+    from .events import read
+    from .ingest import IngestStore
+    from .ingest_plan import DEFAULT_ECONOMICS, economics, net_benefit
+
+    settings = request.app.state.settings
+    figures = svc.impact_figures()
+    econ = economics(IngestStore(settings.ingest_dir)) if settings.ingest_enabled else dict(DEFAULT_ECONOMICS)
+    money = net_benefit({"protected_usd": figures["protected_usd"], "miles": figures["miles"]}, econ)
+    events = read(settings.ingest_dir, 40) if settings.ingest_enabled else []
+    plans = [e for e in events if e["kind"] == "plan_built"]
+    last_plan = plans[0] if plans else None
+    return Impact(
+        source=requested_source(request), as_of=figures["as_of"],
+        headline=ImpactHeadline(protected_usd=figures["protected_usd"], margin_usd=money["margin_usd"],
+                                trucking_usd=money["trucking_usd"], net_usd=money["net_usd"], co2_kg=figures["co2_kg"],
+                                moves=figures["moves"], pending=figures["pending"], approved=figures["approved"],
+                                rejected=figures["rejected"]),
+        assumptions=[f"Margin on sales is {econ['margin_pct']:g}% (your figure, or the default).",
+                     f"Trucking is ${econ['truck_cost_per_mile']:g} per mile, one truck trip per move.",
+                     "Carbon is about 0.9 kg CO2e per loaded truck-mile, with 200 units to a truck.",
+                     "Protected sales are gross revenue, not profit, and use the forecast, not what really sold."],
+        changes=ChangeSince(last_plan_at=last_plan["at"] if last_plan else None,
+                            moves_then=last_plan.get("transfers") if last_plan else None, moves_now=figures["pending"]),
+        timeline=[TimelineEvent(at=e["at"], kind=e["kind"], actor=e["actor"], detail=describe(e)) for e in events],
+    )
+
+
+def describe(e: dict[str, Any]) -> str:
+    """One plain sentence for a timeline entry."""
+    kind = e["kind"]
+    if kind == "upload":
+        return f"Uploaded {e.get('feed', 'a file')}: {e.get('kept', 0)} rows kept, {e.get('refused', 0)} refused."
+    if kind == "demo_loaded":
+        return "Loaded the sample workbooks."
+    if kind == "plan_built":
+        return f"Built the plan: {e.get('transfers', 0)} moves, {e.get('short', 0)} products short."
+    if kind == "economics_saved":
+        return f"Changed the cost inputs: ${e.get('truck_cost_per_mile', 0):g} per mile, {e.get('margin_pct', 0):g}% margin."
+    if kind == "drop_loaded":
+        return f"Loaded from the drop folder: {', '.join(e.get('feeds', []))}."
+    if kind == "transfers_approved":
+        return f"Approved {e.get('count', 0)} move{'s' if e.get('count', 0) != 1 else ''}."
+    if kind == "transfers_rejected":
+        return f"Rejected {e.get('count', 0)} move{'s' if e.get('count', 0) != 1 else ''}."
+    if kind == "markdown_decided":
+        return f"{'Approved' if e.get('decision') == 'APPROVED' else 'Rejected'} a markdown."
+    return kind.replace("_", " ").capitalize()
+
+
+class Briefing(BaseModel):
+    headline: str
+    lines: list[str]
+
+
+@router.get("/briefing", response_model=Briefing, tags=["today"])
+def briefing(user: User, svc: Svc) -> Briefing:
+    """The morning briefing: a few plain sentences from today's figures, for the chosen data source."""
+    from .briefing import build
+
+    data = build(svc.overview(), svc.stores(), svc.transfers("PENDING", None), svc.markdowns("live"))
+    return Briefing(**data)
 
 
 @router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])

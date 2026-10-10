@@ -280,3 +280,38 @@ class WhatIfResult(BaseModel):
     stock_to_move_units: int = 0
     rows: list[WhatIfRow] = Field(default_factory=list)
     plan_change: PlanChange | None = None
+
+
+class ImpactHeadline(BaseModel):
+    protected_usd: float
+    margin_usd: float
+    trucking_usd: float
+    net_usd: float
+    co2_kg: float
+    moves: int
+    pending: int
+    approved: int
+    rejected: int
+
+
+class ChangeSince(BaseModel):
+    last_plan_at: str | None
+    moves_then: int | None
+    moves_now: int
+
+
+class TimelineEvent(BaseModel):
+    at: str
+    kind: str
+    actor: str
+    detail: str
+
+
+class Impact(BaseModel):
+    source: str
+    as_of: date | None
+    headline: ImpactHeadline
+    assumptions: list[str]
+    changes: ChangeSince
+    timeline: list[TimelineEvent]
+

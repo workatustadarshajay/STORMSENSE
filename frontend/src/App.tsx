@@ -4,6 +4,8 @@ import { makeQueryClient } from "./api/hooks";
 import { Shell } from "./components/Shell";
 import Ask from "./pages/Ask";
 import Backtest from "./pages/Backtest";
+import Analysis from "./pages/Analysis";
+import Impact from "./pages/Impact";
 import YourData from "./pages/YourData";
 import History from "./pages/History";
 import StormDesk from "./pages/StormDesk";
@@ -37,6 +39,8 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="history" element={<History />} />
           <Route path="backtest" element={<Backtest />} />
           <Route path="your-data" element={<YourData />} />
+          <Route path="analysis" element={<Analysis />} />
+          <Route path="impact" element={<Impact />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

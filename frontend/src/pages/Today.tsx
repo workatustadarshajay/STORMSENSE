@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
-import { useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
+import { useBriefing, useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
 
@@ -140,6 +140,25 @@ function Markdowns({ weather }: { weather: WeatherMode }) {
   );
 }
 
+function Briefing() {
+  const briefing = useBriefing();
+  return (
+    <section aria-labelledby="brief-h" className="mt-6 rounded-2xl border border-line bg-paper p-5">
+      <h2 id="brief-h" className="text-sm font-bold uppercase tracking-wide text-teal-deep">Your morning briefing</h2>
+      <QueryView query={briefing} rows={2}>
+        {(b) => (
+          <>
+            <p className="mt-2 text-xl font-extrabold">{b.headline}</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">
+              {b.lines.map((l) => <li key={l}>{l}</li>)}
+            </ul>
+          </>
+        )}
+      </QueryView>
+    </section>
+  );
+}
+
 function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weather: WeatherMode; onWeather: (m: WeatherMode) => void }) {
   const worst = (["storm", "heavy_rain", "heat"] as const).find((k) => o.alerts.some((a) => a.kind === k));
   const alert = o.next_alert;
@@ -152,6 +171,7 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
         <p className="mt-1.5 opacity-90">{o.next_action.detail}</p>
       </section>
 
+      <Briefing />
       <WeatherSwitch mode={weather} onChange={onWeather} />
       {weather === "demo" && (
         <p role="status" className="mt-3 rounded-2xl bg-heat-tint p-4 font-semibold text-heat">

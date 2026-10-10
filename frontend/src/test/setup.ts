@@ -13,3 +13,12 @@ HTMLDialogElement.prototype.close = function close() {
   this.dispatchEvent(new Event("close"));
 };
 window.scrollTo = () => {};
+
+// Charts size themselves with ResizeObserver, which the test browser does not provide. Sizes do not matter in tests.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+}

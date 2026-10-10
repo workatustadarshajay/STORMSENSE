@@ -16,6 +16,44 @@ SHORT_DAYS = 7
 WATCH_DAYS = 21
 
 
+def pair_table(store: IngestStore) -> pd.DataFrame | None:
+    """One row per store and product: sells per day, stock on hand, days of cover, status. None until enough is uploaded."""
+    saved = {f: store.read(f) for f in ("stores", "products", "sales", "stock")}
+    if any(v is None for v in saved.values()):
+        return None
+    stores = pd.DataFrame(saved["stores"]["rows"])
+    products = pd.DataFrame(saved["products"]["rows"])
+    sales = pd.DataFrame(saved["sales"]["rows"])
+    stock = pd.DataFrame(saved["stock"]["rows"])
+    if sales.empty or stock.empty:
+        return None
+    sales["sale_date"] = pd.to_datetime(sales["sale_date"])
+    sales["units"] = sales["units"].astype(float)
+    last = sales["sale_date"].max()
+    recent = sales[sales["sale_date"] > last - pd.Timedelta(days=WINDOW_DAYS)]
+    sold = recent.groupby(["store_id", "product_id"])["units"].sum()
+    stock["snapshot_date"] = pd.to_datetime(stock["snapshot_date"])
+    latest = stock.sort_values("snapshot_date").groupby(["store_id", "product_id"]).last()["on_hand"].astype(float)
+    price = products.set_index("product_id")["unit_price"].astype(float)
+    store_name = stores.set_index("store_id")["name"]
+    product_name = products.set_index("product_id")["name"]
+    rows = []
+    for store_id, product_id in sold.index.union(latest.index):
+        per_day = float(sold.get((store_id, product_id), 0.0)) / WINDOW_DAYS
+        on_hand = float(latest.get((store_id, product_id), 0.0))
+        unit = float(price.get(product_id, 0.0))
+        cover = on_hand / per_day if per_day > 0 else None
+        status = "No sales" if cover is None else "Short" if cover < SHORT_DAYS else "Watch" if cover < WATCH_DAYS else "Plenty"
+        rows.append({
+            "store_id": store_id, "store": str(store_name.get(store_id, store_id)),
+            "product": str(product_name.get(product_id, product_id)), "on_hand": round(on_hand),
+            "sold_per_day": round(per_day, 1), "days_of_cover": round(cover, 1) if cover is not None else None,
+            "status": status, "stock_value_usd": round(on_hand * unit, 2),
+            "sales_value_usd": round(float(sold.get((store_id, product_id), 0.0)) * unit, 2),
+        })
+    return pd.DataFrame(rows)
+
+
 def analyse(store: IngestStore) -> dict | None:
     """The analysis, or None until the stores, products, sales and stock files are all uploaded."""
     saved = {f: store.read(f) for f in ("stores", "products", "sales", "stock")}

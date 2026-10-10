@@ -63,3 +63,12 @@ export const loadDemo = () =>
   call<{ loaded: Record<string, number>; checks: string[]; plan: PlanStatus }>("/api/ingest/demo/load", { method: "POST" });
 export const scanDrop = () => call<{ folder: string; loaded: string[] }>("/api/ingest/drop/scan", { method: "POST" });
 export const emailPlanners = () => call<{ started: boolean; message: string }>("/api/demo/alert", { method: "POST" });
+
+export type UploadCharts = {
+  completeness: { feed: string; kept: number; refused: number; loaded: boolean }[];
+  sales_by_day: { date: string; units: number }[];
+  stock_by_day: { date: string; on_hand: number }[];
+  cover_by_store: { store: string; days: number }[];
+  status_counts: Record<string, number>;
+};
+export const uploadCharts = () => call<UploadCharts>("/api/ingest/charts");

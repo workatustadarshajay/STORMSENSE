@@ -19,6 +19,7 @@ export function serve(routes: Record<string, Handler> = {}): Server {
     "GET /api/history": () => fx.history,
     "GET /api/stores": () => fx.stores,
     "GET /api/markdowns": () => [],
+    "GET /api/briefing": () => ({ headline: "All caught up: no moves are waiting for a decision.", lines: [] }),
     "GET /api/stores/S01/forecast": () => fx.forecast(fx.stores[0]),
     "GET /api/stores/S04/forecast": () => fx.forecast(fx.stores[1]),
     "POST /api/transfers/approve": (b) => fx.decided((b as { ids: string[] }).ids),

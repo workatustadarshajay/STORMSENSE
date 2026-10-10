@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/analysis/charts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Analysis Charts
+         * @description Demand, stock, shortages, transfers and protected sales, for the chosen data source.
+         */
+        get: operations["analysis_charts_api_analysis_charts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ask": {
         parameters: {
             query?: never;
@@ -35,6 +55,26 @@ export interface paths {
          *     An upper bound, not a forecast.
          */
         get: operations["backtest_api_backtest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/briefing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Briefing
+         * @description The morning briefing: a few plain sentences from today's figures, for the chosen data source.
+         */
+        get: operations["briefing_api_briefing_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -100,6 +140,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Impact
+         * @description What the plan is worth: protected sales, estimated profit and carbon, the decisions made, and the timeline of updates.
+         */
+        get: operations["impact_api_impact_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingest/analysis": {
         parameters: {
             query?: never;
@@ -112,6 +172,26 @@ export interface paths {
          * @description A plain analysis of your uploaded data. Needs the stores, products, sales and stock files.
          */
         get: operations["analysis_api_ingest_analysis_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/charts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upload Charts Route
+         * @description Chart data about your uploads: sales and stock by day, cover by store, status counts, and what was loaded.
+         */
+        get: operations["upload_charts_route_api_ingest_charts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -724,6 +804,22 @@ export interface components {
             /** Stores */
             stores: number;
         };
+        /** Briefing */
+        Briefing: {
+            /** Headline */
+            headline: string;
+            /** Lines */
+            lines: string[];
+        };
+        /** ChangeSince */
+        ChangeSince: {
+            /** Last Plan At */
+            last_plan_at: string | null;
+            /** Moves Now */
+            moves_now: number;
+            /** Moves Then */
+            moves_then: number | null;
+        };
         /** ChecksResult */
         ChecksResult: {
             /** Sentences */
@@ -853,6 +949,40 @@ export interface components {
              * @enum {string}
              */
             warehouse: "ready" | "starting" | "unavailable" | "not_checked";
+        };
+        /** Impact */
+        Impact: {
+            /** As Of */
+            as_of: string | null;
+            /** Assumptions */
+            assumptions: string[];
+            changes: components["schemas"]["ChangeSince"];
+            headline: components["schemas"]["ImpactHeadline"];
+            /** Source */
+            source: string;
+            /** Timeline */
+            timeline: components["schemas"]["TimelineEvent"][];
+        };
+        /** ImpactHeadline */
+        ImpactHeadline: {
+            /** Approved */
+            approved: number;
+            /** Co2 Kg */
+            co2_kg: number;
+            /** Margin Usd */
+            margin_usd: number;
+            /** Moves */
+            moves: number;
+            /** Net Usd */
+            net_usd: number;
+            /** Pending */
+            pending: number;
+            /** Protected Usd */
+            protected_usd: number;
+            /** Rejected */
+            rejected: number;
+            /** Trucking Usd */
+            trucking_usd: number;
         };
         /** InventoryItem */
         InventoryItem: {
@@ -1173,6 +1303,17 @@ export interface components {
             /** Goal */
             goal: string;
         };
+        /** TimelineEvent */
+        TimelineEvent: {
+            /** Actor */
+            actor: string;
+            /** At */
+            at: string;
+            /** Detail */
+            detail: string;
+            /** Kind */
+            kind: string;
+        };
         /** Transfer */
         Transfer: {
             /**
@@ -1399,6 +1540,28 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    analysis_charts_api_analysis_charts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     ask_api_ask_post: {
         parameters: {
             query?: never;
@@ -1448,6 +1611,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BacktestStorm"][];
+                };
+            };
+        };
+    };
+    briefing_api_briefing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Briefing"];
                 };
             };
         };
@@ -1523,6 +1706,26 @@ export interface operations {
             };
         };
     };
+    impact_api_impact_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Impact"];
+                };
+            };
+        };
+    };
     analysis_api_ingest_analysis_get: {
         parameters: {
             query?: never;
@@ -1539,6 +1742,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Analysis"];
+                };
+            };
+        };
+    };
+    upload_charts_route_api_ingest_charts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

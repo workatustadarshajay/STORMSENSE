@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   type Analysis, type Checks, type Economics, type Feed, type PlanStatus,
   analysis as loadAnalysis, buildPlan, checks as loadChecks, economics as loadEconomics, emailPlanners,
-  listFeeds, loadDemo, planStatus, saveEconomics, scanDrop,
+  listFeeds, loadDemo, planStatus, saveEconomics, scanDrop, uploadCharts, type UploadCharts,
 } from "./api";
 import { FeedCard } from "./FeedCard";
+import { ChartCard, CoverBars, DailyLine, StatusBars } from "./Charts";
 
 const SNIPPET = `curl -X POST http://localhost:8000/api/ingest/feeds/stores/rows \\
   -H "Content-Type: application/json" \\
@@ -25,6 +26,7 @@ export default function App() {
   const [cost, setCost] = useState<Economics | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [charts, setCharts] = useState<UploadCharts | null>(null);
 
   const load = useCallback(() => {
     listFeeds().then((f) => { setFeeds(f); setError(null); }).catch((e: Error) => setError(e.message));
@@ -32,6 +34,7 @@ export default function App() {
     planStatus().then(setPlan).catch(() => setPlan(null));
     loadAnalysis().then(setData).catch(() => setData(null));
     loadEconomics().then(setCost).catch(() => setCost(null));
+    uploadCharts().then(setCharts).catch(() => setCharts(null));
   }, []);
   useEffect(load, [load]);
 
@@ -80,6 +83,49 @@ export default function App() {
           </p>
         )}
       </section>
+
+      {charts && (
+        <section className="card" aria-labelledby="pictures-h">
+          <h2 id="pictures-h">Your data in pictures</h2>
+          <p className="muted">What the files say, day by day and store by store. Each chart has its numbers in a table underneath.</p>
+          <div className="charts">
+            {charts.sales_by_day.length > 0 && (
+              <ChartCard title="Sales each day" caption="Units sold across all stores"
+                table={<table><thead><tr><th>Date</th><th>Units sold</th></tr></thead><tbody>
+                  {charts.sales_by_day.map((r) => <tr key={r.date}><td>{r.date}</td><td>{r.units}</td></tr>)}</tbody></table>}>
+                <DailyLine data={charts.sales_by_day} dataKey="units" color="#0097ac" label="Units sold" />
+              </ChartCard>
+            )}
+            {charts.stock_by_day.length > 0 && (
+              <ChartCard title="Stock on hand each day" caption="Units on hand across all stores"
+                table={<table><thead><tr><th>Date</th><th>Units on hand</th></tr></thead><tbody>
+                  {charts.stock_by_day.map((r) => <tr key={r.date}><td>{r.date}</td><td>{r.on_hand}</td></tr>)}</tbody></table>}>
+                <DailyLine data={charts.stock_by_day} dataKey="on_hand" color="#231f20" label="Units on hand" />
+              </ChartCard>
+            )}
+            {charts.cover_by_store.length > 0 && (
+              <ChartCard title="Days of stock left, by store" caption="The lowest product in each store. Lines mark 7 and 21 days."
+                table={<table><thead><tr><th>Store</th><th>Days left</th></tr></thead><tbody>
+                  {charts.cover_by_store.map((r) => <tr key={r.store}><td>{r.store}</td><td>{r.days}</td></tr>)}</tbody></table>}>
+                <CoverBars data={charts.cover_by_store} />
+              </ChartCard>
+            )}
+            {Object.values(charts.status_counts).some((n) => n > 0) && (
+              <ChartCard title="Store and product pairs by status" caption="Short under a week, Watch under three weeks, Plenty otherwise"
+                table={<table><thead><tr><th>Status</th><th>Pairs</th></tr></thead><tbody>
+                  {Object.entries(charts.status_counts).map(([k, v]) => <tr key={k}><td>{k}</td><td>{v}</td></tr>)}</tbody></table>}>
+                <StatusBars counts={charts.status_counts} />
+              </ChartCard>
+            )}
+          </div>
+          <table className="completeness">
+            <thead><tr><th>File</th><th>Rows kept</th><th>Rows refused</th></tr></thead>
+            <tbody>{charts.completeness.map((c) => (
+              <tr key={c.feed}><td>{c.feed}</td><td>{c.loaded ? c.kept : "not yet"}</td><td>{c.refused}</td></tr>
+            ))}</tbody>
+          </table>
+        </section>
+      )}
 
       <section className="card" aria-labelledby="checks-h">
         <h2 id="checks-h">What we found in your files</h2>
