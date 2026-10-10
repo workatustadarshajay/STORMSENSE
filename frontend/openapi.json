@@ -1,6 +1,160 @@
 {
   "components": {
     "schemas": {
+      "Analysis": {
+        "properties": {
+          "as_of": {
+            "title": "As Of",
+            "type": "string"
+          },
+          "by_store": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisStore"
+            },
+            "title": "By Store",
+            "type": "array"
+          },
+          "items": {
+            "description": "The short and watch items, most urgent first",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pairs": {
+            "title": "Pairs",
+            "type": "integer"
+          },
+          "products": {
+            "title": "Products",
+            "type": "integer"
+          },
+          "sales_value_usd": {
+            "title": "Sales Value Usd",
+            "type": "number"
+          },
+          "short": {
+            "title": "Short",
+            "type": "integer"
+          },
+          "sold_units": {
+            "title": "Sold Units",
+            "type": "integer"
+          },
+          "stock_value_usd": {
+            "title": "Stock Value Usd",
+            "type": "number"
+          },
+          "stores": {
+            "title": "Stores",
+            "type": "integer"
+          },
+          "watch": {
+            "title": "Watch",
+            "type": "integer"
+          },
+          "window_days": {
+            "title": "Window Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "as_of",
+          "window_days",
+          "stores",
+          "products",
+          "pairs",
+          "short",
+          "watch",
+          "sold_units",
+          "sales_value_usd",
+          "stock_value_usd",
+          "by_store",
+          "items"
+        ],
+        "title": "Analysis",
+        "type": "object"
+      },
+      "AnalysisItem": {
+        "properties": {
+          "days_of_cover": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Of Cover"
+          },
+          "on_hand": {
+            "title": "On Hand",
+            "type": "integer"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "sales_value_usd": {
+            "title": "Sales Value Usd",
+            "type": "number"
+          },
+          "sold_per_day": {
+            "title": "Sold Per Day",
+            "type": "number"
+          },
+          "status": {
+            "description": "Short (under 7 days), Watch (under 21 days), Plenty, or No sales",
+            "title": "Status",
+            "type": "string"
+          },
+          "stock_value_usd": {
+            "title": "Stock Value Usd",
+            "type": "number"
+          },
+          "store": {
+            "title": "Store",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "product",
+          "on_hand",
+          "sold_per_day",
+          "days_of_cover",
+          "status",
+          "stock_value_usd",
+          "sales_value_usd"
+        ],
+        "title": "AnalysisItem",
+        "type": "object"
+      },
+      "AnalysisStore": {
+        "properties": {
+          "short_items": {
+            "title": "Short Items",
+            "type": "integer"
+          },
+          "stock_value_usd": {
+            "title": "Stock Value Usd",
+            "type": "number"
+          },
+          "store": {
+            "title": "Store",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "short_items",
+          "stock_value_usd"
+        ],
+        "title": "AnalysisStore",
+        "type": "object"
+      },
       "ApproveRequest": {
         "properties": {
           "ids": {
@@ -1293,10 +1447,17 @@
       "UploadBody": {
         "properties": {
           "csv": {
-            "description": "The whole file as text, with the column names on the first line",
-            "maxLength": 2000000,
-            "title": "Csv",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 2000000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The whole CSV file as text, with the column names on the first line",
+            "title": "Csv"
           },
           "mapping": {
             "anyOf": [
@@ -1312,11 +1473,21 @@
             ],
             "description": "Your column name for each StormSense column, if the names differ",
             "title": "Mapping"
+          },
+          "xlsx_base64": {
+            "anyOf": [
+              {
+                "maxLength": 4000000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An Excel file (.xlsx), base64 encoded. Columns are matched by name",
+            "title": "Xlsx Base64"
           }
         },
-        "required": [
-          "csv"
-        ],
         "title": "UploadBody",
         "type": "object"
       },
@@ -1841,6 +2012,28 @@
         "summary": "History",
         "tags": [
           "transfers"
+        ]
+      }
+    },
+    "/api/ingest/analysis": {
+      "get": {
+        "description": "A plain analysis of your uploaded data. Needs the stores, products, sales and stock files.",
+        "operationId": "analysis_api_ingest_analysis_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Analysis"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Analysis",
+        "tags": [
+          "your data"
         ]
       }
     },

@@ -21,6 +21,7 @@ const weatherQuery = (mode: WeatherMode) => (mode === "demo" ? "?weather=demo" :
 export type BacktestStorm = S["BacktestStorm"];
 export type MarkdownSuggestion = S["MarkdownSuggestion"];
 export type Health = S["Health"];
+export type Analysis = S["Analysis"];
 export type DemoAlertResult = S["DemoAlertResult"];
 
 /** A problem the server explained in plain words. */
@@ -70,6 +71,7 @@ const query = (params: Record<string, string | undefined>) => {
 export const api = {
   me: () => request<Me>("/api/me"),
   health: () => request<Health>("/api/health"),
+  ingestAnalysis: () => request<Analysis>("/api/ingest/analysis"),
   overview: (weather: WeatherMode = "live") => request<Overview>(`/api/overview${weatherQuery(weather)}`),
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),

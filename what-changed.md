@@ -336,3 +336,17 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **`make dev`:** now runs the planner API (8000), the planner web app (5173) and the ingestion client (5174). The MCP server is separate: `make dev-mcp`.
 - **Checks:** backend 115 pass; web unit 46 pass; browser 27 pass with 1 skipped; lint passes; the docs build.
 - **Not done:** uploaded files do not yet feed the planning screens. That is the next step for uploads.
+
+---
+
+## 24. Demo Excel workbooks and a "Show my uploaded data" analysis
+
+- **Demo workbooks:** `ingestion-client/public/demo/` holds four Excel files (stores, products, daily sales, daily stock), made by `backend/scripts/make_demo_workbooks.py` (`make demo-data`) from the sample data. Sales and stock cover the last 28 days, so each file stays under the 5,000-row limit.
+- **Excel upload:** the ingestion client accepts `.xlsx` files. The server reads them with `openpyxl` (added to the backend requirements), matches columns by name, and checks each row the same way as a CSV.
+- **Analysis:** `backend/app/ingest_analysis.py` works out how fast each store and product sells over the last 28 days, the days of stock left at the latest count, and marks each **Short** (under 7 days), **Watch** (under 21 days) or **Plenty**. Route: `GET /api/ingest/analysis`, which answers "not ready" until stores, products, sales and stock are all uploaded.
+- **Main app:** Today has a **Show my uploaded data** button, which opens the **Your data** page (`/your-data`) with the summary, the stores, and the products to watch. It says plainly that this is a simple check, not the forecast.
+- **Bug found and fixed:** a lint fix had removed an import that the Excel reader needs. Tests caught it.
+- **Demo numbers:** the sample workbooks give 11 items Short and 26 on Watch across 10 stores and 5 products.
+- **Not done:** the planning screens (forecast, transfers) still use the sample or live data, not uploaded files.
+- **Checks:** backend 120 pass; web unit 49 pass; lint passes.
+- **Fix (ingestion client, Excel upload):** the Upload button only appeared for CSV files, and for Excel files it was disabled because the column check counted every column as missing. Now the button shows for both, and the column check applies only to CSV. Verified in a browser: uploading the sample stores workbook keeps 10 rows and refuses 0.

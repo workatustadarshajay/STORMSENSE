@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import App from "../App";
 import * as fx from "./fixtures";
-import { serve } from "./server";
+import { problem, serve } from "./server";
 
 const quiet = () => new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0 } } });
 const open = (path: string) => render(<MemoryRouter initialEntries={[path]}><App client={quiet()} /></MemoryRouter>);
@@ -143,5 +143,32 @@ describe("Data shown: sample or live", () => {
     expect(localStorage.getItem("stormsense.source")).toBe("live");
     expect(live).toHaveAttribute("aria-pressed", "true");
     localStorage.clear();
+  });
+});
+
+describe("Show my uploaded data", () => {
+  it("shows the analysis of uploaded data, with the short items first", async () => {
+    serve({
+      "GET /api/ingest/analysis": () => ({
+        as_of: "2026-10-07", window_days: 28, stores: 10, products: 5, pairs: 50, short: 1, watch: 0, sold_units: 1000,
+        sales_value_usd: 20000, stock_value_usd: 5000, by_store: [{ store: "Orlando", short_items: 1, stock_value_usd: 800 }],
+        items: [{ store: "Orlando", product: "1000W generator", on_hand: 16, sold_per_day: 6.2, days_of_cover: 2.6, status: "Short", stock_value_usd: 800, sales_value_usd: 9000 }],
+      }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/your-data");
+    expect(await screen.findByText("1000W generator")).toBeInTheDocument();
+    expect(screen.getByText("Short")).toBeInTheDocument();
+    expect(screen.getByText(/This is a simple check, not the forecast/)).toBeInTheDocument();
+  });
+  it("asks for the upload first when no data has been uploaded", async () => {
+    serve({ "GET /api/ingest/analysis": () => problem(404, "not_ready", "Upload your stores, products, daily sales and daily stock files first."), "GET /api/me": () => fx.planner });
+    open("/your-data");
+    expect(await screen.findByText("No uploaded data yet.", {}, { timeout: 3000 })).toBeInTheDocument();
+  });
+  it("is reached from Today with a button", async () => {
+    serve({ "GET /api/me": () => fx.planner });
+    open("/");
+    expect(await screen.findByRole("link", { name: "Show my uploaded data" })).toHaveAttribute("href", "/your-data");
   });
 });

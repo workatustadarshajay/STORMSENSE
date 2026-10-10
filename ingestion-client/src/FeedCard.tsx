@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { autoMatch, headersOf } from "./csv";
-import { clearFeed, type Feed, type UploadResult, uploadFile } from "./api";
+import { clearFeed, type Feed, type Upload, type UploadResult, toBase64, uploadFile } from "./api";
 
 function download(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
@@ -12,27 +12,39 @@ function download(name: string, text: string) {
 }
 
 export function FeedCard({ feed, onChanged }: { feed: Feed; onChanged: () => void }) {
+  const [file, setFile] = useState<Upload | null>(null);
+  const [fileName, setFileName] = useState("");
   const [csv, setCsv] = useState<string | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [result, setResult] = useState<UploadResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const headers = csv ? headersOf(csv) : [];
-  const missing = feed.columns.filter((c) => c.required && !mapping[c.name]).map((c) => c.name);
+  // Only a CSV is matched column by column here; an Excel file is matched by name on the server.
+  const missing = csv ? feed.columns.filter((c) => c.required && !mapping[c.name]).map((c) => c.name) : [];
 
-  const choose = async (file: File) => {
-    const text = await file.text();
-    setCsv(text);
+  const choose = async (picked: File) => {
     setResult(null);
     setError(null);
+    setFileName(picked.name);
+    if (/\.xlsx$/i.test(picked.name)) {
+      // Excel files are matched by column name on the server, so there is no column step here.
+      setFile({ xlsx_base64: toBase64(await picked.arrayBuffer()) });
+      setCsv(null);
+      setMapping({});
+      return;
+    }
+    const text = await picked.text();
+    setFile({ csv: text });
+    setCsv(text);
     setMapping(autoMatch(feed.columns.map((c) => c.name), headersOf(text)));
   };
   const send = async () => {
-    if (!csv) return;
+    if (!file) return;
     setBusy(true);
     setError(null);
     try {
-      setResult(await uploadFile(feed.feed, csv, mapping));
+      setResult(await uploadFile(feed.feed, file, mapping));
       onChanged();
     } catch (e) {
       setError((e as Error).message);
@@ -66,14 +78,16 @@ export function FeedCard({ feed, onChanged }: { feed: Feed; onChanged: () => voi
         <button type="button" className="secondary" onClick={() => download(`${feed.feed}-template.csv`, feed.template)}>
           Download template
         </button>
+        <a className="button secondary" href={`demo/${feed.feed}.xlsx`} download>Download sample Excel</a>
         <label className="button">
-          Choose a CSV file
-          <input type="file" accept=".csv,text/csv" className="visually-hidden"
-            onChange={(e) => e.target.files?.[0] && choose(e.target.files[0])} />
+          Choose a file (CSV or Excel)
+          <input type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            className="visually-hidden" onChange={(e) => e.target.files?.[0] && choose(e.target.files[0])} />
         </label>
         {feed.kept > 0 && <button type="button" className="link" onClick={clear}>Clear this file</button>}
       </div>
 
+      {file && !csv && <p className="muted small">Excel file chosen. Its columns are matched by name when you upload.</p>}
       {csv && (
         <section className="mapping" aria-label={`Match columns for ${feed.title}`}>
           <h3>Match your columns</h3>
@@ -90,11 +104,17 @@ export function FeedCard({ feed, onChanged }: { feed: Feed; onChanged: () => voi
               </label>
             ))}
           </div>
+          {missing.length > 0 && <p className="muted">Choose a column for: {missing.join(", ")}.</p>}
+        </section>
+      )}
+
+      {file && (
+        <div className="row wrap" style={{ marginTop: "1rem" }}>
           <button type="button" disabled={busy || missing.length > 0} onClick={send}>
             {busy ? "Checking…" : "Upload and check"}
           </button>
-          {missing.length > 0 && <p className="muted">Choose a column for: {missing.join(", ")}.</p>}
-        </section>
+          <span className="muted small">{fileName}</span>
+        </div>
       )}
 
       {result && (

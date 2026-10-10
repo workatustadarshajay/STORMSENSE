@@ -21,6 +21,15 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const listFeeds = () => call<Feed[]>("/api/ingest/feeds");
-export const uploadFile = (feed: string, csv: string, mapping: Record<string, string>) =>
-  call<UploadResult>(`/api/ingest/feeds/${feed}/upload`, { method: "POST", body: JSON.stringify({ csv, mapping }) });
+export type Upload = { csv: string } | { xlsx_base64: string };
+export const uploadFile = (feed: string, file: Upload, mapping: Record<string, string>) =>
+  call<UploadResult>(`/api/ingest/feeds/${feed}/upload`, { method: "POST", body: JSON.stringify({ ...file, mapping }) });
+
+/** Base64 of raw bytes, in chunks so large workbooks do not overflow the call stack. */
+export function toBase64(bytes: ArrayBuffer): string {
+  const view = new Uint8Array(bytes);
+  let binary = "";
+  for (let i = 0; i < view.length; i += 0x8000) binary += String.fromCharCode(...view.subarray(i, i + 0x8000));
+  return btoa(binary);
+}
 export const clearFeed = (feed: string) => call<{ message: string }>(`/api/ingest/feeds/${feed}`, { method: "DELETE" });

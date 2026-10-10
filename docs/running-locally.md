@@ -137,6 +137,14 @@ On Today, with **Demo storm** selected, **Email this storm alert** starts the Da
 
 Until the bundle is deployed, the button says the job isn't in the workspace yet. The button needs the live workspace; sample data cannot start jobs.
 
+## Demo: upload Excel and see your data in the planner
+
+1. `make dev`, then open the upload app at http://localhost:5174.
+2. In each card, click **Download sample Excel** (or use the copies in `ingestion-client/public/demo/`). Upload the four files in this order: stores, products, daily sales, daily stock.
+3. Open the planner at http://localhost:5173 and click **Show my uploaded data** on Today. It shows how many products are running short or on watch, by store, from your last 28 days of sales and the latest stock count.
+
+The analysis is deliberately simple (sells per day and days of stock left). The planning screens still use the sample or live data; see the next section for what changes that.
+
 ## Your own data: the ingestion client
 
 The **ingestion client** is a separate small front end for connecting your data. It uses the same backend, so it needs the server setting `STORMSENSE_INGEST_ENABLED=1` and a restart. Keep that setting off anywhere other people can reach, because uploads have no sign-in.

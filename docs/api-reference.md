@@ -84,6 +84,31 @@ History
 
 Returns list of Transfer.
 
+### `GET /api/ingest/analysis`
+
+Analysis
+
+A plain analysis of your uploaded data. Needs the stores, products, sales and stock files.
+
+**Response**
+
+Returns Analysis.
+
+| Field | Type | Notes |
+|---|---|---|
+| `as_of` | string |  |
+| `by_store` | list of AnalysisStore |  |
+| `items` | list of AnalysisItem | The short and watch items, most urgent first |
+| `pairs` | integer |  |
+| `products` | integer |  |
+| `sales_value_usd` | number |  |
+| `short` | integer |  |
+| `sold_units` | integer |  |
+| `stock_value_usd` | number |  |
+| `stores` | integer |  |
+| `watch` | integer |  |
+| `window_days` | integer |  |
+
 ### `GET /api/ingest/feeds`
 
 Feeds
@@ -168,8 +193,9 @@ Upload
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `csv` | string | yes | The whole file as text, with the column names on the first line; max length 2000000 |
+| `csv` | string (optional) | no | The whole CSV file as text, with the column names on the first line |
 | `mapping` | object (optional) | no | Your column name for each StormSense column, if the names differ |
+| `xlsx_base64` | string (optional) | no | An Excel file (.xlsx), base64 encoded. Columns are matched by name |
 
 **Response**
 

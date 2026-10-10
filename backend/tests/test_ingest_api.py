@@ -119,7 +119,9 @@ def test_the_analysis_waits_for_all_four_files(ingest: TestClient):
     assert ingest.get("/api/ingest/analysis").status_code == 404
     ingest.post("/api/ingest/feeds/stores/upload", json={"csv": STORES_CSV}, headers=H)
     ingest.post("/api/ingest/feeds/products/upload", json={"csv": PRODUCTS_CSV}, headers=H)
-    ingest.post("/api/ingest/feeds/sales/upload", json={"csv": "store_id,product_id,sale_date,units\nS01,P01,2026-10-01,3\n"}, headers=H)
-    ingest.post("/api/ingest/feeds/stock/upload", json={"csv": "store_id,product_id,snapshot_date,on_hand\nS01,P01,2026-10-01,2\n"}, headers=H)
+    sales = "store_id,product_id,sale_date,units\nS01,P01,2026-10-01,3\n"
+    stock = "store_id,product_id,snapshot_date,on_hand\nS01,P01,2026-10-01,2\n"
+    ingest.post("/api/ingest/feeds/sales/upload", json={"csv": sales}, headers=H)
+    ingest.post("/api/ingest/feeds/stock/upload", json={"csv": stock}, headers=H)
     a = ingest.get("/api/ingest/analysis").json()
-    assert a["stores"] == 2 and a["pairs"] == 1 and a["items"][0]["status"] == "Watch"  # 3 sold in 28 days: about 19 days of cover
+    assert a["stores"] == 2 and a["pairs"] == 1 and a["items"][0]["status"] == "Watch"  # 3 sold in 28 days is about 19 days of cover

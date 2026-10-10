@@ -165,6 +165,12 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
       {o.pending_transfers > 0 && (
         <p className="mt-3 text-center text-sm text-muted">{plural(o.pending_transfers, "transfer")} waiting in total</p>
       )}
+      <Link
+        to="/your-data"
+        className="mt-4 flex min-h-12 items-center justify-center rounded-2xl border border-line bg-paper px-6 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint"
+      >
+        Show my uploaded data
+      </Link>
       {o.as_of && <p className="mt-8 text-center text-xs text-muted">Based on stock counted {longDate(parseDay(o.as_of.toString()))}</p>}
     </>
   );

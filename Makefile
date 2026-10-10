@@ -8,7 +8,7 @@ export REQUESTS_CA_BUNDLE ?= /etc/ssl/certs/ca-certificates.crt
 export SSL_CERT_FILE ?= /etc/ssl/certs/ca-certificates.crt
 endif
 
-.PHONY: help setup dev dev-sample dev-api dev-web dev-ingest dev-mcp test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
+.PHONY: help setup dev dev-sample dev-api dev-web dev-ingest dev-mcp demo-data test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -37,6 +37,9 @@ dev-ingest:
 
 dev-mcp:
 	cd stormsense-mcp && STORMSENSE_API_URL=http://localhost:8000/api uv run --system-certs uvicorn server:app --port 8200
+
+demo-data:  ## Rewrite the four demo Excel workbooks for uploading (from the sample data)
+	$(PY) backend/scripts/make_demo_workbooks.py
 
 test:  ## Library, API and web tests
 	$(PY) -m pytest databricks/tests backend -q
