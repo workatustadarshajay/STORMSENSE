@@ -19,7 +19,7 @@ def problem(status: int, code: str, message: str, **headers: str) -> HTTPExcepti
     return HTTPException(status, detail={"code": code, "message": message}, headers=headers or None)
 
 
-SOURCES = ("sample", "live")
+SOURCES = ("sample", "live", "upload")
 
 
 def requested_source(request: Request) -> str:
@@ -32,6 +32,8 @@ def get_service(request: Request) -> Service:
     if want not in SOURCES:
         raise problem(400, "bad_source", "Choose sample data or the live workspace.")
     svc = request.app.state.services.get(want)
+    if svc is None and want == "upload":
+        raise problem(409, "no_plan", "Build the plan from your uploads first.")
     if svc is None:
         raise problem(409, "not_connected", "The live workspace isn't connected on this copy. Sample data is still available.")
     return svc

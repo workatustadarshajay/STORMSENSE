@@ -22,6 +22,7 @@ export type BacktestStorm = S["BacktestStorm"];
 export type MarkdownSuggestion = S["MarkdownSuggestion"];
 export type Health = S["Health"];
 export type Analysis = S["Analysis"];
+export type PlanStatus = S["PlanStatus"];
 export type DemoAlertResult = S["DemoAlertResult"];
 
 /** A problem the server explained in plain words. */
@@ -72,6 +73,9 @@ export const api = {
   me: () => request<Me>("/api/me"),
   health: () => request<Health>("/api/health"),
   ingestAnalysis: () => request<Analysis>("/api/ingest/analysis"),
+  planStatus: () => request<PlanStatus>("/api/ingest/plan/status"),
+  decideMarkdown: (store_id: string, product_id: string, decision: "APPROVED" | "REJECTED") =>
+    post<MarkdownSuggestion>("/api/markdowns/decision", { store_id, product_id, decision }),
   overview: (weather: WeatherMode = "live") => request<Overview>(`/api/overview${weatherQuery(weather)}`),
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),

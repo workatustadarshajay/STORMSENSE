@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
 from .agent import StormDesk
 from .alerts import JobMissing, start_demo_email
@@ -137,6 +138,21 @@ def demo_alert(request: Request, user: Annotated[Me, Depends(planner)]) -> DemoA
         log.exception("demo email job could not be started")
         raise problem(502, "job_failed", "The email could not be started. Try again in a minute.") from None
     return DemoAlertResult(started=True, message="Started. Databricks sends the email within a few minutes.")
+
+
+class MarkdownDecision(BaseModel):
+    store_id: str = Field(pattern=r"^S\d{2}$")
+    product_id: str = Field(pattern=r"^P\d{2}$")
+    decision: Literal["APPROVED", "REJECTED"]
+
+
+@router.post("/markdowns/decision", response_model=MarkdownSuggestion, tags=["stores"], dependencies=[Depends(same_origin)])
+def decide_markdown(body: MarkdownDecision, user: Annotated[Me, Depends(planner)], svc: Svc) -> MarkdownSuggestion:
+    """A planner approves or rejects a markdown suggestion. Records the decision; nothing changes in the stores."""
+    found = svc.decide_markdown(body.store_id, body.product_id, body.decision, user.name)
+    if found is None:
+        raise problem(404, "not_found", "That markdown suggestion is no longer on the list.")
+    return found
 
 
 @router.get("/backtest", response_model=list[BacktestStorm], tags=["history"])

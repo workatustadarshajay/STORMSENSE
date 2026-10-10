@@ -120,6 +120,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ingest/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upload Checks */
+        get: operations["upload_checks_api_ingest_checks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/demo/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Load Demo
+         * @description Loads the four sample workbooks in order, then builds the plan. One click for a demo.
+         */
+        post: operations["load_demo_api_ingest_demo_load_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/drop/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scan Drop Now
+         * @description Loads any files waiting in the drop folder now, instead of waiting for the next check.
+         */
+        post: operations["scan_drop_now_api_ingest_drop_scan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/economics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Economics */
+        get: operations["get_economics_api_ingest_economics_get"];
+        /**
+         * Set Economics
+         * @description Truck cost per mile and product margin, used for the estimated profit of the plan.
+         */
+        put: operations["set_economics_api_ingest_economics_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingest/feeds": {
         parameters: {
             query?: never;
@@ -191,6 +269,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ingest/feeds/{feed}/template.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Template Xlsx
+         * @description An Excel template. Store and product codes are dropdowns, filled from the stores and products you uploaded.
+         */
+        get: operations["template_xlsx_api_ingest_feeds__feed__template_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingest/feeds/{feed}/upload": {
         parameters: {
             query?: never;
@@ -202,6 +300,43 @@ export interface paths {
         put?: never;
         /** Upload */
         post: operations["upload_api_ingest_feeds__feed__upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Build Plan
+         * @description Builds the plan from your uploads. The planner's screens can then use them as "Your uploads".
+         */
+        post: operations["build_plan_api_ingest_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingest/plan/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan Status */
+        get: operations["plan_status_api_ingest_plan_status_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -239,6 +374,26 @@ export interface paths {
         get: operations["markdowns_api_markdowns_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/markdowns/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Markdown
+         * @description A planner approves or rejects a markdown suggestion. Records the decision; nothing changes in the stores.
+         */
+        post: operations["decide_markdown_api_markdowns_decision_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -569,6 +724,11 @@ export interface components {
             /** Stores */
             stores: number;
         };
+        /** ChecksResult */
+        ChecksResult: {
+            /** Sentences */
+            sentences: string[];
+        };
         /** ColumnInfo */
         ColumnInfo: {
             /** Choices */
@@ -635,6 +795,26 @@ export interface components {
              */
             what: string;
         };
+        /** DropResult */
+        DropResult: {
+            /** Folder */
+            folder: string;
+            /** Loaded */
+            loaded: string[];
+        };
+        /** EconomicsBody */
+        EconomicsBody: {
+            /**
+             * Margin Pct
+             * @description Share of sales that is profit, in percent
+             */
+            margin_pct: number;
+            /**
+             * Truck Cost Per Mile
+             * @description What one truck trip costs per mile, in dollars
+             */
+            truck_cost_per_mile: number;
+        };
         /** FeedInfo */
         FeedInfo: {
             /** Columns */
@@ -694,6 +874,18 @@ export interface components {
             status: "RUNNING_LOW" | "EXTRA" | "OK";
             store: components["schemas"]["Ref"];
         };
+        /** MarkdownDecision */
+        MarkdownDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "APPROVED" | "REJECTED";
+            /** Product Id */
+            product_id: string;
+            /** Store Id */
+            store_id: string;
+        };
         /** MarkdownSuggestion */
         MarkdownSuggestion: {
             /**
@@ -705,6 +897,16 @@ export interface components {
             clears_all: boolean;
             /** Current Price */
             current_price: number;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Decided By */
+            decided_by?: string | null;
+            /**
+             * Decision
+             * @description pending, approved or rejected by a planner
+             * @default pending
+             */
+            decision: string;
             /**
              * Discount Pct
              * @description Suggested discount, 10 to 40 percent
@@ -806,6 +1008,21 @@ export interface components {
             units_short_before: number;
             /** Units Short Now */
             units_short_now: number;
+        };
+        /** PlanStatus */
+        PlanStatus: {
+            /** As Of */
+            as_of?: string | null;
+            /** Net Benefit */
+            net_benefit?: {
+                [key: string]: number;
+            } | null;
+            /** Ready */
+            ready: boolean;
+            /** Summary */
+            summary?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** ProductForecast */
         ProductForecast: {
@@ -1326,6 +1543,121 @@ export interface operations {
             };
         };
     };
+    upload_checks_api_ingest_checks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecksResult"];
+                };
+            };
+        };
+    };
+    load_demo_api_ingest_demo_load_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    scan_drop_now_api_ingest_drop_scan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DropResult"];
+                };
+            };
+        };
+    };
+    get_economics_api_ingest_economics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomicsBody"];
+                };
+            };
+        };
+    };
+    set_economics_api_ingest_economics_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EconomicsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomicsBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     feeds_api_ingest_feeds_get: {
         parameters: {
             query?: never;
@@ -1449,6 +1781,37 @@ export interface operations {
             };
         };
     };
+    template_xlsx_api_ingest_feeds__feed__template_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_api_ingest_feeds__feed__upload_post: {
         parameters: {
             query?: never;
@@ -1480,6 +1843,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_plan_api_ingest_plan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanStatus"];
+                };
+            };
+        };
+    };
+    plan_status_api_ingest_plan_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanStatus"];
                 };
             };
         };
@@ -1533,6 +1936,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarkdownSuggestion"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_markdown_api_markdowns_decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkdownDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkdownSuggestion"];
                 };
             };
             /** @description Validation Error */

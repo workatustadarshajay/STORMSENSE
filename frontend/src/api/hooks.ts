@@ -16,6 +16,15 @@ export const makeQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: retryPolicy, retryDelay, staleTime: 15_000, refetchOnWindowFocus: false } } });
 
 export const useIngestAnalysis = () => useQuery({ queryKey: ["ingest-analysis"], queryFn: api.ingestAnalysis, retry: false });
+export const usePlanStatus = () => useQuery({ queryKey: ["plan-status"], queryFn: api.planStatus, retry: false, staleTime: 30_000 });
+export const useDecideMarkdown = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { store_id: string; product_id: string; decision: "APPROVED" | "REJECTED" }) =>
+      api.decideMarkdown(v.store_id, v.product_id, v.decision),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["markdowns"] }),
+  });
+};
 export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
 export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTime: 60_000 });
 export const useOverview = (weather: WeatherMode = "live") =>

@@ -329,6 +329,22 @@
         "title": "BacktestStorm",
         "type": "object"
       },
+      "ChecksResult": {
+        "properties": {
+          "sentences": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sentences",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sentences"
+        ],
+        "title": "ChecksResult",
+        "type": "object"
+      },
       "ColumnInfo": {
         "properties": {
           "choices": {
@@ -481,6 +497,51 @@
           "result"
         ],
         "title": "DeskStep",
+        "type": "object"
+      },
+      "DropResult": {
+        "properties": {
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          },
+          "loaded": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Loaded",
+            "type": "array"
+          }
+        },
+        "required": [
+          "folder",
+          "loaded"
+        ],
+        "title": "DropResult",
+        "type": "object"
+      },
+      "EconomicsBody": {
+        "properties": {
+          "margin_pct": {
+            "description": "Share of sales that is profit, in percent",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Margin Pct",
+            "type": "number"
+          },
+          "truck_cost_per_mile": {
+            "description": "What one truck trip costs per mile, in dollars",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Truck Cost Per Mile",
+            "type": "number"
+          }
+        },
+        "required": [
+          "truck_cost_per_mile",
+          "margin_pct"
+        ],
+        "title": "EconomicsBody",
         "type": "object"
       },
       "FeedInfo": {
@@ -653,6 +714,35 @@
         "title": "InventoryItem",
         "type": "object"
       },
+      "MarkdownDecision": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "product_id": {
+            "pattern": "^P\\d{2}$",
+            "title": "Product Id",
+            "type": "string"
+          },
+          "store_id": {
+            "pattern": "^S\\d{2}$",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store_id",
+          "product_id",
+          "decision"
+        ],
+        "title": "MarkdownDecision",
+        "type": "object"
+      },
       "MarkdownSuggestion": {
         "properties": {
           "assumption": {
@@ -667,6 +757,34 @@
           "current_price": {
             "title": "Current Price",
             "type": "number"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decision": {
+            "default": "pending",
+            "description": "pending, approved or rejected by a planner",
+            "title": "Decision",
+            "type": "string"
           },
           "discount_pct": {
             "description": "Suggested discount, 10 to 40 percent",
@@ -919,6 +1037,56 @@
           "sentence"
         ],
         "title": "PlanChange",
+        "type": "object"
+      },
+      "PlanStatus": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "net_benefit": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Benefit"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "ready"
+        ],
+        "title": "PlanStatus",
         "type": "object"
       },
       "ProductForecast": {
@@ -2037,6 +2205,134 @@
         ]
       }
     },
+    "/api/ingest/checks": {
+      "get": {
+        "operationId": "upload_checks_api_ingest_checks_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecksResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Upload Checks",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/demo/load": {
+      "post": {
+        "description": "Loads the four sample workbooks in order, then builds the plan. One click for a demo.",
+        "operationId": "load_demo_api_ingest_demo_load_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Load Demo Api Ingest Demo Load Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Load Demo",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/drop/scan": {
+      "post": {
+        "description": "Loads any files waiting in the drop folder now, instead of waiting for the next check.",
+        "operationId": "scan_drop_now_api_ingest_drop_scan_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DropResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scan Drop Now",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/economics": {
+      "get": {
+        "operationId": "get_economics_api_ingest_economics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomicsBody"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Economics",
+        "tags": [
+          "your data"
+        ]
+      },
+      "put": {
+        "description": "Truck cost per mile and product margin, used for the estimated profit of the plan.",
+        "operationId": "set_economics_api_ingest_economics_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EconomicsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomicsBody"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Economics",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
     "/api/ingest/feeds": {
       "get": {
         "operationId": "feeds_api_ingest_feeds_get",
@@ -2218,6 +2514,47 @@
         ]
       }
     },
+    "/api/ingest/feeds/{feed}/template.xlsx": {
+      "get": {
+        "description": "An Excel template. Store and product codes are dropdowns, filled from the stores and products you uploaded.",
+        "operationId": "template_xlsx_api_ingest_feeds__feed__template_xlsx_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feed",
+            "required": true,
+            "schema": {
+              "title": "Feed",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Template Xlsx",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
     "/api/ingest/feeds/{feed}/upload": {
       "post": {
         "operationId": "upload_api_ingest_feeds__feed__upload_post",
@@ -2265,6 +2602,49 @@
           }
         },
         "summary": "Upload",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/plan": {
+      "post": {
+        "description": "Builds the plan from your uploads. The planner's screens can then use them as \"Your uploads\".",
+        "operationId": "build_plan_api_ingest_plan_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Build Plan",
+        "tags": [
+          "your data"
+        ]
+      }
+    },
+    "/api/ingest/plan/status": {
+      "get": {
+        "operationId": "plan_status_api_ingest_plan_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Plan Status",
         "tags": [
           "your data"
         ]
@@ -2374,6 +2754,48 @@
           }
         },
         "summary": "Markdowns",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
+    "/api/markdowns/decision": {
+      "post": {
+        "description": "A planner approves or rejects a markdown suggestion. Records the decision; nothing changes in the stores.",
+        "operationId": "decide_markdown_api_markdowns_decision_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkdownDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkdownSuggestion"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Markdown",
         "tags": [
           "stores"
         ]

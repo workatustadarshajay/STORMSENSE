@@ -245,3 +245,49 @@ def read_xlsx(data: bytes, feed_key: str) -> list[dict[str, str]]:
         return out
     finally:
         book.close()
+
+
+DROP_DIR = "drop"
+
+
+def scan_drop(store: IngestStore) -> list[str]:
+    """Loads files dropped in the drop folder, named stores, products, sales or stock (.csv or .xlsx), then moves them aside."""
+    folder = store.folder / DROP_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    done: list[str] = []
+    for path in sorted(p for p in folder.iterdir() if p.is_file()):
+        feed = path.stem.lower()
+        if feed not in FEEDS or path.suffix.lower() not in (".csv", ".xlsx"):
+            continue
+        data = path.read_bytes()
+        rows = read_xlsx(data, feed) if path.suffix.lower() == ".xlsx" else list(csv.DictReader(io.StringIO(data.decode("utf-8-sig"))))
+        out = check(FEEDS[feed], rows, None, store.known())
+        if not out.missing:
+            store.save(feed, out, auto_mapping(FEEDS[feed], list(rows[0].keys()) if rows else []))
+        processed = folder / "processed"
+        processed.mkdir(exist_ok=True)
+        path.rename(processed / f"{datetime.now():%Y%m%d-%H%M%S}-{path.name}")
+        done.append(feed)
+    return done
+
+
+def start_drop_watcher(store: IngestStore, seconds: int = 30) -> threading.Thread:
+    """Checks the drop folder every few seconds in the background. Off unless the server setting turns it on."""
+    import logging
+    import time
+
+    log = logging.getLogger("stormsense.ingest")
+
+    def run() -> None:
+        while True:
+            try:
+                loaded = scan_drop(store)
+                if loaded:
+                    log.info("drop folder loaded: %s", ", ".join(loaded))
+            except Exception:  # noqa: BLE001 - keep watching; one bad file must not stop the watcher
+                log.exception("drop folder check failed")
+            time.sleep(seconds)
+
+    thread = threading.Thread(target=run, daemon=True, name="stormsense-drop-watcher")
+    thread.start()
+    return thread

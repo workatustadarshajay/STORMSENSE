@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
-import { useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
+import { useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { greeting, longDate, plural, shortDay, parseDay } from "../lib/format";
 
@@ -93,11 +93,13 @@ function DemoEmail() {
 
 function Markdowns({ weather }: { weather: WeatherMode }) {
   const items = useMarkdowns(weather);
+  const me = useMe();
+  const decide = useDecideMarkdown();
   return (
     <section aria-labelledby="md-h" className="mt-10">
       <h2 id="md-h" className="text-xl font-extrabold">Price markdowns</h2>
       <p className="mt-1 text-sm text-muted">
-        Surplus stock that would not sell at full price in two weeks. Each suggestion is only shown when a discount brings in more cash than holding. Nothing is changed here.
+        Surplus stock that would not sell at full price in two weeks. Each suggestion is only shown when a discount brings in more cash than holding. Approving records the planner's decision; it does not change prices in the stores.
       </p>
       {weather === "demo" && (
         <p className="mt-2 text-sm font-semibold text-heat">Demo response: each 10% off is assumed to lift sales by 40%, so more markdowns can pay. Live weather uses 15%.</p>
@@ -113,7 +115,22 @@ function Markdowns({ weather }: { weather: WeatherMode }) {
                   </p>
                   <p className="text-sm text-muted">{m.note}</p>
                 </div>
-                <p className="text-right text-sm font-extrabold text-teal-deep">+${Math.round(m.extra_cash_usd).toLocaleString("en-US")}</p>
+                <div className="grid justify-items-end gap-2">
+                  <p className="text-right text-sm font-extrabold text-teal-deep">+${Math.round(m.extra_cash_usd).toLocaleString("en-US")}</p>
+                  {m.decision === "pending" && me.data?.can_approve && (
+                    <div className="flex gap-2">
+                      <button type="button" disabled={decide.isPending}
+                        onClick={() => decide.mutate({ store_id: m.store.id, product_id: m.product.id, decision: "APPROVED" })}
+                        className="min-h-10 rounded-xl bg-ink px-3 text-sm font-bold text-white disabled:bg-line">Approve</button>
+                      <button type="button" disabled={decide.isPending}
+                        onClick={() => decide.mutate({ store_id: m.store.id, product_id: m.product.id, decision: "REJECTED" })}
+                        className="min-h-10 rounded-xl border border-line px-3 text-sm font-bold text-ink disabled:text-muted">Reject</button>
+                    </div>
+                  )}
+                  {m.decision !== "pending" && (
+                    <p className="text-sm text-muted">{m.decision === "approved" ? "Approved" : "Rejected"} by {m.decided_by}</p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -165,12 +182,12 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
       {o.pending_transfers > 0 && (
         <p className="mt-3 text-center text-sm text-muted">{plural(o.pending_transfers, "transfer")} waiting in total</p>
       )}
-      <Link
-        to="/your-data"
+      <a
+        href={import.meta.env.DEV ? "http://localhost:5174/#analysis" : "/ingest/#analysis"}
         className="mt-4 flex min-h-12 items-center justify-center rounded-2xl border border-line bg-paper px-6 font-bold text-teal-deep hover:border-teal hover:bg-teal-tint"
       >
         Show my uploaded data
-      </Link>
+      </a>
       {o.as_of && <p className="mt-8 text-center text-xs text-muted">Based on stock counted {longDate(parseDay(o.as_of.toString()))}</p>}
     </>
   );

@@ -56,27 +56,72 @@ def analyse(store: IngestStore) -> dict | None:
             status = "Watch"
         else:
             status = "Plenty"
-        rows.append({
-            "store": str(store_name.get(store_id, store_id)), "store_id": store_id,
-            "product": str(product_name.get(product_id, product_id)),
-            "on_hand": round(on_hand), "sold_per_day": round(per_day, 1),
-            "days_of_cover": round(cover, 1) if cover is not None else None, "status": status,
-            "stock_value_usd": round(on_hand * unit, 2), "sales_value_usd": round(float(sold.get((store_id, product_id), 0.0)) * unit, 2),
-        })
+        rows.append(
+            {
+                "store": str(store_name.get(store_id, store_id)),
+                "store_id": store_id,
+                "product": str(product_name.get(product_id, product_id)),
+                "on_hand": round(on_hand),
+                "sold_per_day": round(per_day, 1),
+                "days_of_cover": round(cover, 1) if cover is not None else None,
+                "status": status,
+                "stock_value_usd": round(on_hand * unit, 2),
+                "sales_value_usd": round(float(sold.get((store_id, product_id), 0.0)) * unit, 2),
+            }
+        )
 
     frame = pd.DataFrame(rows)
-    by_store = (frame.groupby(["store_id", "store"]).agg(
-        short_items=("status", lambda s: int((s == "Short").sum())),
-        stock_value_usd=("stock_value_usd", "sum")).reset_index().sort_values("short_items", ascending=False))
-    flagged = frame[frame["status"].isin(["Short", "Watch"])].sort_values(
-        ["days_of_cover", "store"], na_position="last").head(50)
+    by_store = (
+        frame.groupby(["store_id", "store"])
+        .agg(short_items=("status", lambda s: int((s == "Short").sum())), stock_value_usd=("stock_value_usd", "sum"))
+        .reset_index()
+        .sort_values("short_items", ascending=False)
+    )
+    flagged = frame[frame["status"].isin(["Short", "Watch"])].sort_values(["days_of_cover", "store"], na_position="last").head(50)
     return {
-        "as_of": last.date().isoformat(), "window_days": WINDOW_DAYS,
-        "stores": len(stores), "products": len(products), "pairs": len(rows),
-        "short": int((frame["status"] == "Short").sum()), "watch": int((frame["status"] == "Watch").sum()),
+        "as_of": last.date().isoformat(),
+        "window_days": WINDOW_DAYS,
+        "stores": len(stores),
+        "products": len(products),
+        "pairs": len(rows),
+        "short": int((frame["status"] == "Short").sum()),
+        "watch": int((frame["status"] == "Watch").sum()),
         "sold_units": round(float(recent["units"].sum())),
         "sales_value_usd": round(float(frame["sales_value_usd"].sum()), 2),
         "stock_value_usd": round(float(frame["stock_value_usd"].sum()), 2),
         "by_store": by_store.drop(columns=["store_id"]).to_dict("records"),
         "items": flagged.drop(columns=["store_id"]).to_dict("records"),
     }
+
+
+def checks(store: IngestStore) -> list[str]:
+    """Plain-language checks on what has been uploaded, so problems show before the plan does."""
+    feeds = {f: store.read(f) for f in ("stores", "products", "sales", "stock")}
+    names = {f: pd.DataFrame(v["rows"]) if v else pd.DataFrame() for f, v in feeds.items()}
+    out: list[str] = []
+    missing = [f for f, v in feeds.items() if v is None]
+    if missing:
+        out.append("Still to upload: " + ", ".join(missing) + ".")
+    stores, products, sales, stock = names["stores"], names["products"], names["sales"], names["stock"]
+    if not sales.empty:
+        dates = pd.to_datetime(sales["sale_date"])
+        days = dates.nunique()
+        out.append(f"Your sales cover {days} day{'s' if days != 1 else ''}, from {dates.min():%d %b} to {dates.max():%d %b %Y}.")
+    if not stock.empty:
+        out.append(f"Latest stock count: {pd.to_datetime(stock['snapshot_date']).max():%d %b %Y}.")
+    if not stores.empty and not stock.empty:
+        without = stores[~stores["store_id"].isin(stock["store_id"])]
+        if len(without):
+            out.append(
+                f"{len(without)} store{'s have' if len(without) != 1 else ' has'} no stock count: " + ", ".join(without["name"][:5]) + "."
+            )
+    if not products.empty and not sales.empty:
+        idle = products[~products["product_id"].isin(sales["product_id"])]
+        if len(idle):
+            out.append(f"{len(idle)} product{'s have' if len(idle) != 1 else ' has'} no sales: " + ", ".join(idle["name"][:5]) + ".")
+    refused = sum(v["refused"] for v in feeds.values() if v)
+    if refused:
+        out.append(f"{refused} row{'s were' if refused != 1 else ' was'} refused on your uploads. Fix them and upload again.")
+    if not out:
+        out.append("Everything you uploaded passes the checks.")
+    return out

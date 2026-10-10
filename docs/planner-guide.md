@@ -91,3 +91,12 @@ These are estimates to plan with, not promises. Nothing is changed by this page.
 ## If something looks wrong
 
 Reject the move with the closest reason and add a note. The next daily plan takes that into account. If a number looks wrong, tell the team that runs StormSense, with the store and product name.
+
+## Your uploads
+
+Once a plan has been built from your files, the **Data shown** switch has a third choice, **Your uploads**. Today, Transfers, Stores and Storm desk then show that plan. The sidebar says **Your data**. The plan is a simple forecast from your last four weeks, not the trained model, and the upload app says so.
+
+## Markdown approvals
+
+On Today, a planner can **Approve** or **Reject** each price markdown suggestion. This records the decision and who made it. It does not change any prices in the stores.
+

@@ -23,3 +23,12 @@ select { min-height: 40px; border-radius: 10px; border: 1px solid #dedcd0; paddi
 .result { margin-top: 1rem; border: 1px solid #dedcd0; border-radius: 12px; padding: 1rem; }
 pre { background: #231f20; color: #f2f1e9; padding: 1rem; border-radius: 12px; overflow-x: auto; font-size: .85rem; }
 code { font-size: .9em; }
+.tiles { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin: 1rem 0; }
+.tiles div { background: #e4f4f6; border-radius: 12px; padding: .9rem; display: grid; gap: .15rem; }
+.tiles strong { font-size: 1.5rem; }
+.tiles span { color: #5a666e; font-size: .85rem; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .5rem 0 1rem; }
+th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #dedcd0; }
+th { color: #5a666e; font-weight: 600; }
+.field { display: grid; gap: .25rem; font-size: .9rem; }
+input[type=number] { min-height: 40px; width: 9rem; border-radius: 10px; border: 1px solid #dedcd0; padding: 0 .5rem; }

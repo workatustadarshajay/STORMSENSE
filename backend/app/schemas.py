@@ -185,6 +185,9 @@ class MarkdownSuggestion(BaseModel):
     extra_cash_usd: float = Field(description="Cash expected over holding the stock at full price, an estimate")
     note: str
     assumption: str = Field(description="How the estimate was made, so it can be checked")
+    decision: str = Field("pending", description="pending, approved or rejected by a planner")
+    decided_by: str | None = None
+    decided_at: str | None = None
 
 
 class DemoAlertResult(BaseModel):

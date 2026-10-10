@@ -92,6 +92,17 @@ def create_app(settings: Settings | None = None, source: DataSource | None = Non
         from .ingest import IngestStore
 
         app.state.ingest = IngestStore(settings.ingest_dir)
+        if settings.ingest_drop:
+            from .ingest import start_drop_watcher
+
+            start_drop_watcher(app.state.ingest)
+        from .ingest_plan import PLAN_FILE
+
+        plan_file = settings.ingest_dir / PLAN_FILE
+        if plan_file.exists():  # a plan built from uploads in an earlier run
+            from .sources.mock import MockSource
+
+            services["upload"] = Service(MockSource(plan_file), settings)
     app.state.what_if_limiter = RateLimiter(6)
     app.state.alert_limiter = RateLimiter(3)
     app.state.forecast_scorer = build_forecast_scorer(settings)

@@ -41,8 +41,9 @@ export function Shell() {
   }, [pathname]);
 
   const sample = me.data?.data_label === "sample";
-  const label = sample ? (
-    <span className="rounded-full border border-white/25 px-2.5 py-0.5 text-xs font-semibold text-white/85">Sample data</span>
+  const uploaded = me.data?.data_label === "uploaded";
+  const label = sample || uploaded ? (
+    <span className="rounded-full border border-white/25 px-2.5 py-0.5 text-xs font-semibold text-white/85">{uploaded ? "Your data" : "Sample data"}</span>
   ) : null;
 
   return (

@@ -86,7 +86,7 @@ describe("Price markdowns on Today", () => {
     open("/");
     expect(await screen.findByText("Orlando: 1000W generators, 10% off")).toBeInTheDocument();
     expect(screen.getByText("+$260")).toBeInTheDocument();
-    expect(screen.getByText(/Nothing is changed here/)).toBeInTheDocument();
+    expect(screen.getByText(/does not change prices in the stores/)).toBeInTheDocument();
   });
 });
 
@@ -169,6 +169,36 @@ describe("Show my uploaded data", () => {
   it("is reached from Today with a button", async () => {
     serve({ "GET /api/me": () => fx.planner });
     open("/");
-    expect(await screen.findByRole("link", { name: "Show my uploaded data" })).toHaveAttribute("href", "/your-data");
+    expect(await screen.findByRole("link", { name: "Show my uploaded data" })).toHaveAttribute("href", expect.stringContaining("#analysis"));
   });
 });
+
+describe("Your uploads as a data source", () => {
+  it("offers your uploads once a plan exists, and a link can pick it", async () => {
+    localStorage.clear();
+    serve({
+      "GET /api/health": () => ({ status: "ok", mode: "mock", warehouse: "not_checked" }),
+      "GET /api/ingest/plan/status": () => ({ ready: true, as_of: "2026-10-07", summary: null, net_benefit: null }),
+      "GET /api/me": () => fx.planner,
+    });
+    window.history.replaceState(null, "", "/?data=upload");
+    open("/");
+    const uploads = await screen.findByRole("button", { name: "Your uploads" });
+    await waitFor(() => expect(uploads).toHaveAttribute("aria-pressed", "true"));
+    expect(localStorage.getItem("stormsense.source")).toBe("upload");
+    window.history.replaceState(null, "", "/");
+    localStorage.clear();
+  });
+  it("keeps your uploads off until a plan is built", async () => {
+    localStorage.clear();
+    serve({
+      "GET /api/health": () => ({ status: "ok", mode: "mock", warehouse: "not_checked" }),
+      "GET /api/ingest/plan/status": () => ({ ready: false, as_of: null, summary: null, net_benefit: null }),
+      "GET /api/me": () => fx.planner,
+    });
+    open("/");
+    const uploads = await screen.findByRole("button", { name: "Your uploads" });
+    await waitFor(() => expect(uploads).toBeDisabled());
+  });
+});
+

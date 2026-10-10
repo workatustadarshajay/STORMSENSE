@@ -1,4 +1,5 @@
 """The analysis turns uploaded sales and stock into days of cover, and says Short, Watch or Plenty."""
+
 from app.ingest import IngestStore, Outcome
 from app.ingest_analysis import analyse
 

@@ -109,6 +109,78 @@ Returns Analysis.
 | `watch` | integer |  |
 | `window_days` | integer |  |
 
+### `GET /api/ingest/checks`
+
+Upload Checks
+
+**Response**
+
+Returns ChecksResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `sentences` | list of string |  |
+
+### `POST /api/ingest/demo/load`
+
+Load Demo
+
+Loads the four sample workbooks in order, then builds the plan. One click for a demo.
+
+**Response**
+
+Returns object.
+
+### `POST /api/ingest/drop/scan`
+
+Scan Drop Now
+
+Loads any files waiting in the drop folder now, instead of waiting for the next check.
+
+**Response**
+
+Returns DropResult.
+
+| Field | Type | Notes |
+|---|---|---|
+| `folder` | string |  |
+| `loaded` | list of string |  |
+
+### `GET /api/ingest/economics`
+
+Get Economics
+
+**Response**
+
+Returns EconomicsBody.
+
+| Field | Type | Notes |
+|---|---|---|
+| `margin_pct` | number | Share of sales that is profit, in percent; ≥ 0.0; ≤ 100.0 |
+| `truck_cost_per_mile` | number | What one truck trip costs per mile, in dollars; ≥ 0.0; ≤ 20.0 |
+
+### `PUT /api/ingest/economics`
+
+Set Economics
+
+Truck cost per mile and product margin, used for the estimated profit of the plan.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `margin_pct` | number | yes | Share of sales that is profit, in percent; ≥ 0.0; ≤ 100.0 |
+| `truck_cost_per_mile` | number | yes | What one truck trip costs per mile, in dollars; ≥ 0.0; ≤ 20.0 |
+
+**Response**
+
+Returns EconomicsBody.
+
+| Field | Type | Notes |
+|---|---|---|
+| `margin_pct` | number | Share of sales that is profit, in percent; ≥ 0.0; ≤ 100.0 |
+| `truck_cost_per_mile` | number | What one truck trip costs per mile, in dollars; ≥ 0.0; ≤ 20.0 |
+
 ### `GET /api/ingest/feeds`
 
 Feeds
@@ -179,6 +251,18 @@ Returns UploadResult.
 | `refusals` | list of Refusal | The first 20 refused rows, with the line number and the reason |
 | `refused` | integer |  |
 
+### `GET /api/ingest/feeds/{feed}/template.xlsx`
+
+Template Xlsx
+
+An Excel template. Store and product codes are dropdowns, filled from the stores and products you uploaded.
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `feed` | path | string | yes |  |
+
 ### `POST /api/ingest/feeds/{feed}/upload`
 
 Upload
@@ -211,6 +295,38 @@ Returns UploadResult.
 | `refusals` | list of Refusal | The first 20 refused rows, with the line number and the reason |
 | `refused` | integer |  |
 
+### `POST /api/ingest/plan`
+
+Build Plan
+
+Builds the plan from your uploads. The planner's screens can then use them as "Your uploads".
+
+**Response**
+
+Returns PlanStatus.
+
+| Field | Type | Notes |
+|---|---|---|
+| `as_of` | string (optional) |  |
+| `net_benefit` | object (optional) |  |
+| `ready` | boolean |  |
+| `summary` | object (optional) |  |
+
+### `GET /api/ingest/plan/status`
+
+Plan Status
+
+**Response**
+
+Returns PlanStatus.
+
+| Field | Type | Notes |
+|---|---|---|
+| `as_of` | string (optional) |  |
+| `net_benefit` | object (optional) |  |
+| `ready` | boolean |  |
+| `summary` | object (optional) |  |
+
 ### `GET /api/inventory`
 
 Inventory
@@ -240,6 +356,41 @@ Surplus stock that would not sell in time at full price, with a discount that ad
 **Response**
 
 Returns list of MarkdownSuggestion.
+
+### `POST /api/markdowns/decision`
+
+Decide Markdown
+
+A planner approves or rejects a markdown suggestion. Records the decision; nothing changes in the stores.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `decision` | one of `APPROVED`, `REJECTED` | yes |  |
+| `product_id` | string | yes | matches `"^P\\d{2}$"` |
+| `store_id` | string | yes | matches `"^S\\d{2}$"` |
+
+**Response**
+
+Returns MarkdownSuggestion.
+
+| Field | Type | Notes |
+|---|---|---|
+| `assumption` | string | How the estimate was made, so it can be checked |
+| `clears_all` | boolean |  |
+| `current_price` | number |  |
+| `decided_at` | string (optional) |  |
+| `decided_by` | string (optional) |  |
+| `decision` | string | pending, approved or rejected by a planner; default `"pending"` |
+| `discount_pct` | integer | Suggested discount, 10 to 40 percent; ≥ 10.0; ≤ 40.0 |
+| `extra_cash_usd` | number | Cash expected over holding the stock at full price, an estimate |
+| `new_price` | number |  |
+| `note` | string |  |
+| `product` | ProductRef |  |
+| `spare_units` | integer | Stock the store will not need in the week ahead |
+| `store` | Ref |  |
+| `units_cleared` | integer | Units expected to sell in the clearance window at this discount |
 
 ### `GET /api/me`
 

@@ -6,7 +6,7 @@ import time
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
-from datetime import date
+from datetime import date, datetime
 from typing import Any, TypeVar
 
 from .carbon import estimate_kg_co2e
@@ -79,6 +79,8 @@ class Service:
     def __init__(self, source: DataSource, settings: Settings) -> None:
         self.source, self.settings = source, settings
         self._cache: dict[str, tuple[float, Any]] = {}
+        # Planner decisions on markdown suggestions. Kept in memory: they reset when the server restarts.
+        self.markdown_decisions: dict[tuple[str, str], dict[str, Any]] = {}
 
     # ---- tiny in-memory cache for read-only data ----------------------------------------------
     def _cached(self, key: str, fn: Callable[[], T], ttl: float | None = None) -> T:
@@ -98,6 +100,9 @@ class Service:
     def me(self, email: str) -> Me:
         row = self._cached(f"user:{email.lower()}", lambda: self.source.user(email), ttl=60)
         role = (row or {}).get("role") or self.settings.default_role
+        # On a local copy the person running it is the operator: the dev identity can approve even when it is not in the account list.
+        if not row and self.settings.allow_dev_identity and email.lower() == self.settings.dev_user_email.lower():
+            role = "planner"
         name = (row or {}).get("display_name") or email.split("@")[0].replace(".", " ").title()
         label = self._cached("data_label", lambda: self.source.setting("data_label"), ttl=300)
         return Me(email=email, name=name, role=role, can_approve=role in ("planner", "admin"), data_label=label)
@@ -155,7 +160,25 @@ class Service:
                     product=ProductRef(id=p["product_id"], name=p["name"], name_plural=p["name_plural"]),
                     spare_units=spare, current_price=price, note=note, assumption=assumption, **plan))
             return sorted(out, key=lambda m: -m.extra_cash_usd)
-        return self._cached(f"markdowns:{weather}", build)
+        found = self._cached(f"markdowns:{weather}", build)
+        return [self._with_decision(m) for m in found]
+
+    def _with_decision(self, m: MarkdownSuggestion) -> MarkdownSuggestion:
+        d = self.markdown_decisions.get((m.store.id, m.product.id))
+        if not d:
+            return m
+        return m.model_copy(update={"decision": d["decision"], "decided_by": d["decided_by"], "decided_at": d["decided_at"]})
+
+    def decide_markdown(self, store_id: str, product_id: str, decision: str, actor: str) -> MarkdownSuggestion | None:
+        """Approve or reject a markdown suggestion. Nothing changes in the stores: this records the planner's decision."""
+        match = next((m for m in self.markdowns("live") + self.markdowns("demo")
+                      if m.store.id == store_id and m.product.id == product_id), None)
+        if match is None:
+            return None
+        self.markdown_decisions[(store_id, product_id)] = {
+            "decision": decision.lower(), "decided_by": actor, "decided_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        return self._with_decision(match)
 
     def backtest(self) -> list[BacktestStorm]:
         return [BacktestStorm.model_validate(r) for r in self.source.backtest()]

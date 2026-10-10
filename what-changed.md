@@ -350,3 +350,19 @@ Files changed since the scoring criteria, besides those above: `databricks/datab
 - **Not done:** the planning screens (forecast, transfers) still use the sample or live data, not uploaded files.
 - **Checks:** backend 120 pass; web unit 49 pass; lint passes.
 - **Fix (ingestion client, Excel upload):** the Upload button only appeared for CSV files, and for Excel files it was disabled because the column check counted every column as missing. Now the button shows for both, and the column check applies only to CSV. Verified in a browser: uploading the sample stores workbook keeps 10 rows and refuses 0.
+
+---
+
+## 25. Plan from your uploads, plain checks, dropdown templates, one-click demo, markdown approvals, drop folder, cost inputs
+
+- **Plan from uploads (`backend/app/ingest_plan.py`):** builds stock gaps and transfers from your files with the same planning rules as the sample build (`stormsense_core.planning`). The forecast is simple: each product's average sales on the same weekday over the last four weeks. Gaps use a fixed 70% to 130% spread. The result is saved as a plan file and loaded as a third data source, **Your uploads** (`X-Data-Source: upload`), so the planner's screens show it. Sidebar label: **Your data**.
+- **Plain checks (`GET /api/ingest/checks`):** sentences such as "Your sales cover 28 days", "1 store has no stock count: Tampa.", "1 product has no sales: Pump."
+- **Excel templates with dropdowns (`GET /api/ingest/feeds/{feed}/template.xlsx`):** store and product codes are dropdowns from a hidden list filled from the files you loaded. Unknown codes are refused in the template.
+- **One-click demo (`POST /api/ingest/demo/load`):** loads the four sample workbooks in order, then builds the plan. The upload app's **Load the sample data (one click)** button calls it, and its **Open the planner on my data** link selects **Your uploads** (`/?data=upload`).
+- **Analysis in the upload app:** the analysis moved into the upload app's new Analysis section, with the **Email the planners** button (the same email job as before, which needs the live workspace). Today's "Show my uploaded data" button now opens it.
+- **Markdown approvals (`POST /api/markdowns/decision`):** planners approve or reject each suggestion on Today. Decisions are kept in memory and reset on restart, which is stated in the guide. Nothing changes in the stores.
+- **Drop folder:** files named `stores`, `products`, `sales` or `stock` (CSV or Excel) dropped in `backend/data/ingest/drop/` are loaded and moved to `processed/`. A background watcher runs when `STORMSENSE_INGEST_DROP=1`, and `POST /api/ingest/drop/scan` runs it now.
+- **Cost and margin (`GET/PUT /api/ingest/economics`):** truck cost per mile and margin on sales. They give the estimated profit of the plan: margin less one truck trip per transfer. Shown in the upload app.
+- **Not built:** store-level logins. They need a real sign-in, which the hackathon copy doesn't have.
+- **Checks:** backend 128 pass; upload app unit 2 pass; planner unit 51 pass; planner browser 27 pass with 1 skipped; lint passes; the API reference regenerated; the docs build. The one-click flow was checked in a browser: sample loaded, plan built with the profit line, checks and analysis shown.
+- **Fix (approve and reject on local copies):** the local operator's identity (`STORMSENSE_DEV_USER_EMAIL`) was missing from the sample account list, so on the sample copy and on **Your uploads** it fell back to the read-only viewer role and the approve and reject buttons were refused. A local copy's operator now has the planner role when not otherwise listed. Other accounts that are not in the list stay read-only. Tests: backend 130 pass.

@@ -137,13 +137,19 @@ On Today, with **Demo storm** selected, **Email this storm alert** starts the Da
 
 Until the bundle is deployed, the button says the job isn't in the workspace yet. The button needs the live workspace; sample data cannot start jobs.
 
-## Demo: upload Excel and see your data in the planner
+## Demo: your data, end to end
 
 1. `make dev`, then open the upload app at http://localhost:5174.
-2. In each card, click **Download sample Excel** (or use the copies in `ingestion-client/public/demo/`). Upload the four files in this order: stores, products, daily sales, daily stock.
-3. Open the planner at http://localhost:5173 and click **Show my uploaded data** on Today. It shows how many products are running short or on watch, by store, from your last 28 days of sales and the latest stock count.
+2. Click **Load the sample data (one click)**. The four sample workbooks load, and the checks say what they found.
+3. Click **Build the plan from my files**. The plan uses a simple forecast (the average sales on each weekday over the last four weeks), the stock gaps and the transfers, and shows the estimated profit.
+4. Click **Open the planner on my data**. The planner's **Your uploads** source is selected, so Today, Transfers and the stores show the plan built from your files. The sidebar says **Your data**.
+5. On the upload app, the **Analysis** section shows the products running short, and the **Email the planners** button sends the email when the live workspace is connected.
 
-The analysis is deliberately simple (sells per day and days of stock left). The planning screens still use the sample or live data; see the next section for what changes that.
+To use your own files, download the Excel template for each feed. Store and product codes are dropdowns filled from the files you loaded, so unknown codes are refused in the template. Upload the four files, then build the plan again.
+
+Files can also be dropped in `backend/data/ingest/drop/` (named `stores`, `products`, `sales` or `stock`, as CSV or Excel). They load when the server is started with `STORMSENSE_INGEST_DROP=1`, or straight away with **Load files from the drop folder now**.
+
+Approving or rejecting a markdown suggestion records the decision for the planner. These decisions are kept in memory, so they reset when the server restarts.
 
 ## Your own data: the ingestion client
 

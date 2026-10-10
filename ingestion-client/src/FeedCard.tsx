@@ -79,6 +79,9 @@ export function FeedCard({ feed, onChanged }: { feed: Feed; onChanged: () => voi
           Download template
         </button>
         <a className="button secondary" href={`demo/${feed.feed}.xlsx`} download>Download sample Excel</a>
+        <a className="button secondary" href={`/api/ingest/feeds/${feed.feed}/template.xlsx`} download>
+          Download Excel template (with code lists)
+        </a>
         <label className="button">
           Choose a file (CSV or Excel)
           <input type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
