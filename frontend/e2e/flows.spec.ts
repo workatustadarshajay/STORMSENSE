@@ -6,7 +6,7 @@ const PAGES = [
   ["Business impact", "/impact"],
   ["Storm response", "/response"],
   ["Shared truck loads", "/loads"],
-  ["Today", "/"],
+  ["Today", "/today"],
   ["Transfers", "/transfers"],
   ["Store forecast", "/stores"],
   ["Ask", "/ask"],
@@ -31,7 +31,7 @@ async function headlineOf(page: Page, index: number) {
 
 test("a planner approves two transfers and finds them in history", async ({ page, request }) => {
   const errors = watchErrors(page);
-  await page.goto("/");
+  await page.goto("/today");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/Good (morning|afternoon|evening), Ava/);
   await page.getByRole("link", { name: "Review transfers" }).click();
   await expect(page).toHaveURL(/\/transfers$/);
@@ -118,7 +118,7 @@ for (const [name, path] of PAGES) {
 
 test("the keyboard reaches everything: skip link first, focus is visible", async ({ page, isMobile }) => {
   test.skip(isMobile, "keyboard flow is for desktop");
-  await page.goto("/");
+  await page.goto("/today");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");

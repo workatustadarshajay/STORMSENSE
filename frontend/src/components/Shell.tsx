@@ -5,7 +5,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useMe } from "../api/hooks";
 
 const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
-  { to: "/", label: "Today", icon: CloudSun, end: true },
+  { to: "/today", label: "Today", icon: CloudSun, end: true },
   { to: "/transfers", label: "Transfers", icon: Truck },
   { to: "/stores", label: "Stores", icon: Store },
   { to: "/ask", label: "Ask", icon: MessageCircle },

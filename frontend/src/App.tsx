@@ -3,9 +3,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Link, Route, Routes } from "react-router-dom";
 import { makeQueryClient } from "./api/hooks";
 import { Shell } from "./components/Shell";
+import Landing from "./pages/Landing";
 import Today from "./pages/Today";
 
-// Every page except Today (the landing page) loads on first visit, so the first screen downloads less.
+// Every page except the landing page and Today loads on first visit, so the first screen downloads less.
 const Ask = lazy(() => import("./pages/Ask"));
 const Backtest = lazy(() => import("./pages/Backtest"));
 const Analysis = lazy(() => import("./pages/Analysis"));
@@ -23,7 +24,7 @@ function NotFound() {
   return (
     <div className="mt-10 text-center">
       <h1 className="text-3xl font-extrabold">We couldn't find that page</h1>
-      <Link to="/" className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-ink px-5 font-bold text-white">
+      <Link to="/today" className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-ink px-5 font-bold text-white">
         Back to today
       </Link>
     </div>
@@ -35,8 +36,9 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
     <QueryClientProvider client={client}>
       <Suspense fallback={<p className="mt-10 text-center text-muted">Loading…</p>}>
       <Routes>
+        <Route index element={<Landing />} />
         <Route element={<Shell />}>
-          <Route index element={<Today />} />
+          <Route path="today" element={<Today />} />
           <Route path="transfers" element={<Transfers />} />
           <Route path="stores" element={<Stores />} />
           <Route path="ask" element={<Ask />} />

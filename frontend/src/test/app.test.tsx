@@ -17,7 +17,7 @@ const BANNED = /\b(sql|delta|databricks|genie|mlflow|warehouse|sku|mape|wape|mod
 describe("Today", () => {
   it("greets by name and shows the three numbers and one button", async () => {
     serve();
-    open("/");
+    open("/today");
     expect(await screen.findByRole("heading", { level: 1, name: /Good (morning|afternoon|evening), Ava/ })).toBeInTheDocument();
     const glance = screen.getByRole("region", { name: "Today at a glance" });
     expect(within(glance).getByText("urgent transfers").previousSibling).toHaveTextContent("2");
@@ -135,7 +135,7 @@ describe("states", () => {
 
   it("shows a friendly waiting state while data wakes up", async () => {
     serve({ "GET /api/overview": () => problem(503, "warming_up", "Getting things ready.") });
-    open("/", makeQueryClient());
+    open("/today", makeQueryClient());
     expect(await screen.findByText("Getting things ready")).toBeInTheDocument();
   });
 
@@ -152,7 +152,7 @@ describe("states", () => {
 
   it("asks to sign in again when the session is gone", async () => {
     serve({ "GET /api/overview": () => problem(401, "signed_out", "Please sign in again to continue.") });
-    open("/");
+    open("/today");
     expect(await screen.findByText("Please sign in again")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument();
   });

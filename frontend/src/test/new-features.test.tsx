@@ -20,7 +20,7 @@ const storms = [
 describe("Storm readiness on Today", () => {
   it("shows each store's readiness, lowest first, with its label", async () => {
     serve({ "GET /api/overview": () => fx.overview, "GET /api/stores": () => fx.stores, "GET /api/me": () => fx.planner });
-    open("/");
+    open("/today");
     expect(await screen.findByRole("heading", { name: "Storm readiness" })).toBeInTheDocument();
     const orlando = await screen.findByRole("img", { name: /20 percent ready, At risk/ });
     expect(orlando).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe("Weather switch on Today", () => {
       "GET /api/stores?weather=demo": () => fx.stores,
       "GET /api/me": () => fx.planner,
     });
-    open("/?weather=demo");
+    open("/today?weather=demo");
     expect(await screen.findByText(/Demo storm: a storm is placed on the Florida stores/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Demo storm" })).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: "Live weather" }));
@@ -83,7 +83,7 @@ describe("Price markdowns on Today", () => {
         extra_cash_usd: 260.48, note: "Mark 1000W generators down 10% to $1169.10 to sell about 30 of 30 in 14 days, about $260 more than holding them.",
       }],
     });
-    open("/");
+    open("/today");
     expect(await screen.findByText("Orlando: 1000W generators, 10% off")).toBeInTheDocument();
     expect(screen.getByText("+$260")).toBeInTheDocument();
     expect(screen.getByText(/does not change prices in the stores/)).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe("Markdowns in demo weather", () => {
         extra_cash_usd: 1500, note: "Mark 1000W generators down 20% to $1039.20.", assumption: "Demo: each 10% off lifts sales by 40%.",
       }],
     });
-    open("/?weather=demo");
+    open("/today?weather=demo");
     expect(await screen.findByText("Jacksonville: 1000W generators, 20% off")).toBeInTheDocument();
     expect(screen.getByText(/Demo response: each 10% off is assumed to lift sales by 40%/)).toBeInTheDocument();
   });
@@ -117,7 +117,7 @@ describe("Demo storm email", () => {
       "GET /api/me": () => fx.planner,
       "POST /api/demo/alert": () => ({ started: true, message: "Started. Databricks sends the email within a few minutes." }),
     });
-    open("/?weather=demo");
+    open("/today?weather=demo");
     await user.click(await screen.findByRole("button", { name: "Email this storm alert" }));
     expect(await screen.findByText(/Started. Databricks sends the email/)).toBeInTheDocument();
     expect(server.calls.some((c) => c.method === "POST" && c.path === "/api/demo/alert")).toBe(true);
@@ -127,7 +127,7 @@ describe("Demo storm email", () => {
 describe("Data shown: sample or live", () => {
   it("disables live where the copy is not connected to the workspace", async () => {
     serve({ "GET /api/health": () => ({ status: "ok", mode: "mock", warehouse: "not_checked" }), "GET /api/me": () => fx.planner });
-    open("/");
+    open("/today");
     const live = await screen.findByRole("button", { name: "Live workspace" });
     await waitFor(() => expect(live).toBeDisabled());
     expect(screen.getByRole("button", { name: "Sample data" })).toHaveAttribute("aria-pressed", "true");
@@ -136,7 +136,7 @@ describe("Data shown: sample or live", () => {
     const user = userEvent.setup();
     localStorage.clear();
     serve({ "GET /api/health": () => ({ status: "ok", mode: "databricks", warehouse: "not_checked" }), "GET /api/me": () => fx.planner });
-    open("/");
+    open("/today");
     const live = await screen.findByRole("button", { name: "Live workspace" });
     await waitFor(() => expect(live).toBeEnabled());
     await user.click(live);
@@ -168,7 +168,7 @@ describe("Show my uploaded data", () => {
   });
   it("is reached from Today with a button", async () => {
     serve({ "GET /api/me": () => fx.planner });
-    open("/");
+    open("/today");
     expect(await screen.findByRole("link", { name: "Show my uploaded data" })).toHaveAttribute("href", expect.stringContaining("#analysis"));
   });
 });
@@ -181,12 +181,12 @@ describe("Your uploads as a data source", () => {
       "GET /api/ingest/plan/status": () => ({ ready: true, as_of: "2026-10-07", summary: null, net_benefit: null }),
       "GET /api/me": () => fx.planner,
     });
-    window.history.replaceState(null, "", "/?data=upload");
-    open("/");
+    window.history.replaceState(null, "", "/today?data=upload");
+    open("/today");
     const uploads = await screen.findByRole("button", { name: "Your uploads" });
     await waitFor(() => expect(uploads).toHaveAttribute("aria-pressed", "true"));
     expect(localStorage.getItem("stormsense.source")).toBe("upload");
-    window.history.replaceState(null, "", "/");
+    window.history.replaceState(null, "", "/today");
     localStorage.clear();
   });
   it("keeps your uploads off until a plan is built", async () => {
@@ -196,7 +196,7 @@ describe("Your uploads as a data source", () => {
       "GET /api/ingest/plan/status": () => ({ ready: false, as_of: null, summary: null, net_benefit: null }),
       "GET /api/me": () => fx.planner,
     });
-    open("/");
+    open("/today");
     const uploads = await screen.findByRole("button", { name: "Your uploads" });
     await waitFor(() => expect(uploads).toBeDisabled());
   });
@@ -245,7 +245,7 @@ describe("Morning briefing", () => {
       "GET /api/briefing": () => ({ headline: "Review 2 urgent moves first.", lines: ["2 urgent, 9 waiting for a decision in total."] }),
       "GET /api/me": () => fx.planner,
     });
-    open("/");
+    open("/today");
     expect(await screen.findByText("Review 2 urgent moves first.")).toBeInTheDocument();
     expect(screen.getByText("2 urgent, 9 waiting for a decision in total.")).toBeInTheDocument();
     expect(screen.getByText("Your morning briefing")).toBeInTheDocument();
@@ -285,7 +285,7 @@ describe("Storm response", () => {
       "GET /api/overview": () => ({ ...fx.overview, alerts: [{ date: "2026-10-11", weekday: "Sunday", kind: "storm", title: "Tropical Storm Odalys expected Sunday", detail: "", stores: ["Orlando"] }] }),
       "GET /api/me": () => fx.planner,
     });
-    open("/");
+    open("/today");
     expect(await screen.findByText(/2 moves are drafted for tropical storm odalys, protecting/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Review the storm response" })).toHaveAttribute("href", "/response");
   });
