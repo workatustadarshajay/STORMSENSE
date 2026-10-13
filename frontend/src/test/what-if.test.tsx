@@ -15,7 +15,7 @@ describe("What if a storm comes", () => {
     const user = userEvent.setup();
     const server = serve({ "POST /api/what-if": () => fx.whatIfResult });
     open("/what-if");
-    await user.click(screen.getByRole("button", { name: "Run the storm" }));
+    await user.click(await screen.findByRole("button", { name: "Run the storm" }));
     expect(await screen.findByText("$53,223")).toBeInTheDocument();
     expect(screen.getByText(/would add about 1922 units/)).toBeInTheDocument();
     expect(screen.getByText("Orlando")).toBeInTheDocument();
@@ -29,10 +29,10 @@ describe("What if a storm comes", () => {
     const user = userEvent.setup();
     const server = serve({ "POST /api/what-if": () => fx.whatIfResult });
     open("/what-if");
-    await user.selectOptions(screen.getByRole("combobox", { name: "When it hits" }), "0");
-    await user.selectOptions(screen.getByRole("combobox", { name: "How many days" }), "3");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Where" }), "Texas");
-    await user.click(screen.getByRole("button", { name: "Run the storm" }));
+    await user.selectOptions(await screen.findByRole("combobox", { name: "When it hits" }), "0");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "How many days" }), "3");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Where" }), "Texas");
+    await user.click(await screen.findByRole("button", { name: "Run the storm" }));
     await screen.findByText("$53,223");
     expect(server.calls.find((c) => c.path === "/api/what-if")?.body).toEqual({ strength: 70, start_day: 0, days: 3, region: "Texas" });
   });
@@ -41,7 +41,7 @@ describe("What if a storm comes", () => {
     const user = userEvent.setup();
     serve({ "POST /api/what-if": () => ({ answered: false, message: "The storm simulator needs the live workspace. It isn't available with sample data." }) });
     open("/what-if");
-    await user.click(screen.getByRole("button", { name: "Run the storm" }));
+    await user.click(await screen.findByRole("button", { name: "Run the storm" }));
     expect(await screen.findByText(/needs the live workspace/)).toBeInTheDocument();
   });
 
@@ -49,7 +49,7 @@ describe("What if a storm comes", () => {
     const user = userEvent.setup();
     serve({ "POST /api/what-if": () => problem(429, "slow_down", "That's a lot of simulations. Wait a minute, then try again.") });
     open("/what-if");
-    await user.click(screen.getByRole("button", { name: "Run the storm" }));
+    await user.click(await screen.findByRole("button", { name: "Run the storm" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("a lot of simulations");
   });
 });
@@ -60,7 +60,7 @@ describe("Rejecting a move asks for a reason", () => {
     const server = serve({ "POST /api/transfers/reject": () => ({ action: "REJECTED", changed: [fx.transfers[0].id], skipped: [], message: "1 transfer rejected." }) });
     open("/transfers");
     await user.click(await screen.findByRole("checkbox", { name: /Move 54/ }));
-    await user.click(screen.getByRole("button", { name: "Reject" }));
+    await user.click(await screen.findByRole("button", { name: "Reject" }));
     const dialog = await screen.findByRole("dialog");
     const reject = () => dialog.querySelector("button[type=submit]") as HTMLButtonElement;
     expect(reject()).toBeDisabled();
@@ -86,8 +86,8 @@ describe("Storm desk shows the crew's debate", () => {
       }),
     });
     open("/storm-desk");
-    await user.type(screen.getByLabelText("What do you need a plan for?"), "Prepare Florida");
-    await user.click(screen.getByRole("button", { name: "Make a plan" }));
+    await user.type(await screen.findByLabelText("What do you need a plan for?"), "Prepare Florida");
+    await user.click(await screen.findByRole("button", { name: "Make a plan" }));
     expect(await screen.findByText("How the crew reached this plan")).toBeInTheDocument();
     expect(screen.getByText("This move leaves Miami short.")).toBeInTheDocument();
     expect(screen.getByText("Risk checker")).toBeInTheDocument();

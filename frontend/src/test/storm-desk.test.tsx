@@ -24,13 +24,13 @@ describe("Storm desk", () => {
     const user = userEvent.setup();
     const server = serve({ "POST /api/storm-desk": () => plan });
     open();
-    await user.type(screen.getByLabelText("What do you need a plan for?"), "Prepare Florida for Sunday's storm");
-    await user.click(screen.getByRole("button", { name: "Make a plan" }));
+    await user.type(await screen.findByLabelText("What do you need a plan for?"), "Prepare Florida for Sunday's storm");
+    await user.click(await screen.findByRole("button", { name: "Make a plan" }));
 
     expect(await screen.findByRole("heading", { name: "Suggested plan" })).toBeInTheDocument();
     expect(screen.getByText("Heavy rain is expected in Tampa on Saturday.")).toBeInTheDocument();
     expect(screen.getByText(/Nothing has changed/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /1 move the plan refers to/ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /1 move the plan refers to/ })).toBeInTheDocument();
     expect(screen.getByText("What storm desk checked (2)")).toBeInTheDocument();
     expect(server.calls.find((c) => c.path === "/api/storm-desk")?.body).toEqual({ goal: "Prepare Florida for Sunday's storm" });
   });
@@ -39,7 +39,7 @@ describe("Storm desk", () => {
     const user = userEvent.setup();
     serve({ "POST /api/storm-desk": () => plan });
     open();
-    await user.click(screen.getByRole("button", { name: "Which stores need stock first this week?" }));
+    await user.click(await screen.findByRole("button", { name: "Which stores need stock first this week?" }));
     expect(await screen.findByRole("heading", { name: "Suggested plan" })).toBeInTheDocument();
   });
 
@@ -47,8 +47,8 @@ describe("Storm desk", () => {
     const user = userEvent.setup();
     serve({ "POST /api/storm-desk": () => ({ answered: false, plan: [], steps: [], transfers: [], message: "Storm desk needs the live workspace. It isn't available with sample data." }) });
     open();
-    await user.type(screen.getByLabelText("What do you need a plan for?"), "Prepare Florida");
-    await user.click(screen.getByRole("button", { name: "Make a plan" }));
+    await user.type(await screen.findByLabelText("What do you need a plan for?"), "Prepare Florida");
+    await user.click(await screen.findByRole("button", { name: "Make a plan" }));
     expect(await screen.findByText(/needs the live workspace/)).toBeInTheDocument();
   });
 
@@ -56,10 +56,10 @@ describe("Storm desk", () => {
     const user = userEvent.setup();
     serve({ "POST /api/storm-desk": () => problem(429, "slow_down", "Storm desk has been asked a lot. Wait a minute, then try again.") });
     open();
-    await user.type(screen.getByLabelText("What do you need a plan for?"), "Prepare Florida");
-    await user.click(screen.getByRole("button", { name: "Make a plan" }));
+    await user.type(await screen.findByLabelText("What do you need a plan for?"), "Prepare Florida");
+    await user.click(await screen.findByRole("button", { name: "Make a plan" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("asked a lot");
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
   it("is linked from Transfers and never uses technical words", async () => {
@@ -67,7 +67,7 @@ describe("Storm desk", () => {
     open("/transfers");
     const link = await screen.findByRole("link", { name: "Get a plan from storm desk" });
     expect(link).toHaveAttribute("href", "/storm-desk");
-    const main = screen.getByRole("main");
+    const main = await screen.findByRole("main");
     expect(within(main).queryByText(/\b(sql|databricks|model|api|warehouse)\b/i)).toBeNull();
   });
 });

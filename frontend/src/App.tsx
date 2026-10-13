@@ -1,20 +1,23 @@
+import { lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Link, Route, Routes } from "react-router-dom";
 import { makeQueryClient } from "./api/hooks";
 import { Shell } from "./components/Shell";
-import Ask from "./pages/Ask";
-import Backtest from "./pages/Backtest";
-import Analysis from "./pages/Analysis";
-import Impact from "./pages/Impact";
-import Loads from "./pages/Loads";
-import StormResponse from "./pages/StormResponse";
-import YourData from "./pages/YourData";
-import History from "./pages/History";
-import StormDesk from "./pages/StormDesk";
-import WhatIf from "./pages/WhatIf";
-import Stores from "./pages/Stores";
 import Today from "./pages/Today";
-import Transfers from "./pages/Transfers";
+
+// Every page except Today (the landing page) loads on first visit, so the first screen downloads less.
+const Ask = lazy(() => import("./pages/Ask"));
+const Backtest = lazy(() => import("./pages/Backtest"));
+const Analysis = lazy(() => import("./pages/Analysis"));
+const Impact = lazy(() => import("./pages/Impact"));
+const Loads = lazy(() => import("./pages/Loads"));
+const StormResponse = lazy(() => import("./pages/StormResponse"));
+const YourData = lazy(() => import("./pages/YourData"));
+const History = lazy(() => import("./pages/History"));
+const StormDesk = lazy(() => import("./pages/StormDesk"));
+const WhatIf = lazy(() => import("./pages/WhatIf"));
+const Stores = lazy(() => import("./pages/Stores"));
+const Transfers = lazy(() => import("./pages/Transfers"));
 
 function NotFound() {
   return (
@@ -30,6 +33,7 @@ function NotFound() {
 export default function App({ client = makeQueryClient() }: { client?: ReturnType<typeof makeQueryClient> }) {
   return (
     <QueryClientProvider client={client}>
+      <Suspense fallback={<p className="mt-10 text-center text-muted">Loading…</p>}>
       <Routes>
         <Route element={<Shell />}>
           <Route index element={<Today />} />
@@ -48,6 +52,7 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      </Suspense>
     </QueryClientProvider>
   );
 }
