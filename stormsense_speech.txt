@@ -1,0 +1,78 @@
+STORMSENSE - 5 MINUTE PRESENTATION SPEECH
+Presenter: Adarsh Ajay
+Read at a steady pace, about 150 words a minute. Pause at each [PAUSE].
+Slide numbers refer to stormsense_presentation.pptx.
+
+------------------------------------------------------------
+[0:00 - 0:45]  OPENING                                  Slide 1
+------------------------------------------------------------
+
+Picture a store on a Thursday. The storm is due on Sunday. The generators are sitting in Tampa, and Orlando is about to run out. Nobody saw it coming in time. By the time someone noticed, the customers had already gone to the store down the road.
+
+[PAUSE]
+
+In our sample history, stores like this lose real money. Most of it is not because the storm was unpredictable. It is because the right stock was in the wrong place, and nobody knew until it was too late.
+
+So I asked a simple question. What if we had a Doraemon gadget? One that tells you a week ahead which store will run out, and moves the right stock there before the rain starts.
+
+That gadget is StormSense. Let me show you what it does, what it is worth, and where it is honest about its limits.
+
+------------------------------------------------------------
+[0:45 - 1:45]  THE PROBLEM                              Slide 3
+------------------------------------------------------------
+
+Today, the typical process looks like this. Someone reads a spreadsheet after the warning has already arrived. They phone a neighbouring store to ask about stock. The decision is made on instinct, and nothing is recorded properly.
+
+In our sample history, five past storms and heat events lost about 302,000 dollars of sales. Those were sales the stores could not make, because the stock was not where the customers were. More than half of that loss came from one hurricane.
+
+So this is not only a forecasting problem. It is a timing problem and a movement problem.
+
+Think about what a planner has to do in the last two days before a storm. Check stock store by store, make calls, and hope the numbers are right. StormSense replaces that scramble with one screen that already knows the answer.
+
+------------------------------------------------------------
+[1:45 - 2:45]  THE IDEA                                 Slides 4 and 5
+------------------------------------------------------------
+
+StormSense works in three steps.
+
+First, predict. It forecasts every store and product for the next seven days, using the weather coming and the sales history.
+
+Second, move. It finds the stores that will run short, and the nearby stores that have spare stock, and it proposes the transfer before the storm arrives.
+
+Third, decide. A planner reviews every move. Each move shows its reason, the sales it protects, and how confident the forecast is. The planner approves or rejects it, and that decision is recorded.
+
+The gadget does the arithmetic. The person stays in control. The result is not a bigger forecast. It is a decision made days earlier, with the numbers attached.
+
+------------------------------------------------------------
+[2:45 - 3:30]  THE APP AND HOW IT RUNS                 Slides 6 to 9
+------------------------------------------------------------
+
+This is what a planner sees. The Today screen shows the urgent moves and the next weather alert. The Transfers screen shows each move as a sentence, with its reason. The History screen shows who approved what, and when.
+
+Behind the screens, a forecast runs every morning at six o'clock Eastern. It is eight tasks in order, and if one fails, it fails loudly. The browser never sees a table, a query or a password. Every database query is fixed, and every approval is audited.
+
+------------------------------------------------------------
+[3:30 - 4:45]  THE NUMBERS                        Slides 10 to 12
+------------------------------------------------------------
+
+This chart is the heart of the case. Each pair of bars is one storm. The first bar is the sales we lost, if nothing had moved. The second bar is what the planned moves could have protected.
+
+Be clear about what this means. The protected bar is an upper bound, because the test uses what really sold. Even so, the gap is large. Across the five events we protect about four percent of the lost sales today. The heat events protect the most, at about twenty-eight percent, so that is where to start.
+
+On the current sample plan, the protected sales come to about 50,000 dollars of revenue. After a 30 percent margin and trucking costs, the net is about 8,600 dollars. Net is what matters, not revenue. Margin and trucking are assumptions, and they are on the slide. If a store sets its own margin, the net moves with it, which is exactly why we want to test it with real stores.
+
+Those numbers tell us where the money is. The rest of this talk is about how to get it.
+
+------------------------------------------------------------
+[4:45 - 5:00]  OPTIONS AND CLOSE                  Slides 14 and 20
+------------------------------------------------------------
+
+There are options to earn more. The first is to share trucks on the same route. On the current plan that saves about 2,000 dollars across seven routes, and it uses trucks we already pay for. The second is marking down slow stock. The third is starting moves on a weather warning instead of the forecast alone, and that one needs a pilot first.
+
+So here is my ask. Give us the chance to test one option, in one region, this season. We will come back with a measurement, not a model.
+
+Thank you. I am happy to take questions.
+
+------------------------------------------------------------
+END OF SPEECH
+------------------------------------------------------------
