@@ -56,14 +56,14 @@ export function Shell() {
 
       <aside className="rail sticky top-0 hidden h-dvh flex-col bg-ink p-6 text-white lg:flex">
         <Brand />
-        <nav aria-label="Main" className="mt-10 grid gap-1">
+        <nav aria-label="Main" className="mt-8 grid gap-1">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex min-h-12 items-center gap-3 rounded-xl px-4 font-semibold transition-colors ${
+                `flex min-h-11 items-center gap-3 rounded-xl px-4 font-semibold transition-colors ${
                   isActive ? "bg-white/12 text-white" : "text-[#a9b8c2] hover:bg-white/8 hover:text-white"
                 }`
               }
@@ -73,7 +73,7 @@ export function Shell() {
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto grid gap-3 text-sm">
+        <div className="mt-auto grid shrink-0 gap-3 text-sm">
           <DataSourceSwitch />
           {label}
           {me.data && (
