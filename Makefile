@@ -8,7 +8,7 @@ export REQUESTS_CA_BUNDLE ?= /etc/ssl/certs/ca-certificates.crt
 export SSL_CERT_FILE ?= /etc/ssl/certs/ca-certificates.crt
 endif
 
-.PHONY: help setup dev dev-sample dev-api dev-web dev-ingest dev-mcp demo-data test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
+.PHONY: help setup dev dev-sample dev-api dev-web dev-ingest dev-mcp kill-ports demo-data test lint e2e types fixtures docs docs-site docs-serve architecture deck deck-check build-app smoke deploy deploy-data deploy-app pause resume
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -37,6 +37,11 @@ dev-ingest:
 
 dev-mcp:
 	cd stormsense-mcp && STORMSENSE_API_URL=http://localhost:8000/api uv run --system-certs uvicorn server:app --port 8200
+
+kill-ports:  ## Free ports 5173, 5174 and 8000 (stop leftover dev servers); fuser's "no process" exit is ignored
+	-fuser -k 5173/tcp
+	-fuser -k 5174/tcp
+	-fuser -k 8000/tcp
 
 demo-data:  ## Rewrite the four demo Excel workbooks for uploading (from the sample data)
 	$(PY) backend/scripts/make_demo_workbooks.py
