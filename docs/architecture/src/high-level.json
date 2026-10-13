@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "StormSense end to end: high-level architecture",
+    "output": "docs/architecture/high-level.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "people",
+      "type": "external",
+      "label": "Planners and store staff",
+      "sublabel": "Phone or laptop",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "data-owner",
+      "type": "external",
+      "label": "Data owner",
+      "sublabel": "Uploads or sends rows",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "ai",
+      "type": "external",
+      "label": "AI assistant",
+      "sublabel": "Any MCP client",
+      "pos": [
+        40,
+        640
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "nws",
+      "type": "external",
+      "label": "National Weather Service",
+      "sublabel": "Live forecasts and warnings",
+      "pos": [
+        40,
+        470
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "feeds",
+      "type": "external",
+      "label": "Sales and stock feeds",
+      "sublabel": "Planned: real feeds",
+      "pos": [
+        40,
+        820
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "ingest-client",
+      "type": "frontend",
+      "label": "Ingestion client",
+      "sublabel": "Port 5174, CSV and checks",
+      "pos": [
+        270,
+        120
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Planner web app",
+      "sublabel": "React + TypeScript",
+      "pos": [
+        270,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "mcp",
+      "type": "backend",
+      "label": "MCP server",
+      "sublabel": "Tools over the API",
+      "pos": [
+        270,
+        640
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "FastAPI: roles, approvals, audit",
+      "pos": [
+        520,
+        300
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "signin",
+      "type": "security",
+      "label": "Workspace sign-in",
+      "sublabel": "Roles from app_users",
+      "pos": [
+        520,
+        140
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "local",
+      "type": "database",
+      "label": "Local uploads",
+      "sublabel": "Mock and local runs only",
+      "pos": [
+        520,
+        470
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "warehouse",
+      "type": "cloud",
+      "label": "SQL warehouse",
+      "sublabel": "Serverless, parameterized SQL",
+      "pos": [
+        800,
+        300
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "tables",
+      "type": "database",
+      "label": "Delta tables",
+      "sublabel": "Unity Catalog, stormsense",
+      "pos": [
+        1090,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "ask",
+      "type": "cloud",
+      "label": "Ask space",
+      "sublabel": "Read-only questions",
+      "pos": [
+        800,
+        470
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "daily",
+      "type": "backend",
+      "label": "Daily job",
+      "sublabel": "6:00 AM Eastern, serverless",
+      "pos": [
+        1090,
+        470
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "quality",
+      "type": "backend",
+      "label": "Data quality gates",
+      "sublabel": "Lakeflow pipeline",
+      "pos": [
+        1090,
+        140
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "trigger",
+      "type": "backend",
+      "label": "Storm trigger",
+      "sublabel": "NWS warnings every 15 min",
+      "pos": [
+        800,
+        640
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "forecaster",
+      "type": "cloud",
+      "label": "Forecaster endpoint",
+      "sublabel": "Model serving, champion",
+      "pos": [
+        1370,
+        470
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "storm-desk-model",
+      "type": "cloud",
+      "label": "Storm desk model",
+      "sublabel": "Chat model, no tools to change data",
+      "pos": [
+        1370,
+        300
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "alert",
+      "type": "external",
+      "label": "Storm alert email",
+      "sublabel": "Demo button, Databricks job",
+      "pos": [
+        1370,
+        140
+      ],
+      "size": [
+        190,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Databricks workspace",
+      "wraps": [
+        "signin",
+        "web",
+        "api",
+        "warehouse",
+        "tables",
+        "ask",
+        "daily",
+        "quality",
+        "trigger",
+        "forecaster",
+        "storm-desk-model",
+        "alert"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Databricks App: one process, own service principal",
+      "wraps": [
+        "web",
+        "api",
+        "mcp"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "people-to-web",
+      "from": "people",
+      "to": "web",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "owner-to-ingest",
+      "from": "data-owner",
+      "to": "ingest-client",
+      "label": "uploads"
+    },
+    {
+      "id": "ingest-to-api",
+      "from": "ingest-client",
+      "to": "api",
+      "label": "/api/ingest"
+    },
+    {
+      "id": "web-to-api",
+      "from": "web",
+      "to": "api",
+      "label": "/api"
+    },
+    {
+      "id": "ai-to-mcp",
+      "from": "ai",
+      "to": "mcp",
+      "label": "MCP"
+    },
+    {
+      "id": "mcp-to-api",
+      "from": "mcp",
+      "to": "api",
+      "label": "same rules as the app",
+      "variant": "dashed"
+    },
+    {
+      "id": "signin-to-api",
+      "from": "signin",
+      "to": "api",
+      "label": "who is calling",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "api-to-warehouse",
+      "from": "api",
+      "to": "warehouse",
+      "label": "parameterized SQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-local",
+      "from": "api",
+      "to": "local",
+      "label": "local mode",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "warehouse-to-tables",
+      "from": "warehouse",
+      "to": "tables",
+      "label": "reads and writes"
+    },
+    {
+      "id": "api-to-ask",
+      "from": "api",
+      "to": "ask",
+      "label": "questions",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "ask-to-warehouse",
+      "from": "ask",
+      "to": "warehouse",
+      "label": "read-only SQL",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "nws-to-daily",
+      "from": "nws",
+      "to": "daily",
+      "label": "forecast",
+      "variant": "dashed"
+    },
+    {
+      "id": "nws-to-trigger",
+      "from": "nws",
+      "to": "trigger",
+      "label": "warnings",
+      "variant": "dashed"
+    },
+    {
+      "id": "trigger-to-daily",
+      "from": "trigger",
+      "to": "daily",
+      "label": "starts a run once",
+      "variant": "dashed",
+      "toSide": "bottom",
+      "fromSide": "right"
+    },
+    {
+      "id": "daily-to-tables",
+      "from": "daily",
+      "to": "tables",
+      "label": "writes results",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "daily-to-forecaster",
+      "from": "daily",
+      "to": "forecaster",
+      "label": "scores 7 days",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "quality-to-tables",
+      "from": "quality",
+      "to": "tables",
+      "label": "checks before features",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "feeds-to-tables",
+      "from": "feeds",
+      "to": "tables",
+      "label": "planned, not connected",
+      "variant": "dashed"
+    },
+    {
+      "id": "api-to-storm-desk",
+      "from": "api",
+      "to": "storm-desk-model",
+      "label": "storm desk plan",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-to-alert",
+      "from": "api",
+      "to": "alert",
+      "label": "demo button",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Inputs",
+      "items": [
+        "Weather from the National Weather Service",
+        "Stores, products, daily sales and stock: uploaded or sample",
+        "Planners sign in with their workspace account"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "The app",
+      "items": [
+        "One process serves the web app, the API and the MCP tools",
+        "Reads are fixed, parameterized queries",
+        "Approvals touch only pending rows and are audited"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The workspace",
+      "items": [
+        "Daily job at 6:00 AM Eastern: weather, features, forecast, gaps, transfers, verify",
+        "Forecaster loaded by the alias champion",
+        "Ask answers questions read-only"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Safety",
+      "items": [
+        "The app runs as its own service principal, with least privilege",
+        "Nothing the Ask space or storm desk returns is executed",
+        "The MCP server holds no data and no database connection"
+      ]
+    }
+  ]
+}

@@ -9,6 +9,8 @@
   "components": [
     { "id": "planner", "type": "external", "label": "Planner", "sublabel": "Phone or laptop", "pos": [40, 300], "size": [130, 64] },
     { "id": "web", "type": "frontend", "label": "Web app", "sublabel": "React + TypeScript", "pos": [250, 300], "size": [150, 64] },
+    { "id": "ingest-client", "type": "frontend", "label": "Ingestion client", "sublabel": "Uploads and row checks", "pos": [250, 140], "size": [150, 64] },
+    { "id": "mcp", "type": "backend", "label": "MCP server", "sublabel": "AI assistants, no data", "pos": [250, 470], "size": [150, 64] },
     { "id": "api", "type": "backend", "label": "API", "sublabel": "FastAPI + audit trail", "pos": [480, 300], "size": [160, 64] },
     { "id": "signin", "type": "security", "label": "Workspace sign-in", "sublabel": "Single sign-on", "pos": [480, 140], "size": [160, 64] },
     { "id": "warehouse", "type": "cloud", "label": "SQL warehouse", "sublabel": "Serverless", "pos": [790, 300], "size": [150, 64] },
@@ -25,6 +27,8 @@
   "connections": [
     { "id": "planner-to-web", "from": "planner", "to": "web", "label": "HTTPS", "variant": "emphasis" },
     { "id": "web-to-api", "from": "web", "to": "api", "label": "/api" },
+    { "id": "ingest-to-api", "from": "ingest-client", "to": "api", "label": "/api/ingest", "fromSide": "right", "toSide": "top" },
+    { "id": "mcp-to-api", "from": "mcp", "to": "api", "label": "MCP tools, same rules", "variant": "dashed", "fromSide": "right", "toSide": "bottom" },
     { "id": "signin-to-api", "from": "signin", "to": "api", "label": "who is calling", "variant": "security", "fromSide": "bottom", "toSide": "top" },
     { "id": "api-to-warehouse", "from": "api", "to": "warehouse", "label": "parameterized SQL", "variant": "emphasis" },
     { "id": "warehouse-to-tables", "from": "warehouse", "to": "tables", "label": "reads and writes" },

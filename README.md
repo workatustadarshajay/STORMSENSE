@@ -114,7 +114,7 @@ The internal change log (`what-changed.md`) is kept out of the site on purpose.
 
 <https://workatustadarshajay.github.io/STORMSENSE/architecture/>
 
-Five interactive diagrams, built from the sources in `docs/architecture/src` and rendered with the Archify skill. They show the system from several angles: the overall system, the daily pipeline that forecasts and plans each morning, the sequence of an approval, the lifecycle of a transfer, and the deployment. Use this page when you need to see how the parts connect; use the documentation site when you need to know how to do something.
+Six interactive diagrams, built from the sources in `docs/architecture/src` and rendered with the Archify skill. They show the system from several angles: the end-to-end application on one page, the overall system, the daily pipeline that forecasts and plans each morning, the sequence of an approval, the lifecycle of a transfer, and the deployment. Use this page when you need to see how the parts connect; use the documentation site when you need to know how to do something.
 
 Rebuild the diagrams from `docs/architecture/src` with `make architecture`.
 

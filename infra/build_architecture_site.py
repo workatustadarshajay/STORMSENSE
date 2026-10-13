@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "docs" / "architecture"
-PAGES = ["system", "daily-pipeline", "approve-transfer", "transfer-lifecycle", "deploy"]
+PAGES = ["high-level", "system", "daily-pipeline", "approve-transfer", "transfer-lifecycle", "deploy"]
 
 WORKFLOW = """name: Deploy architecture site to GitHub Pages
 

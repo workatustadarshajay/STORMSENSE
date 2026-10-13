@@ -99,6 +99,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
     </a>
     <nav aria-label="Diagrams">
       <ul id="nav">
+        <li><a href="#high-level" data-view="high-level"><strong>End to end</strong><span>The whole application on one page: people, app, workspace and outside services</span></a></li>
         <li><a href="#system" data-view="system"><strong>System</strong><span>What it is made of and who talks to whom</span></a></li>
         <li><a href="#daily-pipeline" data-view="daily-pipeline"><strong>Daily pipeline</strong><span>From weather and sales to transfers</span></a></li>
         <li><a href="#approve-transfer" data-view="approve-transfer"><strong>Approving a transfer</strong><span>What happens when a planner taps Approve</span></a></li>
@@ -143,12 +144,12 @@ footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
     <section class="viewer" id="viewer" aria-labelledby="view-title">
       <div class="viewer-head">
         <div>
-          <h2 id="view-title">System</h2>
+          <h2 id="view-title">End to end</h2>
           <p id="view-desc"></p>
         </div>
-        <a class="open" id="open-full" href="system.html" target="_blank" rel="noopener">Open full screen</a>
+        <a class="open" id="open-full" href="high-level.html" target="_blank" rel="noopener">Open full screen</a>
       </div>
-      <div class="frame"><iframe id="frame" title="System diagram" src="system.html" loading="lazy"></iframe></div>
+      <div class="frame"><iframe id="frame" title="End to end diagram" src="high-level.html" loading="lazy"></iframe></div>
     </section>
 
     <section class="facts" aria-labelledby="facts-h">
@@ -177,6 +178,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
 <script>
 (function () {
   var views = {
+    "high-level": ["End to end", "The whole application: who uses it, how data gets in, the app and API, the Databricks workspace with its daily job and forecaster, and the services it talks to."],
     "system": ["System", "The people, the app, the workspace and the daily job, with the boundaries that matter: the app’s own service principal and the read-only Ask space."],
     "daily-pipeline": ["Daily pipeline", "How feeds become leak-free features, a forecast, shortage and surplus, and finally transfers, and how decisions flow back into the next run."],
     "approve-transfer": ["Approving a transfer", "A planner taps Approve. The API checks the role, updates only rows that are still pending, and writes an audit trail."],
@@ -185,8 +187,8 @@ footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
   };
   var frame = document.getElementById("frame"), links = document.querySelectorAll("#nav a");
   function show() {
-    var id = (location.hash || "#system").slice(1);
-    if (!views[id]) id = "system";
+    var id = (location.hash || "#high-level").slice(1);
+    if (!views[id]) id = "high-level";
     document.getElementById("view-title").textContent = views[id][0];
     document.getElementById("view-desc").textContent = views[id][1];
     document.getElementById("open-full").href = id + ".html";

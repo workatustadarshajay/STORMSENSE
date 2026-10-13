@@ -74,6 +74,7 @@ nav:
       - Run it on your machine: running-locally.md
       - How to check it works: how-to-verify.md
   - How it works:
+      - High-level architecture: high-level-architecture.md
       - System design: system-design.md
       - Forecasting method: forecasting.md
       - Data dictionary: data-dictionary.md

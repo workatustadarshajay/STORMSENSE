@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "3af1d60d-68c2-4136-885a-1971df6dbed0",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/src/high-level.json",
+  "output": "/home/308638@USTDEV.COM/Projects/STORMSENSE/docs/architecture/high-level.html",
+  "specification": {
+    "sha256": "98013229307a2c1ca3bee8a73291212b51c04601cd13d73f2aefa4835da335eb",
+    "bytes": 10024
+  },
+  "artifact": {
+    "sha256": "e098ca8bec831ef837e203be1ce3d7a23a03195ec72b0d93ac4af600551462a1",
+    "bytes": 791131
+  }
+}

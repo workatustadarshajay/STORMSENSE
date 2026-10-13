@@ -80,7 +80,7 @@ deck:  ## Rebuild the hackathon deck (StormSense-Databricks-Hackathon.pptx) from
 	$(PY) deck/verify_deck.py
 
 architecture:  ## Regenerate the architecture website's diagrams from docs/architecture/src (set ARCHIFY_CHROME to a Chrome binary)
-	@for spec in "architecture architecture-system system" "dataflow dataflow-daily-pipeline daily-pipeline" \
+	@for spec in "architecture high-level high-level" "architecture architecture-system system" "dataflow dataflow-daily-pipeline daily-pipeline" \
 	  "sequence sequence-approve-transfer approve-transfer" "lifecycle lifecycle-transfer transfer-lifecycle" "workflow workflow-deploy deploy"; do \
 	  set -- $$spec; echo "== $$3"; \
 	  node .agents/skills/archify/bin/archify.mjs finalize $$1 docs/architecture/src/$$2.json docs/architecture/$$3.html --quality showcase || exit 1; \
