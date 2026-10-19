@@ -9,6 +9,10 @@ export type StoreSummary = S["StoreSummary"];
 export type StoreForecast = S["StoreForecast"];
 export type ProductForecast = S["ProductForecast"];
 export type InventoryItem = S["InventoryItem"];
+export type OrderSuggestion = S["OrderSuggestion"];
+export type BestSellers = S["BestSellers"];
+export type CoverSimulation = S["CoverSimulation"];
+export type RecoveryReport = S["RecoveryReport"];
 export type AskResponse = S["AskResponse"];
 export type WeatherAlert = S["WeatherAlert"];
 export type StormDeskPlan = S["StormDeskPlan"];
@@ -96,6 +100,10 @@ export const api = {
   decideMarkdown: (store_id: string, product_id: string, decision: "APPROVED" | "REJECTED") =>
     post<MarkdownSuggestion>("/api/markdowns/decision", { store_id, product_id, decision }),
   overview: (weather: WeatherMode = "live") => request<Overview>(`/api/overview${weatherQuery(weather)}`),
+  suggestedOrders: () => request<OrderSuggestion[]>("/api/orders/suggested"),
+  coverSimulation: () => request<CoverSimulation>("/api/cover/simulation"),
+  recovery: () => request<RecoveryReport>("/api/recovery"),
+  bestSellers: (weather: "heat" | "wind" | "rain") => request<BestSellers>(`/api/best-sellers${query({ weather })}`),
   transfers: (status?: Transfer["status"], urgency?: Transfer["urgency"]) =>
     request<Transfer[]>(`/api/transfers${query({ status, urgency })}`),
   approve: (ids: string[], note?: string) => post<DecisionResult>("/api/transfers/approve", { ids, note: note || null }),

@@ -329,6 +329,74 @@
         "title": "BacktestStorm",
         "type": "object"
       },
+      "BestSeller": {
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/ProductRef"
+          },
+          "stores": {
+            "description": "Stores that sell it under this weather.",
+            "title": "Stores",
+            "type": "integer"
+          },
+          "units": {
+            "description": "Forecast units for the next seven days, all stores.",
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product",
+          "units",
+          "stores"
+        ],
+        "title": "BestSeller",
+        "type": "object"
+      },
+      "BestSellers": {
+        "properties": {
+          "next_alert": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The next weather alert on the forecast, if any.",
+            "title": "Next Alert"
+          },
+          "ranking": {
+            "items": {
+              "$ref": "#/components/schemas/BestSeller"
+            },
+            "title": "Ranking",
+            "type": "array"
+          },
+          "weather": {
+            "enum": [
+              "heat",
+              "wind",
+              "rain"
+            ],
+            "title": "Weather",
+            "type": "string"
+          },
+          "what_next": {
+            "title": "What Next",
+            "type": "string"
+          }
+        },
+        "required": [
+          "weather",
+          "ranking",
+          "next_alert",
+          "what_next"
+        ],
+        "title": "BestSellers",
+        "type": "object"
+      },
       "Briefing": {
         "properties": {
           "headline": {
@@ -437,6 +505,93 @@
           "choices"
         ],
         "title": "ColumnInfo",
+        "type": "object"
+      },
+      "CoverRegion": {
+        "properties": {
+          "first_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Day"
+          },
+          "projected_lost_sales_usd": {
+            "description": "Sales lost if nothing moves, from the current stock gaps.",
+            "title": "Projected Lost Sales Usd",
+            "type": "number"
+          },
+          "projected_short_units": {
+            "title": "Projected Short Units",
+            "type": "integer"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "simulated_payout_usd": {
+            "description": "Illustrative only: lost sales, capped. Not a quote or a contract.",
+            "title": "Simulated Payout Usd",
+            "type": "number"
+          },
+          "stores_hit": {
+            "description": "Stores in the region that reach a trigger level on some day of the forecast.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Stores Hit",
+            "type": "array"
+          },
+          "triggered": {
+            "title": "Triggered",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "region",
+          "stores_hit",
+          "triggered",
+          "first_day",
+          "projected_lost_sales_usd",
+          "projected_short_units",
+          "simulated_payout_usd"
+        ],
+        "title": "CoverRegion",
+        "type": "object"
+      },
+      "CoverSimulation": {
+        "properties": {
+          "cap_usd": {
+            "title": "Cap Usd",
+            "type": "number"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/CoverRegion"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "trigger": {
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trigger",
+          "cap_usd",
+          "regions",
+          "note"
+        ],
+        "title": "CoverSimulation",
         "type": "object"
       },
       "DayUnits": {
@@ -1267,6 +1422,70 @@
         "title": "NextAction",
         "type": "object"
       },
+      "OrderSuggestion": {
+        "description": "What is still short after the moves on the table are made. A suggestion to order, not an order.",
+        "properties": {
+          "order_units": {
+            "description": "Safety order: the units still short if demand runs high (90th percentile), after pending moves.",
+            "title": "Order Units",
+            "type": "integer"
+          },
+          "pending_inbound": {
+            "description": "Units already proposed to arrive from pending moves.",
+            "title": "Pending Inbound",
+            "type": "integer"
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductRef"
+          },
+          "shortfall_high": {
+            "description": "The shortfall if demand comes in high (90th percentile).",
+            "title": "Shortfall High",
+            "type": "integer"
+          },
+          "shortfall_low": {
+            "description": "The shortfall if demand comes in low (10th percentile).",
+            "title": "Shortfall Low",
+            "type": "integer"
+          },
+          "shortfall_units": {
+            "description": "Units still short after pending moves, if demand is as forecast.",
+            "title": "Shortfall Units",
+            "type": "integer"
+          },
+          "stockout_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stockout Day"
+          },
+          "store": {
+            "$ref": "#/components/schemas/Ref"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "product",
+          "stockout_day",
+          "shortfall_units",
+          "shortfall_low",
+          "shortfall_high",
+          "pending_inbound",
+          "order_units",
+          "why"
+        ],
+        "title": "OrderSuggestion",
+        "type": "object"
+      },
       "Overview": {
         "properties": {
           "alerts": {
@@ -1532,6 +1751,85 @@
           "name_plural"
         ],
         "title": "ProductRef",
+        "type": "object"
+      },
+      "RecoveryEvent": {
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/BacktestStorm"
+          },
+          "stores_restocked": {
+            "description": "Stores that received approved stock in the storm window, first to last.",
+            "items": {
+              "$ref": "#/components/schemas/RecoveryStore"
+            },
+            "title": "Stores Restocked",
+            "type": "array"
+          },
+          "unprotected_usd": {
+            "title": "Unprotected Usd",
+            "type": "number"
+          }
+        },
+        "required": [
+          "event",
+          "unprotected_usd",
+          "stores_restocked"
+        ],
+        "title": "RecoveryEvent",
+        "type": "object"
+      },
+      "RecoveryReport": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "events",
+          "note"
+        ],
+        "title": "RecoveryReport",
+        "type": "object"
+      },
+      "RecoveryStore": {
+        "properties": {
+          "days_after_start": {
+            "title": "Days After Start",
+            "type": "integer"
+          },
+          "first_decision": {
+            "title": "First Decision",
+            "type": "string"
+          },
+          "moves": {
+            "title": "Moves",
+            "type": "integer"
+          },
+          "store": {
+            "$ref": "#/components/schemas/Ref"
+          },
+          "units": {
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "store",
+          "moves",
+          "units",
+          "first_decision",
+          "days_after_start"
+        ],
+        "title": "RecoveryStore",
         "type": "object"
       },
       "Ref": {
@@ -2636,6 +2934,54 @@
         ]
       }
     },
+    "/api/best-sellers": {
+      "get": {
+        "operationId": "best_sellers_api_best_sellers_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "weather",
+            "required": false,
+            "schema": {
+              "default": "heat",
+              "enum": [
+                "heat",
+                "wind",
+                "rain"
+              ],
+              "title": "Weather",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BestSellers"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Best Sellers",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
     "/api/briefing": {
       "get": {
         "description": "The morning briefing: a few plain sentences from today's figures, for the chosen data source.",
@@ -2655,6 +3001,28 @@
         "summary": "Briefing",
         "tags": [
           "today"
+        ]
+      }
+    },
+    "/api/cover/simulation": {
+      "get": {
+        "description": "Illustrative parametric cover: would it trigger in each region on the current forecast? Not a contract.",
+        "operationId": "cover_simulation_api_cover_simulation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverSimulation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cover Simulation",
+        "tags": [
+          "impact"
         ]
       }
     },
@@ -3456,6 +3824,32 @@
         ]
       }
     },
+    "/api/orders/suggested": {
+      "get": {
+        "description": "What is still short after the pending moves. A suggestion for the planner to act on; nothing is ordered.",
+        "operationId": "suggested_orders_api_orders_suggested_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrderSuggestion"
+                  },
+                  "title": "Response Suggested Orders Api Orders Suggested Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Suggested Orders",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
     "/api/overview": {
       "get": {
         "operationId": "overview_api_overview_get",
@@ -3500,6 +3894,27 @@
         "summary": "Overview",
         "tags": [
           "today"
+        ]
+      }
+    },
+    "/api/recovery": {
+      "get": {
+        "operationId": "recovery_api_recovery_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Recovery",
+        "tags": [
+          "history"
         ]
       }
     },

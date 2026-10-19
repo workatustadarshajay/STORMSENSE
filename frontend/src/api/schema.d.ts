@@ -63,6 +63,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/best-sellers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Best Sellers */
+        get: operations["best_sellers_api_best_sellers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/briefing": {
         parameters: {
             query?: never;
@@ -75,6 +92,26 @@ export interface paths {
          * @description The morning briefing: a few plain sentences from today's figures, for the chosen data source.
          */
         get: operations["briefing_api_briefing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cover/simulation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cover Simulation
+         * @description Illustrative parametric cover: would it trigger in each region on the current forecast? Not a contract.
+         */
+        get: operations["cover_simulation_api_cover_simulation_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -517,6 +554,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/suggested": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggested Orders
+         * @description What is still short after the pending moves. A suggestion for the planner to act on; nothing is ordered.
+         */
+        get: operations["suggested_orders_api_orders_suggested_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/overview": {
         parameters: {
             query?: never;
@@ -526,6 +583,23 @@ export interface paths {
         };
         /** Overview */
         get: operations["overview_api_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recovery */
+        get: operations["recovery_api_recovery_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -881,6 +955,37 @@ export interface components {
             /** Stores */
             stores: number;
         };
+        /** BestSeller */
+        BestSeller: {
+            product: components["schemas"]["ProductRef"];
+            /**
+             * Stores
+             * @description Stores that sell it under this weather.
+             */
+            stores: number;
+            /**
+             * Units
+             * @description Forecast units for the next seven days, all stores.
+             */
+            units: number;
+        };
+        /** BestSellers */
+        BestSellers: {
+            /**
+             * Next Alert
+             * @description The next weather alert on the forecast, if any.
+             */
+            next_alert: string | null;
+            /** Ranking */
+            ranking: components["schemas"]["BestSeller"][];
+            /**
+             * Weather
+             * @enum {string}
+             */
+            weather: "heat" | "wind" | "rain";
+            /** What Next */
+            what_next: string;
+        };
         /** Briefing */
         Briefing: {
             /** Headline */
@@ -914,6 +1019,43 @@ export interface components {
             name: string;
             /** Required */
             required: boolean;
+        };
+        /** CoverRegion */
+        CoverRegion: {
+            /** First Day */
+            first_day: string | null;
+            /**
+             * Projected Lost Sales Usd
+             * @description Sales lost if nothing moves, from the current stock gaps.
+             */
+            projected_lost_sales_usd: number;
+            /** Projected Short Units */
+            projected_short_units: number;
+            /** Region */
+            region: string;
+            /**
+             * Simulated Payout Usd
+             * @description Illustrative only: lost sales, capped. Not a quote or a contract.
+             */
+            simulated_payout_usd: number;
+            /**
+             * Stores Hit
+             * @description Stores in the region that reach a trigger level on some day of the forecast.
+             */
+            stores_hit: string[];
+            /** Triggered */
+            triggered: boolean;
+        };
+        /** CoverSimulation */
+        CoverSimulation: {
+            /** Cap Usd */
+            cap_usd: number;
+            /** Note */
+            note: string;
+            /** Regions */
+            regions: components["schemas"]["CoverRegion"][];
+            /** Trigger */
+            trigger: string;
         };
         /** DayUnits */
         DayUnits: {
@@ -1250,6 +1392,43 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * OrderSuggestion
+         * @description What is still short after the moves on the table are made. A suggestion to order, not an order.
+         */
+        OrderSuggestion: {
+            /**
+             * Order Units
+             * @description Safety order: the units still short if demand runs high (90th percentile), after pending moves.
+             */
+            order_units: number;
+            /**
+             * Pending Inbound
+             * @description Units already proposed to arrive from pending moves.
+             */
+            pending_inbound: number;
+            product: components["schemas"]["ProductRef"];
+            /**
+             * Shortfall High
+             * @description The shortfall if demand comes in high (90th percentile).
+             */
+            shortfall_high: number;
+            /**
+             * Shortfall Low
+             * @description The shortfall if demand comes in low (10th percentile).
+             */
+            shortfall_low: number;
+            /**
+             * Shortfall Units
+             * @description Units still short after pending moves, if demand is as forecast.
+             */
+            shortfall_units: number;
+            /** Stockout Day */
+            stockout_day: string | null;
+            store: components["schemas"]["Ref"];
+            /** Why */
+            why: string;
+        };
         /** Overview */
         Overview: {
             /** Alerts */
@@ -1341,6 +1520,36 @@ export interface components {
             name: string;
             /** Name Plural */
             name_plural: string;
+        };
+        /** RecoveryEvent */
+        RecoveryEvent: {
+            event: components["schemas"]["BacktestStorm"];
+            /**
+             * Stores Restocked
+             * @description Stores that received approved stock in the storm window, first to last.
+             */
+            stores_restocked: components["schemas"]["RecoveryStore"][];
+            /** Unprotected Usd */
+            unprotected_usd: number;
+        };
+        /** RecoveryReport */
+        RecoveryReport: {
+            /** Events */
+            events: components["schemas"]["RecoveryEvent"][];
+            /** Note */
+            note: string;
+        };
+        /** RecoveryStore */
+        RecoveryStore: {
+            /** Days After Start */
+            days_after_start: number;
+            /** First Decision */
+            first_decision: string;
+            /** Moves */
+            moves: number;
+            store: components["schemas"]["Ref"];
+            /** Units */
+            units: number;
         };
         /** Ref */
         Ref: {
@@ -1824,6 +2033,37 @@ export interface operations {
             };
         };
     };
+    best_sellers_api_best_sellers_get: {
+        parameters: {
+            query?: {
+                weather?: "heat" | "wind" | "rain";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BestSellers"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     briefing_api_briefing_get: {
         parameters: {
             query?: never;
@@ -1840,6 +2080,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Briefing"];
+                };
+            };
+        };
+    };
+    cover_simulation_api_cover_simulation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverSimulation"];
                 };
             };
         };
@@ -2456,6 +2716,26 @@ export interface operations {
             };
         };
     };
+    suggested_orders_api_orders_suggested_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSuggestion"][];
+                };
+            };
+        };
+    };
     overview_api_overview_get: {
         parameters: {
             query?: {
@@ -2483,6 +2763,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recovery_api_recovery_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryReport"];
                 };
             };
         };

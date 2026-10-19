@@ -1,12 +1,13 @@
 """Turns raw rows into what planners see: names instead of ids, sentences instead of codes."""
 from __future__ import annotations
 
+import math
 import re
 import time
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, TypeVar
 
 from .carbon import estimate_kg_co2e
@@ -20,15 +21,23 @@ from .schemas import (
     AskResponse,
     AskTable,
     BacktestStorm,
+    BestSeller,
+    BestSellers,
+    CoverRegion,
+    CoverSimulation,
     DayUnits,
     DecisionResult,
     InventoryItem,
     MarkdownSuggestion,
     Me,
     NextAction,
+    OrderSuggestion,
     Overview,
     ProductForecast,
     ProductRef,
+    RecoveryEvent,
+    RecoveryReport,
+    RecoveryStore,
     Ref,
     StoreForecast,
     StoreSummary,
@@ -46,6 +55,13 @@ CONDITION_LABEL = {**KIND_LABEL, "rain": "Rain", "clear": "Clear"}
 STATUS = {"SHORTAGE": "RUNNING_LOW", "SURPLUS": "EXTRA", "BALANCED": "OK"}
 # Planners never see these words, whatever a source returns.
 BANNED = re.compile(r"\b(sql|delta|databricks|genie|mlflow|warehouse|sku|mape|wape|model|api)\b", re.I)
+
+
+COVER_WIND_MPH = 39  # tropical-storm-force wind
+COVER_RAIN_IN = 3.0  # inches in a day
+COVER_STORES_NEEDED = 2
+COVER_CAP_USD = 100_000.0
+RECOVERY_WINDOW_DAYS = 3
 
 
 def weekday(d: date | None) -> str | None:
@@ -395,6 +411,136 @@ class Service:
             for g in rows
         ]
         return sorted(out, key=lambda i: (i.status != "RUNNING_LOW", i.store.name, i.product.name))
+
+    # ---- what to order, and what sells in this weather ------------------------------------
+    def order_suggestions(self) -> list[OrderSuggestion]:
+        """Shortfalls that the pending moves do not cover. Ordering is up to the planner; nothing is placed."""
+        stores, products = self._directory()
+        inbound: dict[tuple[str, str], int] = defaultdict(int)
+        for t in self.source.transfers("PENDING", None):
+            inbound[(t["dest_store_id"], t["product_id"])] += int(t["qty"])
+        out: list[OrderSuggestion] = []
+        for g in self.source.gaps(None, "SHORTAGE"):
+            if g["status"] != "SHORTAGE":
+                continue
+            covered = inbound.get((g["store_id"], g["product_id"]), 0)
+            expected = max(0, math.ceil(float(g["shortfall_units"] or 0) - covered))
+            high = max(0, math.ceil(float(g["shortfall_p90"] or 0) - covered))
+            if high == 0:  # pending moves cover even a high-demand week
+                continue
+            store, product = stores[g["store_id"]], products[g["product_id"]]
+            day = weekday(g["stockout_date"])
+            out.append(OrderSuggestion(
+                store=Ref(id=store["store_id"], name=store["name"]),
+                product=ProductRef(id=product["product_id"], name=product["name"], name_plural=product["name_plural"]),
+                stockout_day=day,
+                shortfall_units=expected,
+                shortfall_low=max(0, math.ceil(float(g["shortfall_p10"] or 0) - covered)),
+                shortfall_high=high,
+                pending_inbound=covered,
+                order_units=high,
+                why=(f"Pending moves cover {covered} units. "
+                     + (f"Covered if demand is as forecast. If demand runs high, still short by {high} units by {day or 'the coming week'}."
+                        if expected == 0 else
+                        f"Still short by {expected} units by {day or 'the coming week'} if demand is as forecast; "
+                        f"{high} if it runs high.")),
+            ))
+        return sorted(out, key=lambda o: (o.stockout_day or "", -o.order_units))
+
+    def best_sellers(self, weather: str) -> BestSellers:
+        """Products ranked by forecast units for the next seven days, for the weather that moves them."""
+        stores, products = self._directory()
+        drivers = {"heat": {"heat"}, "wind": {"wind"}, "rain": {"rain"}}[weather]
+        units: dict[str, int] = defaultdict(int)
+        sellers: dict[str, set[str]] = defaultdict(set)
+        for store_id in stores:
+            for row in self.source.predictions(store_id):
+                product = products.get(row["product_id"])
+                if product is None or product.get("weather_driver") not in drivers:
+                    continue
+                units[row["product_id"]] += round(float(row["predicted_units"] or 0))
+                sellers[row["product_id"]].add(store_id)
+        ranking = [
+            BestSeller(product=ProductRef(id=pid, name=products[pid]["name"], name_plural=products[pid]["name_plural"]),
+                       units=units[pid], stores=len(sellers[pid]))
+            for pid in units
+        ]
+        ranking.sort(key=lambda b: -b.units)
+        alert = self.overview().next_alert
+        follows = {"storm": {"wind", "rain"}, "heavy_rain": {"rain"}, "heat": {"heat"}}
+        next_names = [p["name_plural"] for p in products.values() if alert and p.get("weather_driver") in follows[alert.kind]]
+        what_next = (f"Next alert: {alert.title}. Usually follows it: {', '.join(sorted(next_names)[:3])}."
+                     if alert and next_names else "No weather alert is forecast for the coming week.")
+        return BestSellers(weather=weather, ranking=ranking, next_alert=alert.title if alert else None, what_next=what_next)
+
+
+    # ---- storm cover (simulation) and storm recovery ---------------------------------------
+    def cover_simulation(self) -> CoverSimulation:
+        """Would a parametric cover pay out for each region on today's forecast? An illustration, not a contract."""
+        stores, products = self._directory()
+        price = {pid: float(p.get("unit_price") or 0) for pid, p in products.items()}
+        hits: dict[str, tuple[str, str]] = {}
+        for w in self.source.weather(None):
+            sid = w["store_id"]
+            wind, rain = float(w["wind_max_mph"] or 0), float(w["rain_in"] or 0)
+            if sid in hits or (wind < COVER_WIND_MPH and rain < COVER_RAIN_IN):
+                continue
+            hits[sid] = (str(w["forecast_date"])[:10], "wind" if wind >= COVER_WIND_MPH else "rain")
+        lost: dict[str, float] = defaultdict(float)
+        short: dict[str, int] = defaultdict(int)
+        for g in self.source.gaps(None, None):
+            region = stores[g["store_id"]]["region"]
+            lost[region] += float(g["lost_units"] or 0) * price.get(g["product_id"], 0.0)
+            short[region] += round(float(g["shortfall_units"] or 0))
+        regions = []
+        for region in sorted({s["region"] for s in stores.values()}):
+            ids = sorted((sid for sid in hits if stores[sid]["region"] == region), key=lambda sid: hits[sid][0])
+            triggered = len(ids) >= COVER_STORES_NEEDED
+            lost_usd = round(lost[region], 2)
+            regions.append(CoverRegion(
+                region=region,
+                stores_hit=[stores[sid]["name"] for sid in ids],
+                triggered=triggered,
+                first_day=hits[ids[0]][0] if ids else None,
+                projected_lost_sales_usd=lost_usd,
+                projected_short_units=short[region],
+                simulated_payout_usd=round(min(lost_usd, COVER_CAP_USD), 2) if triggered else 0.0,
+            ))
+        return CoverSimulation(
+            trigger=(f"Triggers when at least {COVER_STORES_NEEDED} stores in a region reach {COVER_WIND_MPH} mph wind "
+                     f"or {COVER_RAIN_IN:g} inches of rain on the same forecast day."),
+            cap_usd=COVER_CAP_USD,
+            regions=regions,
+            note=("A simulation with illustrative thresholds, on the current forecast and stock gaps. "
+                  "Not a quote and not a contract. Thresholds and the cap would be agreed with an insurer or the business."),
+        )
+
+    def recovery(self) -> RecoveryReport:
+        """Each past storm, and the stores that received approved stock in its window, first to last."""
+        stores, _ = self._directory()
+        decided = [t for t in self.history() if t.status == "APPROVED" and t.decided_at is not None]
+        events = []
+        for ev in self.backtest():
+            window_end = ev.end_date + timedelta(days=RECOVERY_WINDOW_DAYS)
+            per_store: dict[str, dict] = {}
+            for t in decided:
+                day = t.decided_at.date() if isinstance(t.decided_at, datetime) else t.decided_at
+                if day is None or not (ev.start_date <= day <= window_end):
+                    continue
+                row = per_store.setdefault(t.to_store.id, {"name": t.to_store.name, "moves": 0, "units": 0, "first": day})
+                row["moves"] += 1
+                row["units"] += t.qty
+                row["first"] = min(row["first"], day)
+            restocked = [
+                RecoveryStore(store=Ref(id=sid, name=row["name"]), moves=row["moves"], units=row["units"],
+                              first_decision=row["first"].isoformat(), days_after_start=(row["first"] - ev.start_date).days)
+                for sid, row in sorted(per_store.items(), key=lambda kv: kv[1]["first"])
+            ]
+            events.append(RecoveryEvent(event=ev, unprotected_usd=round(ev.lost_usd - ev.protected_usd, 2), stores_restocked=restocked))
+        note = ("Restocking is recorded when a planner approves a move. The sample history has no decisions inside these storm "
+                "windows, so the per-store timelines fill in as storms are planned in the app.") if not any(
+            e.stores_restocked for e in events) else "Restocking is taken from approved moves in each storm window."
+        return RecoveryReport(events=events, note=note)
 
     # ---- ask -------------------------------------------------------------------------------------
     def ask(self, question: str) -> AskResponse:

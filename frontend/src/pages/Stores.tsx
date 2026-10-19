@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { ProductForecast, StoreForecast } from "../api/client";
 import { useForecast, useStores } from "../api/hooks";
+import { BestSellersPanel } from "../components/BestSellersPanel";
 import { QueryView } from "../components/StateViews";
 import { shortDay } from "../lib/format";
 
@@ -96,6 +97,7 @@ export default function Stores() {
     <>
       <h1 className="text-4xl font-extrabold">Store forecast</h1>
       <p className="mt-1 text-muted">What each store is likely to sell this week, and when it could run low.</p>
+      <BestSellersPanel />
 
       <QueryView query={stores} rows={2}>
         {(data) => (

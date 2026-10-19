@@ -5,6 +5,7 @@ import type { DecisionResult, Transfer } from "../api/client";
 import type { RejectReason } from "../api/client";
 import { useDecide, useMe, usePending } from "../api/hooks";
 import { Dialog } from "../components/Dialog";
+import { OrderPanel } from "../components/OrderPanel";
 import { Empty, QueryView } from "../components/StateViews";
 import { TransferCard } from "../components/TransferCard";
 import { plural } from "../lib/format";
@@ -121,6 +122,8 @@ export default function Transfers() {
   const me = useMe();
   const pending = usePending();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [greenFirst, setGreenFirst] = useState(false);
+  const order = (xs: Transfer[]) => (greenFirst ? [...xs].sort((a, b) => a.co2_kg - b.co2_kg) : xs);
   const [action, setAction] = useState<Action | null>(null);
   const [result, setResult] = useState<DecisionResult | null>(null);
   const canDecide = me.data?.can_approve ?? false;
@@ -172,6 +175,7 @@ export default function Transfers() {
         </button>
       </div>
       <p className="mt-3 hidden text-sm text-muted print:block">StormSense transfer plan, printed {new Date().toLocaleDateString()}.</p>
+      <OrderPanel />
 
       {me.data && !canDecide && (
         <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-rain-tint p-4 font-semibold text-rain">
@@ -210,9 +214,20 @@ export default function Transfers() {
       >
         {(data) => (
           <>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted">Each move shows its estimated CO₂. Shared truck trips cut it.</p>
+              <button
+                type="button"
+                aria-pressed={greenFirst}
+                onClick={() => setGreenFirst((g) => !g)}
+                className={`min-h-11 rounded-xl border px-4 text-sm font-bold ${greenFirst ? "border-teal bg-teal-tint text-teal-deep" : "border-line text-ink hover:border-teal"}`}
+              >
+                {greenFirst ? "Showing lowest CO₂ first" : "Lowest CO₂ first"}
+              </button>
+            </div>
             <Group
               title="Urgent"
-              items={data.filter((t) => t.urgency === "URGENT")}
+              items={order(data.filter((t) => t.urgency === "URGENT"))}
               selectable={canDecide}
               selected={selected}
               toggle={toggle}
@@ -220,7 +235,7 @@ export default function Transfers() {
             />
             <Group
               title="This week"
-              items={data.filter((t) => t.urgency !== "URGENT")}
+              items={order(data.filter((t) => t.urgency !== "URGENT"))}
               selectable={canDecide}
               selected={selected}
               toggle={toggle}

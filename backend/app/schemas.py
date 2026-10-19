@@ -384,3 +384,66 @@ class Impact(BaseModel):
     changes: ChangeSince
     timeline: list[TimelineEvent]
 
+
+class OrderSuggestion(BaseModel):
+    """What is still short after the moves on the table are made. A suggestion to order, not an order."""
+
+    store: Ref
+    product: ProductRef
+    stockout_day: str | None
+    shortfall_units: int = Field(description="Units still short after pending moves, if demand is as forecast.")
+    shortfall_low: int = Field(description="The shortfall if demand comes in low (10th percentile).")
+    shortfall_high: int = Field(description="The shortfall if demand comes in high (90th percentile).")
+    pending_inbound: int = Field(description="Units already proposed to arrive from pending moves.")
+    order_units: int = Field(description="Safety order: the units still short if demand runs high (90th percentile), after pending moves.")
+    why: str
+
+
+class BestSeller(BaseModel):
+    product: ProductRef
+    units: int = Field(description="Forecast units for the next seven days, all stores.")
+    stores: int = Field(description="Stores that sell it under this weather.")
+
+
+class BestSellers(BaseModel):
+    weather: Literal["heat", "wind", "rain"]
+    ranking: list[BestSeller]
+    next_alert: str | None = Field(description="The next weather alert on the forecast, if any.")
+    what_next: str
+
+
+class CoverRegion(BaseModel):
+    region: str
+    stores_hit: list[str] = Field(description="Stores in the region that reach a trigger level on some day of the forecast.")
+    triggered: bool
+    first_day: str | None
+    projected_lost_sales_usd: float = Field(description="Sales lost if nothing moves, from the current stock gaps.")
+    projected_short_units: int
+    simulated_payout_usd: float = Field(description="Illustrative only: lost sales, capped. Not a quote or a contract.")
+
+
+class CoverSimulation(BaseModel):
+    trigger: str
+    cap_usd: float
+    regions: list[CoverRegion]
+    note: str
+
+
+class RecoveryStore(BaseModel):
+    store: Ref
+    moves: int
+    units: int
+    first_decision: str
+    days_after_start: int
+
+
+class RecoveryEvent(BaseModel):
+    event: BacktestStorm
+    unprotected_usd: float
+    stores_restocked: list[RecoveryStore] = Field(description="Stores that received approved stock in the storm window, first to last.")
+
+
+class RecoveryReport(BaseModel):
+    events: list[RecoveryEvent]
+    note: str
+

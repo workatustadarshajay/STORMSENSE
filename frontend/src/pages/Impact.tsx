@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useImpact } from "../api/hooks";
 import { Bars, ChartCard, SIGNAL, SimpleTable, TEAL, DEEP } from "../components/Charts";
@@ -19,6 +20,10 @@ export default function Impact() {
   return (
     <>
       <h1 className="text-4xl font-extrabold">Business impact</h1>
+      <p className="mt-3 flex flex-wrap gap-2 text-sm font-bold">
+        <Link to="/cover" className="rounded-xl border border-line px-3 py-2 text-teal-deep hover:border-teal">Storm cover (simulation)</Link>
+        <Link to="/recovery" className="rounded-xl border border-line px-3 py-2 text-teal-deep hover:border-teal">Past storm recovery</Link>
+      </p>
       <p className="mt-1 max-w-3xl text-muted">
         What the plan is worth, what has changed, and the updates behind it. The money figures are estimates, and their assumptions are listed below.
       </p>

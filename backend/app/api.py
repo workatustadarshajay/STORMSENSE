@@ -19,7 +19,9 @@ from .schemas import (
     AskRequest,
     AskResponse,
     BacktestStorm,
+    BestSellers,
     ChangeSince,
+    CoverSimulation,
     DecisionResult,
     DemoAlertResult,
     DraftDecision,
@@ -30,8 +32,10 @@ from .schemas import (
     Loads,
     MarkdownSuggestion,
     Me,
+    OrderSuggestion,
     Overview,
     PlanChange,
+    RecoveryReport,
     RejectRequest,
     StoreForecast,
     StoreSummary,
@@ -339,6 +343,28 @@ def store_forecast(store_id: Annotated[str, Path(pattern=r"^S\d{2}$")], user: Us
 @router.get("/inventory", response_model=list[InventoryItem], tags=["stores"])
 def inventory(user: User, svc: Svc, status: Literal["RUNNING_LOW", "EXTRA"] | None = Query(None)) -> list[InventoryItem]:
     return svc.inventory(status)
+
+
+@router.get("/orders/suggested", response_model=list[OrderSuggestion], tags=["stores"])
+def suggested_orders(user: User, svc: Svc) -> list[OrderSuggestion]:
+    """What is still short after the pending moves. A suggestion for the planner to act on; nothing is ordered."""
+    return svc.order_suggestions()
+
+
+@router.get("/best-sellers", response_model=BestSellers, tags=["stores"])
+def best_sellers(user: User, svc: Svc, weather: Literal["heat", "wind", "rain"] = Query("heat")) -> BestSellers:
+    return svc.best_sellers(weather)
+
+
+@router.get("/cover/simulation", response_model=CoverSimulation, tags=["impact"])
+def cover_simulation(user: User, svc: Svc) -> CoverSimulation:
+    """Illustrative parametric cover: would it trigger in each region on the current forecast? Not a contract."""
+    return svc.cover_simulation()
+
+
+@router.get("/recovery", response_model=RecoveryReport, tags=["history"])
+def recovery(user: User, svc: Svc) -> RecoveryReport:
+    return svc.recovery()
 
 
 @router.get("/history", response_model=list[Transfer], tags=["transfers"])

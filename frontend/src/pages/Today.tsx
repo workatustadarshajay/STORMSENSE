@@ -2,6 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import type { Overview, WeatherMode } from "../api/client";
 import { useBriefing, useDecideMarkdown, useDemoAlert, useMarkdowns, useMe, useOverview, useStores, useStormDraft } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
+import { SinceLastVisit } from "../components/SinceLastVisit";
 import { greeting, longDate, money, plural, shortDay, parseDay } from "../lib/format";
 
 const KIND = { storm: "Storm", heavy_rain: "Heavy rain", heat: "Heat wave" } as const;
@@ -200,6 +201,7 @@ function Body({ o, name, weather, onWeather }: { o: Overview; name: string; weat
       )}
       {weather === "demo" && <DemoEmail />}
 
+      <SinceLastVisit />
       <section aria-label="Today at a glance" className="settle mt-8 grid grid-cols-3 divide-x divide-line">
         <Figure value={o.urgent_transfers} urgent={o.urgent_transfers > 0} label={o.urgent_transfers === 1 ? "urgent transfer" : "urgent transfers"} />
         <Figure value={o.stores_at_risk} label={o.stores_at_risk === 1 ? "store running low" : "stores running low"} />

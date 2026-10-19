@@ -49,6 +49,27 @@ An upper bound, not a forecast.
 
 Returns list of BacktestStorm.
 
+### `GET /api/best-sellers`
+
+Best Sellers
+
+**Parameters**
+
+| Name | In | Type | Required | Notes |
+|---|---|---|---|---|
+| `weather` | query | one of `heat`, `wind`, `rain` | no | default `"heat"` |
+
+**Response**
+
+Returns BestSellers.
+
+| Field | Type | Notes |
+|---|---|---|
+| `next_alert` | string (optional) | The next weather alert on the forecast, if any. |
+| `ranking` | list of BestSeller |  |
+| `weather` | one of `heat`, `wind`, `rain` |  |
+| `what_next` | string |  |
+
 ### `GET /api/briefing`
 
 Briefing
@@ -63,6 +84,23 @@ Returns Briefing.
 |---|---|---|
 | `headline` | string |  |
 | `lines` | list of string |  |
+
+### `GET /api/cover/simulation`
+
+Cover Simulation
+
+Illustrative parametric cover: would it trigger in each region on the current forecast? Not a contract.
+
+**Response**
+
+Returns CoverSimulation.
+
+| Field | Type | Notes |
+|---|---|---|
+| `cap_usd` | number |  |
+| `note` | string |  |
+| `regions` | list of CoverRegion |  |
+| `trigger` | string |  |
 
 ### `POST /api/demo/alert`
 
@@ -482,6 +520,16 @@ Returns Me.
 | `name` | string |  |
 | `role` | one of `viewer`, `planner`, `admin` |  |
 
+### `GET /api/orders/suggested`
+
+Suggested Orders
+
+What is still short after the pending moves. A suggestion for the planner to act on; nothing is ordered.
+
+**Response**
+
+Returns list of OrderSuggestion.
+
 ### `GET /api/overview`
 
 Overview
@@ -506,6 +554,19 @@ Returns Overview.
 | `stores_at_risk` | integer |  |
 | `urgent_transfers` | integer |  |
 | `weather_source` | one of `live`, `demo` | demo means a demo storm is placed on the weather screens; default `"live"` |
+
+### `GET /api/recovery`
+
+Recovery
+
+**Response**
+
+Returns RecoveryReport.
+
+| Field | Type | Notes |
+|---|---|---|
+| `events` | list of RecoveryEvent |  |
+| `note` | string |  |
 
 ### `POST /api/response/draft`
 

@@ -19,6 +19,8 @@ const StormDesk = lazy(() => import("./pages/StormDesk"));
 const WhatIf = lazy(() => import("./pages/WhatIf"));
 const Stores = lazy(() => import("./pages/Stores"));
 const Transfers = lazy(() => import("./pages/Transfers"));
+const Cover = lazy(() => import("./pages/Cover"));
+const Recovery = lazy(() => import("./pages/Recovery"));
 
 function NotFound() {
   return (
@@ -51,6 +53,8 @@ export default function App({ client = makeQueryClient() }: { client?: ReturnTyp
           <Route path="impact" element={<Impact />} />
           <Route path="response" element={<StormResponse />} />
           <Route path="loads" element={<Loads />} />
+          <Route path="cover" element={<Cover />} />
+          <Route path="recovery" element={<Recovery />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

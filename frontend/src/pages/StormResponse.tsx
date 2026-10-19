@@ -4,6 +4,28 @@ import { useStormDecide, useStormDraft } from "../api/hooks";
 import { QueryView } from "../components/StateViews";
 import { money } from "../lib/format";
 
+/** Copies one store's draft note, so a planner can paste it into their own email or message. */
+function CopyNote({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setState("copied");
+        } catch {
+          setState("failed");
+        }
+        setTimeout(() => setState("idle"), 1800);
+      }}
+      className="min-h-9 rounded-lg border border-line px-3 text-xs font-bold text-teal-deep hover:border-teal"
+    >
+      {state === "copied" ? "Copied" : state === "failed" ? "Select the text to copy" : "Copy note"}
+    </button>
+  );
+}
+
 export default function StormResponse() {
   const draft = useStormDraft();
   const decide = useStormDecide();
@@ -93,7 +115,12 @@ export default function StormResponse() {
                 <summary className="cursor-pointer font-bold">Notes for store managers (drafts)</summary>
                 <p className="mt-2 text-sm text-muted">These are drafts only. They have not been sent, because store email addresses are not set up yet.</p>
                 <ul className="mt-3 space-y-2">
-                  {d.store_notes.map((n) => <li key={n.store}><strong>{n.store}:</strong> {n.text}</li>)}
+                  {d.store_notes.map((n) => (
+                    <li key={n.store} className="flex flex-wrap items-start gap-2">
+                      <span><strong>{n.store}:</strong> {n.text}</span>
+                      <CopyNote text={`${n.store}: ${n.text}`} />
+                    </li>
+                  ))}
                 </ul>
               </details>
               <p className="text-sm"><Link to="/transfers" className="font-bold text-teal-deep underline">Back to transfers</Link></p>

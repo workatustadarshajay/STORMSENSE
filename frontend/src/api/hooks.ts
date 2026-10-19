@@ -48,6 +48,11 @@ export const useMe = () => useQuery({ queryKey: ["me"], queryFn: api.me, staleTi
 export const useOverview = (weather: WeatherMode = "live") =>
   useQuery({ queryKey: ["overview", weather], queryFn: () => api.overview(weather) });
 export const usePending = () => useQuery({ queryKey: ["transfers", "PENDING"], queryFn: () => api.transfers("PENDING") });
+export const useCoverSimulation = () => useQuery({ queryKey: ["cover"], queryFn: api.coverSimulation });
+export const useRecovery = () => useQuery({ queryKey: ["recovery"], queryFn: api.recovery });
+export const useSuggestedOrders = () => useQuery({ queryKey: ["orders"], queryFn: api.suggestedOrders });
+export const useBestSellers = (weather: "heat" | "wind" | "rain") =>
+  useQuery({ queryKey: ["best-sellers", weather], queryFn: () => api.bestSellers(weather) });
 export const useHistory = () => useQuery({ queryKey: ["history"], queryFn: api.history });
 export const useBacktest = () => useQuery({ queryKey: ["backtest"], queryFn: api.backtest, staleTime: 300_000 });
 export const useDemoAlert = () => useMutation({ mutationFn: api.demoAlert });
@@ -66,7 +71,7 @@ export function useDecide() {
       v: { action: "approve"; ids: string[]; note?: string } | { action: "reject"; ids: string[]; reason: string; reasonCode: RejectReason },
     ) => (v.action === "approve" ? api.approve(v.ids, v.note) : api.reject(v.ids, v.reason, v.reasonCode)),
     onSettled: () => {
-      for (const key of ["transfers", "overview", "history", "stores", "forecast"]) qc.invalidateQueries({ queryKey: [key] });
+      for (const key of ["transfers", "overview", "history", "stores", "forecast", "orders"]) qc.invalidateQueries({ queryKey: [key] });
     },
   });
 }
